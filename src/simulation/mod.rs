@@ -92,6 +92,25 @@ pub trait Termination<'a, T, G, F>
     fn evaluate(&state: SimState<'a, T, G, F>) -> bool;
 }
 
+/// The `Evaluated` type marks an individual as evaluated. Mostly this means
+/// that the `Fitness` value has been calculated for this individual.
+///
+/// This structure is used to store the fitness value, so that the fitness
+/// value needs to be calculated only one time for each individual. For
+/// simulation with more sophisticated fitness calculations this can improve
+/// performance.
+#[derive(Debug, Eq, PartialEq)]
+pub struct Evaluated<'a, T, G, F>
+    where T: 'a + Phenotype<G>, G: Genotype, F: Fitness
+{
+    /// The `Phenotype` that has been evaluated.
+    phenotype: &'a T,
+    /// The `Fitness` value of the evaluated `Phenotype`.
+    fitness: F,
+    // Needed to calm down the compiler ;-)
+    phantom_type: PhantomData<G>,
+}
+
 #[derive(Debug, Eq, PartialEq)]
 pub struct SimState<'a, T, G, F>
     where T: 'a + Phenotype<G>, G: Genotype, F: Fitness
@@ -120,13 +139,8 @@ pub struct BestSolution<'a, T, G, F>
     found_at: DateTime<Local>,
     /// The number of the generation in which this solution is found.
     generation: u64,
-    /// The `Fitness` value of this solution which is considered to be best
-    /// so far.
-    fitness: F,
-    /// The `Phenotype` that is considered to be best so far.
-    best_solution: &'a T,
-    // Needed to calm down the compiler ;-)
-    phantom_type: PhantomData<G>,
+    /// The evaluated `Phenotype` that is considered to be best.
+    solution: Evaluated<'a, T, G, F>,
 }
 
 /// The result of running a step in the `Simulation`.

@@ -77,7 +77,7 @@ impl<T, G> Population<T, G>
 /// A `Breeding` defines the type of `Parents` returned by the `SelectionOp`
 /// and used for breeding in the `CrossoverOp`. Usually parents will be
 /// defined as tuple of two `Genotype`s but maybe some derivation of the
-/// genetic algorithm wants to use three `Genotype`s for breeding.
+/// genetic algorithm wants to use three or more `Genotype`s for breeding.
 pub trait Breeding<G>
     where G: Genotype
 {

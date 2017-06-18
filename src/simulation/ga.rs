@@ -6,7 +6,7 @@ use simulation::{BestSolution, SimError, SimResult, Simulation, SimulationBuilde
                          Termination};
 
 
-pub struct GeneticSimulator<'a, T, G, F, E, S, Q, C, M, P>
+pub struct Simulator<'a, T, G, F, E, S, Q, C, M, P>
     where T: 'a + Phenotype<G>, G: Genotype, F: Fitness, P: Breeding<G>,
           E: FitnessEvaluation<G, F>, S: SelectionOp<T, G, P>, Q: Termination<'a, T, G, F>,
           C: CrossoverOp<P, G>, M: MutationOp<G>
@@ -22,7 +22,7 @@ pub struct GeneticSimulator<'a, T, G, F, E, S, Q, C, M, P>
 }
 
 impl<'a, T, G, F, E, S, Q, C, M, P> Simulation<'a, T, G, F, E, S, Q, C, M, P>
-    for GeneticSimulator<'a, T, G, F, E, S, Q, C, M, P>
+    for Simulator<'a, T, G, F, E, S, Q, C, M, P>
     where T: 'a + Phenotype<G>, G: Genotype, F: Fitness, P: Breeding<G>,
           E: FitnessEvaluation<G, F>, S: SelectionOp<T, G, P>, Q: Termination<'a, T, G, F>,
           C: CrossoverOp<P, G>, M: MutationOp<G>
@@ -30,7 +30,7 @@ impl<'a, T, G, F, E, S, Q, C, M, P> Simulation<'a, T, G, F, E, S, Q, C, M, P>
     fn builder<B>(evaluator: E, selector: S, breeder: C, mutator: M, termination: Vec<Q>) -> B
         where B: SimulationBuilder<'a, Self, T, G, F, E, S, Q, C, M, P>, Self: Sized
     {
-        GeneticSimulatorBuilder {
+        SimulatorBuilder {
             evaluator: Box::new(evaluator),
             selector: Box::new(selector),
             breeder: Box::new(breeder),
@@ -55,7 +55,7 @@ impl<'a, T, G, F, E, S, Q, C, M, P> Simulation<'a, T, G, F, E, S, Q, C, M, P>
     }
 }
 
-pub struct GeneticSimulatorBuilder<'a, Sim, T, G, F, E, S, Q, C, M, P>
+pub struct SimulatorBuilder<'a, Sim, T, G, F, E, S, Q, C, M, P>
     where Sim: Simulation<'a, T, G, F, E, S, Q, C, M, P>,
           T: 'a + Phenotype<G>, G: Genotype, F: Fitness, P: Breeding<G>,
           E: FitnessEvaluation<G, F>, S: SelectionOp<T, G, P>, Q: Termination<'a, T, G, F>,
@@ -68,14 +68,14 @@ pub struct GeneticSimulatorBuilder<'a, Sim, T, G, F, E, S, Q, C, M, P>
 }
 
 impl<'a, Sim, T, G, F, E, S, Q, C, M, P> SimulationBuilder<'a, Sim, T, G, F, E, S, Q, C, M, P>
-    for GeneticSimulatorBuilder<'a, Sim, T, G, F, E, S, Q, C, M, P>
+    for SimulatorBuilder<'a, Sim, T, G, F, E, S, Q, C, M, P>
     where Sim: Simulation<'a, T, G, F, E, S, Q, C, M, P>,
           T: 'a + Phenotype<G>, G: Genotype, F: Fitness, P: Breeding<G>,
           E: FitnessEvaluation<G, F>, S: SelectionOp<T, G, P>, Q: Termination<'a, T, G, F>,
           C: CrossoverOp<P, G>, M: MutationOp<G>
 {
     fn initialize(&self, population: Population<T, G>) -> Sim {
-        GeneticSimulator {
+        Simulator {
             evaluator: self.fitnessEvaluation,
             selector: self.selector,
             breeder: self.breeder,
