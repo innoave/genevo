@@ -17,7 +17,7 @@
 [crl]: https://crates.io/crates/genevo/
 [dcl]: https://docs.rs/genevo
 [tcl]: https://travis-ci.org/innoave/genevo/
-[lil]: COPYING
+[lil]: COPYRIGHT.txt
 [l1l]: https://opensource.org/licenses/MIT
 [l2l]: https://www.apache.org/licenses/LICENSE-2.0
 [gcl]: https://gitter.im/orgs/innoave/genevo

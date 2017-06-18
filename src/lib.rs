@@ -1,5 +1,19 @@
-//! `genevo` is a library to search for an optimal solution by simulating the
-//! evolution of data using a genetic algorithm.
+//! # genevo
+//!
+//! `genevo` is a library for implementing and executing simulations of
+//! optimization and search problems using a genetic algorithm (GA).
+//!
+//! ## Installation
+//!
+//! You can use this library by adding the following lines to your `Cargo.toml`
+//! file:
+//!
+//! ```ignore
+//! [dependencies]
+//! genevo = "^0.1.0"
+//! ```
+//!
+//! and adding `extern crate genevo;` to your crate root.
 
 #[cfg(test)] #[macro_use] extern crate quickcheck;
 #[cfg(test)] #[macro_use] extern crate hamcrest;
