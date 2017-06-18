@@ -102,15 +102,15 @@ pub struct State<'a, T, G, F>
     where T: 'a + Phenotype<G>, G: Genotype, F: Fitness
 {
     /// The local time when this simulation started.
-    started_at: DateTime<Local>,
+    pub started_at: DateTime<Local>,
     /// The number of the generation currently evaluated.
-    generation: u64,
+    pub generation: u64,
     /// Time spent for the current generation.
-    time: Duration,
+    pub time: Duration,
     /// Average fitness value of the current generation.
-    average_fitness: F,
+    pub average_fitness: F,
     /// Best solution of this generation.
-    best_solution: BestSolution<'a, T, G, F>
+    pub best_solution: BestSolution<'a, T, G, F>
 }
 
 /// The best solution found by the `Simulation`. If the simulation is not

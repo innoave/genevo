@@ -8,9 +8,15 @@ extern crate chrono;
 extern crate futures;
 extern crate rand;
 
+pub mod breeding;
+
 pub mod genetic;
 
+pub mod mutation;
+
 pub mod operator;
+
+pub mod selection;
 
 pub mod simulation;
 

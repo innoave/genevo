@@ -19,8 +19,12 @@
 //!
 //! For convenience the provided combinators can be instantiated by using
 //! the public functions `and` and `or` which are reexported by this module.
+
 pub mod combinator;
 pub use self::combinator::{and, or};
+
+pub mod limiter;
+pub use self::limiter::*;
 
 use genetic::{Fitness, Genotype, Phenotype};
 use simulation::State;
@@ -35,5 +39,14 @@ pub trait Termination<'a, T, G, F>
 {
     /// Evaluates whether the termination condition is met and returns true
     /// if the simulation shall be stopped or false if it shall continue.
-    fn evaluate(&self, &state: State<'a, T, G, F>) -> bool;
+    fn evaluate(&mut self, &state: State<'a, T, G, F>) -> bool;
+
+    /// Resets the state of this `Termination` condition. This function is
+    /// called on each `Termination` instance when the simulation is reset.
+    ///
+    /// This function needs to be implemented by an implementation of
+    /// `Termination` if it has its own state, e.g. own counters.
+    ///
+    /// The default implementation does nothing.
+    fn reset(&mut self) {}
 }

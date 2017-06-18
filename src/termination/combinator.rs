@@ -5,11 +5,11 @@ use termination::Termination;
 use std::marker::PhantomData;
 
 
-pub fn and<'a, E1, E2, T, G, F>(condition1: E1, condition2: E2) -> combinator::And<'a, E1, E2, T, G, F>
+pub fn and<'a, E1, E2, T, G, F>(condition1: E1, condition2: E2) -> And<'a, E1, E2, T, G, F>
     where E1: Termination<'a, T, G, F>, E2: Termination<'a, T, G, F>,
           T: Phenotype<G>, G: Genotype, F: Fitness
 {
-    combinator::And::new(condition1, condition2)
+    And::new(condition1, condition2)
 }
 
 pub struct And<'a, E1, E2, T, G, F>
@@ -42,16 +42,16 @@ impl<'a, E1, E2, T, G, F> Termination<'a, T, G, F> for And<'a, E1, E2, T, G, F>
     where E1: Termination<'a, T, G, F>, E2: Termination<'a, T, G, F>,
           T: Phenotype<G>, G: Genotype, F: Fitness
 {
-    fn evaluate(&self, state: State<'a, T, G, F>) -> bool {
+    fn evaluate(&mut self, state: State<'a, T, G, F>) -> bool {
         self.condition1.evaluate(state) && self.condition2.evaluate(state)
     }
 }
 
-pub fn or<'a, E1, E2, T, G, F>(condition1: E1, condition2: E2) -> combinator::Or<'a, E1, E2, T, G, F>
+pub fn or<'a, E1, E2, T, G, F>(condition1: E1, condition2: E2) -> Or<'a, E1, E2, T, G, F>
     where E1: Termination<'a, T, G, F>, E2: Termination<'a, T, G, F>,
           T: Phenotype<G>, G: Genotype, F: Fitness
 {
-    combinator::Or::new(condition1, condition2)
+    Or::new(condition1, condition2)
 }
 
 pub struct Or<'a, E1, E2, T, G, F>
@@ -84,7 +84,7 @@ impl<'a, E1, E2, T, G, F> Termination<'a, T, G, F> for Or<'a, E1, E2, T, G, F>
     where E1: Termination<'a, T, G, F>, E2: Termination<'a, T, G, F>,
           T: Phenotype<G>, G: Genotype, F: Fitness
 {
-    fn evaluate(&self, state: State<'a, T, G, F>) -> bool {
+    fn evaluate(&mut self, state: State<'a, T, G, F>) -> bool {
         self.condition1.evaluate(state) || self.condition2.evaluate(state)
     }
 }
