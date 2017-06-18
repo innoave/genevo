@@ -18,7 +18,6 @@ path = "src/lib.rs"
 
 [dependencies]
 chrono = "*"
-clap = "*"
 futures = "*"
 log = "*"
 rand = "*"
