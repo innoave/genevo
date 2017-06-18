@@ -10,6 +10,10 @@ extern crate rand;
 
 pub mod genetic;
 
+pub mod operator;
+
 pub mod simulation;
+
+pub mod termination;
 
 mod types;

@@ -3,30 +3,32 @@ pub mod ga;
 
 use chrono::{DateTime, Duration, Local};
 use futures::{Future, Stream};
-use genetic::{CrossoverOp, Fitness, FitnessEvaluation, Genotype, MutationOp, Phenotype,
-                      Population, Breeding, SelectionOp};
+use genetic::{Fitness, FitnessEvaluation, Genotype, Phenotype, Population, Breeding};
+use operator::{CrossoverOp, MutationOp, SelectionOp};
+use termination::Termination;
 use std::marker::PhantomData;
+
 
 /// A `Simulation` is the execution of a genetic algorithm.
 pub trait Simulation<'a, T, G, F, E, S, Q, C, M, P>
     where T: 'a + Phenotype<G>, G: Genotype, F: Fitness, P: Breeding<G>,
-          E: FitnessEvaluation<G, F>, S: SelectionOp<T, G, P>, Q: Termination<'a, T, G, F>,
+          E: FitnessEvaluation<G, F>, S: SelectionOp<G, P>, Q: Termination<'a, T, G, F>,
           C: CrossoverOp<P, G>, M: MutationOp<G>
 {
     /// Start building a new instance of a `Simulation`.
-    fn builder<B>(evaluator: E, selector: S, breeder: C, mutator: M, termination: Vec<Q>) -> B
+    fn builder<B>(evaluator: E, selector: S, breeder: C, mutator: M, termination: Q) -> B
         where B: SimulationBuilder<'a, Self, T, G, F, E, S, Q, C, M, P>, Self: Sized;
 
     /// Runs this simulation completely.
-    fn run(&mut self) -> Future<Item=SimResult<'a, T, G, F>, Error=SimError>;
+    fn run(&mut self) -> Future<Item=Result<'a, T, G, F>, Error=Error>;
 
     /// Makes one step in this simulation.
-    fn step(&mut self) -> Future<Item=SimResult<'a, T, G, F>, Error=SimError>;
+    fn step(&mut self) -> Future<Item=Result<'a, T, G, F>, Error=Error>;
 
     /// Runs the simulation while streaming the results of each step.
     /// The simulation runs without stopping after each step but the
     /// results of each step are provided as a `Stream`.
-    fn stream(&mut self) -> Stream<Item=SimResult<'a, T, G, F>, Error=SimError>;
+    fn stream(&mut self) -> Stream<Item=Result<'a, T, G, F>, Error=Error>;
 
     /// Resets the simulation to rerun it again. This methods resets the
     /// simulation in its initial state, as if its just newly created.
@@ -42,7 +44,7 @@ pub trait Simulation<'a, T, G, F, E, S, Q, C, M, P>
 pub trait SimulationBuilder<'a, Sim, T, G, F, E, S, Q, C, M, P>
     where Sim: Simulation<'a, T, G, F, E, S, Q, C, M, P>,
           T: 'a + Phenotype<G>, G: Genotype, F: Fitness, P: Breeding<G>,
-          E: FitnessEvaluation<G, F>, S: SelectionOp<T, G, P>, Q: Termination<'a, T, G, F>,
+          E: FitnessEvaluation<G, F>, S: SelectionOp<G, P>, Q: Termination<'a, T, G, F>,
           C: CrossoverOp<P, G>, M: MutationOp<G>
 {
     /// Finally initializes the `Simulation` with the given `Population`
@@ -76,22 +78,6 @@ pub trait PopulationGenerator<T, G>
     fn generate_phenotype(&self) -> T;
 }
 
-/// A `Termination` defines a condition when the `Simulation` shall stop.
-/// Common termination conditions are:
-/// * A solution is found that satisfies minimum criteria
-/// * A fixed number of generations is reached
-/// * An allocated budget (computation time/money) is reached
-/// * The highest ranking solution's fitness is reaching or has reached a
-///   plateau such that successive iterations no longer produce better results
-/// ...or a combination of termination conditions.
-pub trait Termination<'a, T, G, F>
-    where T: 'a + Phenotype<G>, G: Genotype, F: Fitness
-{
-    /// Evaluates whether the termination condition is met and returns true
-    /// if the simulation shall be stopped or false if it shall continue.
-    fn evaluate(&state: SimState<'a, T, G, F>) -> bool;
-}
-
 /// The `Evaluated` type marks an individual as evaluated. Mostly this means
 /// that the `Fitness` value has been calculated for this individual.
 ///
@@ -112,7 +98,7 @@ pub struct Evaluated<'a, T, G, F>
 }
 
 #[derive(Debug, Eq, PartialEq)]
-pub struct SimState<'a, T, G, F>
+pub struct State<'a, T, G, F>
     where T: 'a + Phenotype<G>, G: Genotype, F: Fitness
 {
     /// The local time when this simulation started.
@@ -145,11 +131,11 @@ pub struct BestSolution<'a, T, G, F>
 
 /// The result of running a step in the `Simulation`.
 #[derive(PartialEq, Eq, Debug)]
-pub enum SimResult<'a, T, G, F>
+pub enum Result<'a, T, G, F>
     where T: 'a + Phenotype<G>, G: Genotype, F: Fitness
 {
     /// The step was successful, but the simulation has not finished.
-    Intermediate(SimState<'a, T, G, F>),
+    Intermediate(State<'a, T, G, F>),
     /// The simulation is finished, and this is the final result.
     ///
     /// The `BestSolution` value represents the fittest individual
@@ -158,7 +144,7 @@ pub enum SimResult<'a, T, G, F>
 }
 
 /// An error occurred during `Simulation`.
-pub enum SimError<'a> {
+pub enum Error<'a> {
     /// The simulation has been created with an empty population.
     EmptyPopulation(&'a str),
     /// It has been tried to call run, step or stream while the simulation

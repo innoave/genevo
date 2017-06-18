@@ -1,20 +1,21 @@
 
 use futures::{Future, Stream};
-use genetic::{Breeding, CrossoverOp, Fitness, FitnessEvaluation, GeneticOperator, Genotype,
-                      MutationOp, Phenotype, Population, SelectionOp};
-use simulation::{BestSolution, SimError, SimResult, Simulation, SimulationBuilder,
-                         Termination};
+use genetic::{Breeding, Fitness, FitnessEvaluation, Genotype, Phenotype, Population};
+use operator::{CrossoverOp, MutationOp, SelectionOp};
+use simulation::{BestSolution, Error, Result, Simulation, SimulationBuilder};
+use termination::Termination;
 
 
 pub struct Simulator<'a, T, G, F, E, S, Q, C, M, P>
     where T: 'a + Phenotype<G>, G: Genotype, F: Fitness, P: Breeding<G>,
-          E: FitnessEvaluation<G, F>, S: SelectionOp<T, G, P>, Q: Termination<'a, T, G, F>,
+          E: FitnessEvaluation<G, F>, S: SelectionOp<G, P>, Q: Termination<'a, T, G, F>,
           C: CrossoverOp<P, G>, M: MutationOp<G>
 {
     evaluator: Box<E>,
     selector: Box<S>,
     breeder: Box<C>,
     mutator: Box<M>,
+    termination: Box<Q>,
     initial_population: Vec<T>,
     population: Vec<G>,
     best_solution: G,
@@ -24,10 +25,10 @@ pub struct Simulator<'a, T, G, F, E, S, Q, C, M, P>
 impl<'a, T, G, F, E, S, Q, C, M, P> Simulation<'a, T, G, F, E, S, Q, C, M, P>
     for Simulator<'a, T, G, F, E, S, Q, C, M, P>
     where T: 'a + Phenotype<G>, G: Genotype, F: Fitness, P: Breeding<G>,
-          E: FitnessEvaluation<G, F>, S: SelectionOp<T, G, P>, Q: Termination<'a, T, G, F>,
+          E: FitnessEvaluation<G, F>, S: SelectionOp<G, P>, Q: Termination<'a, T, G, F>,
           C: CrossoverOp<P, G>, M: MutationOp<G>
 {
-    fn builder<B>(evaluator: E, selector: S, breeder: C, mutator: M, termination: Vec<Q>) -> B
+    fn builder<B>(evaluator: E, selector: S, breeder: C, mutator: M, termination: Q) -> B
         where B: SimulationBuilder<'a, Self, T, G, F, E, S, Q, C, M, P>, Self: Sized
     {
         SimulatorBuilder {
@@ -35,18 +36,19 @@ impl<'a, T, G, F, E, S, Q, C, M, P> Simulation<'a, T, G, F, E, S, Q, C, M, P>
             selector: Box::new(selector),
             breeder: Box::new(breeder),
             mutator: Box::new(mutator),
+            termination: Box::new(termination),
         }
     }
 
-    fn run(&mut self) -> Future<Item=SimResult<'a, T, G, F>, Error=SimError> {
+    fn run(&mut self) -> Future<Item=Result<'a, T, G, F>, Error=Error> {
         unimplemented!()
     }
 
-    fn step(&mut self) -> Future<Item=SimResult<'a, T, G, F>, Error=SimError> {
+    fn step(&mut self) -> Future<Item=Result<'a, T, G, F>, Error=Error> {
         unimplemented!()
     }
 
-    fn stream(&mut self) -> Stream<Item=SimResult<'a, T, G, F>, Error=SimError> {
+    fn stream(&mut self) -> Stream<Item=Result<'a, T, G, F>, Error=Error> {
         unimplemented!()
     }
 
@@ -58,20 +60,21 @@ impl<'a, T, G, F, E, S, Q, C, M, P> Simulation<'a, T, G, F, E, S, Q, C, M, P>
 pub struct SimulatorBuilder<'a, Sim, T, G, F, E, S, Q, C, M, P>
     where Sim: Simulation<'a, T, G, F, E, S, Q, C, M, P>,
           T: 'a + Phenotype<G>, G: Genotype, F: Fitness, P: Breeding<G>,
-          E: FitnessEvaluation<G, F>, S: SelectionOp<T, G, P>, Q: Termination<'a, T, G, F>,
+          E: FitnessEvaluation<G, F>, S: SelectionOp<G, P>, Q: Termination<'a, T, G, F>,
           C: CrossoverOp<P, G>, M: MutationOp<G>
 {
     evaluator: Box<E>,
     selector: Box<S>,
     breeder: Box<C>,
     mutator: Box<M>,
+    termination: Box<Q>,
 }
 
 impl<'a, Sim, T, G, F, E, S, Q, C, M, P> SimulationBuilder<'a, Sim, T, G, F, E, S, Q, C, M, P>
     for SimulatorBuilder<'a, Sim, T, G, F, E, S, Q, C, M, P>
     where Sim: Simulation<'a, T, G, F, E, S, Q, C, M, P>,
           T: 'a + Phenotype<G>, G: Genotype, F: Fitness, P: Breeding<G>,
-          E: FitnessEvaluation<G, F>, S: SelectionOp<T, G, P>, Q: Termination<'a, T, G, F>,
+          E: FitnessEvaluation<G, F>, S: SelectionOp<G, P>, Q: Termination<'a, T, G, F>,
           C: CrossoverOp<P, G>, M: MutationOp<G>
 {
     fn initialize(&self, population: Population<T, G>) -> Sim {
@@ -80,6 +83,7 @@ impl<'a, Sim, T, G, F, E, S, Q, C, M, P> SimulationBuilder<'a, Sim, T, G, F, E, 
             selector: self.selector,
             breeder: self.breeder,
             mutator: self.mutator,
+            termination: self.termination,
             population: extract_genes(population.individuals),
             best_solution: population.individuals[0].genes(),
             initial_population: population,
