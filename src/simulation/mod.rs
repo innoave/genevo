@@ -13,30 +13,31 @@ use std::marker::PhantomData;
 pub trait Simulation<'a, T, G, F, E, S, Q, C, M, P>
     where T: 'a + Phenotype<G>, G: Genotype, F: Fitness, P: Breeding<G>,
           E: FitnessEvaluation<G, F>, S: SelectionOp<G, P>, Q: Termination<'a, T, G, F>,
-          C: CrossoverOp<P, G>, M: MutationOp<G>
+          C: CrossoverOp<P, G>, M: MutationOp<G>, Self: Sized
 {
+    /// A `SimulationBuilder` that can build this `Simulation`.
+    type Builder: SimulationBuilder<'a, Self, T, G, F, E, S, Q, C, M, P>;
+
     /// Start building a new instance of a `Simulation`.
-    fn builder<B>(evaluator: E, selector: S, breeder: C, mutator: M, termination: Q) -> B
-        where B: SimulationBuilder<'a, Self, T, G, F, E, S, Q, C, M, P>, Self: Sized;
+    fn builder(evaluator: E, selector: S, breeder: C, mutator: M, termination: Q) -> Self::Builder;
 
-    /// Runs this simulation completely.
-    fn run(&mut self) -> Future<Item=Result<'a, T, G, F>, Error=Error>;
+    /// Runs this simulation completely. The simulation ends when the
+    /// termination criteria are met.
+    fn run(&mut self) -> Box<Future<Item=SimResult<'a, T, G, F>, Error=SimError>>;
 
-    /// Makes one step in this simulation.
-    fn step(&mut self) -> Future<Item=Result<'a, T, G, F>, Error=Error>;
+    /// Makes one step in this simulation. One step in the simulation performs
+    /// one time the complete loop of the genetic algorithm.
+    fn step(&mut self) -> Box<Future<Item=SimResult<'a, T, G, F>, Error=SimError>>;
 
     /// Runs the simulation while streaming the results of each step.
     /// The simulation runs without stopping after each step but the
     /// results of each step are provided as a `Stream`.
-    fn stream(&mut self) -> Stream<Item=Result<'a, T, G, F>, Error=Error>;
+    fn stream(&mut self) -> Box<Stream<Item=SimResult<'a, T, G, F>, Error=SimError>>;
 
-    /// Resets the simulation to rerun it again. This methods resets the
-    /// simulation in its initial state, as if its just newly created.
+    /// Resets the simulation in order to be able to rerun it again. This
+    /// method resets the simulation in its initial state, as if it's just
+    /// newly created.
     fn reset(&mut self);
-
-    //TODO should we have statistics? what should they be?
-    // Returns the `SimStatistics` of the last run of the simulation.
-//    fn statistics(&self) -> SimStatistics;
 }
 
 /// The `SimulationBuilder` creates a new `Simulation` with given parameters
@@ -94,7 +95,7 @@ pub struct Evaluated<'a, T, G, F>
     /// The `Fitness` value of the evaluated `Phenotype`.
     fitness: F,
     // Needed to calm down the compiler ;-)
-    phantom_type: PhantomData<G>,
+    _type: PhantomData<G>,
 }
 
 #[derive(Debug, Eq, PartialEq)]
@@ -135,7 +136,7 @@ pub struct BestSolution<'a, T, G, F>
 
 /// The result of running a step in the `Simulation`.
 #[derive(PartialEq, Eq, Debug)]
-pub enum Result<'a, T, G, F>
+pub enum SimResult<'a, T, G, F>
     where T: 'a + Phenotype<G>, G: Genotype, F: Fitness
 {
     /// The step was successful, but the simulation has not finished.
@@ -148,7 +149,7 @@ pub enum Result<'a, T, G, F>
 }
 
 /// An error occurred during `Simulation`.
-pub enum Error<'a> {
+pub enum SimError<'a> {
     /// The simulation has been created with an empty population.
     EmptyPopulation(&'a str),
     /// It has been tried to call run, step or stream while the simulation

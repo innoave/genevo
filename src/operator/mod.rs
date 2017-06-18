@@ -1,5 +1,5 @@
 
-use genetic::{Breeding, Fitness, Genotype, Phenotype};
+use genetic::{Breeding, Genotype};
 
 /// A `GeneticOperator` defines a function used to guide the genetic algorithm
 /// towards a solution to a given problem. There are three main types of
@@ -9,7 +9,7 @@ use genetic::{Breeding, Fitness, Genotype, Phenotype};
 /// There are unary operators that operate on one genotype at a time, e.g.
 /// mutation operators and binary operators that work on two genotypes
 /// at a time, e.g. crossover operators.
-pub trait GeneticOperator<G>
+pub trait GeneticOperator<G>: Clone
     where G: Genotype
 {
     /// The name of the operator used for display purposes. The name should

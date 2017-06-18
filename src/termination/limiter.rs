@@ -11,20 +11,21 @@
 use chrono::{Duration, Local};
 use genetic::{Fitness, Genotype, Phenotype};
 use simulation::State;
-use termination::Termination;
+use termination::{StopFlag, Termination};
 use std::marker::PhantomData;
 
 /// The `GenerationLimit` condition stops the simulation after a maximum
 /// number of generations has been processed.
+#[derive(Clone)]
 pub struct GenerationLimit<'a, T, G, F>
     where T: 'a + Phenotype<G>, G: Genotype, F: Fitness
 {
     /// Maximum number of generations to process.
     max_generations: u64,
     // phantom types
-    phantom_t: &'a T,
-    phantom_g: G,
-    phantom_f: F,
+    _t: PhantomData<&'a T>,
+    _g: PhantomData<G>,
+    _f: PhantomData<F>,
 }
 
 impl<'a, T, G, F> GenerationLimit<'a, T, G, F>
@@ -35,9 +36,9 @@ impl<'a, T, G, F> GenerationLimit<'a, T, G, F>
     pub fn new(max_generations: u64) -> Self {
         GenerationLimit {
             max_generations: max_generations,
-            phantom_t: PhantomData::<T>,
-            phantom_g: PhantomData::<G>,
-            phantom_f: PhantomData::<F>,
+            _t: PhantomData,
+            _g: PhantomData,
+            _f: PhantomData,
         }
     }
 }
@@ -45,23 +46,29 @@ impl<'a, T, G, F> GenerationLimit<'a, T, G, F>
 impl<'a, T, G, F> Termination<'a, T, G, F> for GenerationLimit<'a, T, G, F>
     where T: 'a + Phenotype<G>, G: Genotype, F: Fitness
 {
-    fn evaluate(&self, &state: State<'a, T, G, F>) -> bool {
-        state.generation >= self.max_generations
+    fn evaluate(&mut self, state: &State<'a, T, G, F>) -> StopFlag {
+        if state.generation >= self.max_generations {
+            StopFlag::StopNow(format!("Simulation stopped after the limit of {} generation have \
+                been processed.", &state.generation))
+        } else {
+            StopFlag::Continue
+        }
     }
 }
 
 /// The `TimeLimit` condition stops the simulation after the specified time
 /// limit has been reached, i.e. the simulation is already running for the
 /// specified amount of time.
+#[derive(Clone)]
 pub struct TimeLimit<'a, T, G, F>
     where T: 'a + Phenotype<G>, G: Genotype, F: Fitness
 {
     /// Maximum time the simulation should run
     max_time: Duration,
     // phantom types
-    phantom_t: &'a T,
-    phantom_g: G,
-    phantom_f: F,
+    _t: PhantomData<&'a T>,
+    _g: PhantomData<G>,
+    _f: PhantomData<F>,
 }
 
 impl<'a, T, G, F> TimeLimit<'a, T, G, F>
@@ -72,9 +79,9 @@ impl<'a, T, G, F> TimeLimit<'a, T, G, F>
     pub fn new(max_time: Duration) -> Self {
         TimeLimit {
             max_time: max_time,
-            phantom_t: PhantomData::<T>,
-            phantom_g: PhantomData::<G>,
-            phantom_f: PhantomData::<F>,
+            _t: PhantomData,
+            _g: PhantomData,
+            _f: PhantomData,
         }
     }
 }
@@ -82,7 +89,13 @@ impl<'a, T, G, F> TimeLimit<'a, T, G, F>
 impl<'a, T, G, F> Termination<'a, T, G, F> for TimeLimit<'a, T, G, F>
     where T: 'a + Phenotype<G>, G: Genotype, F: Fitness
 {
-    fn evaluate(&self, &state: State<'a, T, G, F>) -> bool {
-        Local::now().signed_duration_since(state.started_at) >= self.max_time
+    fn evaluate(&mut self, state: &State<'a, T, G, F>) -> StopFlag {
+        let duration = Local::now().signed_duration_since(state.started_at);
+        if duration >= self.max_time {
+            StopFlag::StopNow(format!("Simulation stopped after running for {} which exceeds the \
+                maximal runtime of {}.", &duration, &self.max_time))
+        } else {
+            StopFlag::Continue
+        }
     }
 }

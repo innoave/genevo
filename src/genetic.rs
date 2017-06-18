@@ -14,18 +14,18 @@ use std::ops::{Add, Sub, Mul, Div};
 /// The `Phenotype` represents a subject in the problem domain. It holds its
 /// genes which are its representation in the search space of the genetic
 /// algorithm. The genes are represented as a vector of `Genotype`s.
-pub trait Phenotype<G>
+pub trait Phenotype<G>: Clone
     where G: Genotype
 {
-    /// Returns its genes as a `Vec<Genotype>`.
+    /// Returns its genes as a `Genotype`.
     ///
     /// Hint: The simulation may access this function several times. Therefore
     /// this method should be as fast as possible, e.g. through storing or
     /// caching the genes.
-    fn genes(&self) -> Vec<G>;
+    fn genes(&self) -> G;
 
     /// Clones this `Phenotype` into a new one but with the given genes.
-    fn derive(&self, new_genes: Vec<G>) -> Self;
+    fn derive(&self, new_genes: G) -> Self;
 }
 
 /// A `Genotype` defines those properties of a `Phenotype` that are relevant
@@ -36,7 +36,7 @@ pub trait Phenotype<G>
 /// In order to achieve an efficient execution of the genetic algorithm these
 /// properties should be stored in a compact form such as strings or vectors
 /// of primitive types.
-pub trait Genotype: Copy {}
+pub trait Genotype: Clone {}
 
 /// The `Population` defines a set of possible solutions to the optimization
 /// or search problem.
@@ -48,7 +48,7 @@ pub struct Population<T, G>
     pub individuals: Vec<T>,
     // Just here to stop the compiler from complaining about the unused
     // type parameter `G`.
-    phantom_type: PhantomData<G>,
+    _g: PhantomData<G>,
 }
 
 impl<T, G> Population<T, G>
@@ -59,7 +59,7 @@ impl<T, G> Population<T, G>
     pub fn new(individuals: Vec<T>) -> Population<T, G> {
         Population {
             individuals: individuals,
-            phantom_type: PhantomData
+            _g: PhantomData
         }
     }
 
@@ -86,7 +86,7 @@ pub trait Breeding<G>
 
 /// Defines the evaluation function to calculate the `Fitness` value of a
 /// `Genotype` based on its properties.
-pub trait FitnessEvaluation<G, F>
+pub trait FitnessEvaluation<G, F>: Clone
     where G: Genotype, F: Fitness
 {
     /// Calculates the `Fitness` value of the given `Genotype`.
@@ -110,14 +110,11 @@ pub trait FitnessEvaluation<G, F>
 /// It also has to implement the Add, Sub, Mul and Div trait so that the
 /// simulation can normalize the fitness value of each individual across
 /// a population.
-pub trait Fitness: Eq + Ord + Add + Sub + Mul + Div + Sized {
+pub trait Fitness: Eq + Ord + Add + Sub + Mul + Div + Clone + Sized {
 
     /// Returns the zero value of this `Fitness` value.
     /// The internal value should be 0.
     fn zero() -> Self;
-
-    /// Returns true if this `Fitness` value is equal to zero.
-    fn is_zero(&self) -> bool;
 
     /// Returns the absolute difference between this `Fitness` value and the
     /// other one, i.e. result = |self| - |other|

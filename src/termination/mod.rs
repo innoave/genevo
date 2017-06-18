@@ -54,7 +54,7 @@ pub type StopReason = String;
 /// One implementation of the trait `Termination` should only handle one
 /// single termination condition. In the simulation multiple termination
 /// conditions can be combined through `combinator`s.
-pub trait Termination<'a, T, G, F>
+pub trait Termination<'a, T, G, F>: Clone
     where T: 'a + Phenotype<G>, G: Genotype, F: Fitness
 {
     /// Evaluates the termination condition and returns a `StopFlag` depending
@@ -65,7 +65,7 @@ pub trait Termination<'a, T, G, F>
     /// returned also a the reason why the simulation shall be stopped is
     /// returned. This reason should explain to the user of the simulation,
     /// why the simulation has been stopped.
-    fn evaluate(&mut self, &state: State<'a, T, G, F>) -> StopFlag;
+    fn evaluate(&mut self, state: &State<'a, T, G, F>) -> StopFlag;
 
     /// Resets the state of this `Termination` condition. This function is
     /// called on each `Termination` instance when the simulation is reset.
