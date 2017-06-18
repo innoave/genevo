@@ -29,6 +29,26 @@ pub use self::limiter::*;
 use genetic::{Fitness, Genotype, Phenotype};
 use simulation::State;
 
+/// The `StopFlag` is the result of the `Termination` function. It tells
+/// the simulation whether it shall stop or if it can continue.
+///
+/// If the StopFlag indicates that the simulation must stop, also the reason
+/// (`StopReason`) must be specified.
+pub enum StopFlag {
+    /// Flag for 'Stop the simulation now'.
+    StopNow(StopReason),
+    /// Flag for 'Continue with the simulation'.
+    Continue,
+}
+
+/// A `StopReason` should explain to the user of the simulation why the
+/// simulation has been stopped. Examples:
+/// * "Simulation stopped after the maximum of 100 generations have been
+///   processed"
+/// * "Simulation stopped after a solution with a fitness value of 81 has
+///   been found which is above the target fitness of 80.
+pub type StopReason = String;
+
 /// A `Termination` defines a condition when the `Simulation` shall stop.
 ///
 /// One implementation of the trait `Termination` should only handle one
@@ -37,9 +57,15 @@ use simulation::State;
 pub trait Termination<'a, T, G, F>
     where T: 'a + Phenotype<G>, G: Genotype, F: Fitness
 {
-    /// Evaluates whether the termination condition is met and returns true
-    /// if the simulation shall be stopped or false if it shall continue.
-    fn evaluate(&mut self, &state: State<'a, T, G, F>) -> bool;
+    /// Evaluates the termination condition and returns a `StopFlag` depending
+    /// on the result. The `StopFlag` indicates whether the simulation shall
+    /// stop or continue.
+    ///
+    /// In case the simulation shall be stopped, i.e. a `StopFlag::StopNow` is
+    /// returned also a the reason why the simulation shall be stopped is
+    /// returned. This reason should explain to the user of the simulation,
+    /// why the simulation has been stopped.
+    fn evaluate(&mut self, &state: State<'a, T, G, F>) -> StopFlag;
 
     /// Resets the state of this `Termination` condition. This function is
     /// called on each `Termination` instance when the simulation is reset.

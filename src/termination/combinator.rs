@@ -1,7 +1,7 @@
 
 use genetic::{Fitness, Genotype, Phenotype};
 use simulation::State;
-use termination::Termination;
+use termination::{StopFlag, StopReason, Termination};
 use std::marker::PhantomData;
 
 
@@ -43,7 +43,20 @@ impl<'a, E1, E2, T, G, F> Termination<'a, T, G, F> for And<'a, E1, E2, T, G, F>
           T: Phenotype<G>, G: Genotype, F: Fitness
 {
     fn evaluate(&mut self, state: State<'a, T, G, F>) -> bool {
-        self.condition1.evaluate(state) && self.condition2.evaluate(state)
+        let mut reasons = Vec::with_capacity(2);
+        match self.condition1.evaluate(state) {
+            StopFlag::StopNow(reason) => reasons.push(reason),
+            StopFlag::Continue => (),
+        }
+        match self.condition2.evaluate(state) {
+            StopFlag::StopNow(reason) => reasons.push(reason),
+            StopFlag::Continue => (),
+        }
+        match reasons.len() {
+            0 => StopFlag::Continue,
+            1 => StopFlag::Continue,
+            _ => StopFlag::StopNow(reasons.join(" and ")) //TODO how combine the two `StopReason`s preserving combinator semantics?
+        }
     }
 }
 
@@ -84,7 +97,20 @@ impl<'a, E1, E2, T, G, F> Termination<'a, T, G, F> for Or<'a, E1, E2, T, G, F>
     where E1: Termination<'a, T, G, F>, E2: Termination<'a, T, G, F>,
           T: Phenotype<G>, G: Genotype, F: Fitness
 {
-    fn evaluate(&mut self, state: State<'a, T, G, F>) -> bool {
-        self.condition1.evaluate(state) || self.condition2.evaluate(state)
+    fn evaluate(&mut self, state: State<'a, T, G, F>) -> StopFlag {
+        let mut reasons = Vec::with_capacity(2);
+        match self.condition1(state) {
+            StopFlag::StopNow(reason) => reasons.push(reason),
+            StopFlag::Continue => (),
+        }
+        match self.condition2(state) {
+            StopFlag::StopNow(reason) => reasons.push(reason),
+            StopFlag::Continue => (),
+        }
+        match reasons.len() {
+            0 => StopFlag::Continue,
+            1 => StopFlag::StopNow(reasons[0]),
+            _ => StopFlag::StopNow(reasons.join(" and ")) //TODO how combine the two `StopReason`s preserving combinator semantics?
+        }
     }
 }
