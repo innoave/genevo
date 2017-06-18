@@ -109,6 +109,10 @@ pub struct State<'a, T, G, F>
     pub time: Duration,
     /// Average fitness value of the current generation.
     pub average_fitness: F,
+    /// Highest fitness value within the current generation.
+    pub highest_fitness: F,
+    /// Lowest fitness value within the current generation.
+    pub lowest_fitness: F,
     /// Best solution of this generation.
     pub best_solution: BestSolution<'a, T, G, F>
 }
