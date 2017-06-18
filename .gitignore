@@ -1,0 +1,17 @@
+# build output
+target/
+out/
+**/*.rs.bk
+
+# Eclipse
+.project
+.settings/
+/*.launch
+
+# Intellij IDEA
+.idea
+*.iml
+
+# Sublime Text
+*.sublime-workspace
+
