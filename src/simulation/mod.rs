@@ -6,7 +6,7 @@ use futures::future::BoxFuture;
 use futures::stream::BoxStream;
 use genetic::{Fitness, FitnessEvaluation, Genotype, Phenotype, Population, Breeding};
 use operator::{CrossoverOp, MutationOp, SelectionOp};
-use termination::Termination;
+use termination::{StopReason, Termination};
 use std::marker::PhantomData;
 use std::sync::Arc;
 
@@ -166,12 +166,16 @@ pub enum SimResult<T, G, F>
     where T: Phenotype<G>, G: Genotype, F: Fitness
 {
     /// The step was successful, but the simulation has not finished.
+    ///
+    /// The `State` contains the result of the last processed generation.
     Intermediate(Arc<State<T, G, F>>),
     /// The simulation is finished, and this is the final result.
     ///
-    /// The `BestSolution` value represents the fittest individual
-    /// found during this simulation over all generations.
-    Final(Arc<BestSolution<T, G, F>>),
+    /// The parameters are:
+    /// * The `StopReason` is the matching criteria why the simulation stopped.
+    /// * The `State` of last processed generation.
+    /// * The total processing time of the simulation.
+    Final(StopReason, Arc<State<T, G, F>>, Duration),
 }
 
 /// An error occurred during `Simulation`.

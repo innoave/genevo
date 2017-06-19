@@ -34,7 +34,7 @@ use genetic::{Breeding, Fitness, FitnessEvaluation, Genotype, Phenotype, Populat
 use operator::{CrossoverOp, MutationOp, SelectionOp};
 use simulation::{BestSolution, Evaluated, SimError, SimResult, Simulation, SimulationBuilder,
                  State};
-use termination::Termination;
+use termination::{StopFlag, Termination};
 use std::marker::PhantomData;
 use std::mem;
 use std::sync::Arc;
@@ -107,12 +107,26 @@ impl<T, G, F, E, S, Q, C, M, P> Simulation<T, G, F, E, S, Q, C, M, P>
             self.started = true;
             self.started_at = Local::now();
         }
+        let loop_started_at = Local::now();
+        // Stage 2: The fitness check:
         self.evaluate_fitness();
         self.normalized_fitness = self.evaluator.normalize(&self.fitness_values);
         self.average_fitness = self.evaluator.average(&self.fitness_values);
-//        self.create_new_population();
-//        self.replace_population();
-//        self.check_termination();
+
+        // Stage 3: The making of a new population:
+
+        self.create_new_population();
+
+        // Stage 4: Replace current generation with next generation:
+        let loop_time = Local::now().signed_duration_since(loop_started_at);
+        let state = Arc::new(self.replace_generation(loop_time));
+        // Stage 5: Be aware of the termination:
+        match self.termination.evaluate(state) {
+            StopFlag::StopNow(reason) => {
+                unimplemented!()
+            },
+            StopFlag::Continue => (),
+        }
         unimplemented!()
     }
 
@@ -208,7 +222,7 @@ impl<T, G, F, E, S, Q, C, M, P> Simulator<T, G, F, E, S, Q, C, M, P>
           E: FitnessEvaluation<G, F>, S: SelectionOp<G, P>, Q: Termination<T, G, F>,
           C: CrossoverOp<P, G>, M: MutationOp<G>
 {
-    /// Calculate the `Fitness` value of each `Phenotype` and records the
+    /// Calculates the `Fitness` value of each `Phenotype` and records the
     /// highest and lowest values.
     fn evaluate_fitness(&mut self) {
         for genome in self.curr_population {
@@ -223,13 +237,16 @@ impl<T, G, F, E, S, Q, C, M, P> Simulator<T, G, F, E, S, Q, C, M, P>
         }
     }
 
-    fn replace_generation(&mut self, loop_time: Duration) -> Arc<State<T, G, F>> {
+    /// Generates a `State` object about the last processed loop, replaces the
+    /// current generation with the next generation and increases the
+    /// generation counter.
+    fn replace_generation(&mut self, loop_time: Duration) -> State<T, G, F> {
         let curr_generation = self.generation;
         let p_size = self.next_population.len();
         let next_p = mem::replace(&mut self.next_population, Vec::with_capacity(p_size));
         let curr_p = mem::replace(&mut self.curr_population, next_p);
         self.generation += 1;
-        Arc::new(State {
+        State {
             started_at: self.started_at.clone(),
             generation: curr_generation,
             population: Arc::new(curr_p),
@@ -240,11 +257,7 @@ impl<T, G, F, E, S, Q, C, M, P> Simulator<T, G, F, E, S, Q, C, M, P>
             highest_fitness: self.highest_fitness.clone(),
             lowest_fitness: self.lowest_fitness.clone(),
             best_solution: Arc::new(self.best_solution.clone()),
-        })
-    }
-
-    fn check_termination(&mut self) -> bool {
-        unimplemented!()
+        }
     }
 
 }
