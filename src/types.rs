@@ -62,12 +62,141 @@ macro_rules! implement_fitness_for_unsigned_integer {
 
 implement_fitness_for_unsigned_integer!(u8, u16, u32, u64, usize);
 
-//TODO implement unit tests for implementations of the Fitness trait.
-
-pub trait Display: fmt::Display {}
+pub trait Display {
+    fn fmt(&self) -> String;
+    fn fmt_seconds(&self, always_print_till_seconds: bool) -> String;
+    fn fmt_sub_seconds(&self, always_print_millis: bool) -> String;
+}
 
 impl Display for Duration {
 
+    fn fmt(&self) -> String {
+        let (sign, abs) = duration_sign_abs(self);
+        let duration_secs = abs.num_seconds();
+        let duration_nanos = duration_sub_seconds(self);
+        if duration_secs == 0 {
+            if duration_nanos == 0 {
+                0.to_string() + "s"
+            } else {
+                sign + &fmt_duration_sub_seconds(&duration_nanos, false)
+            }
+        } else {
+            if duration_nanos == 0 {
+                sign + &fmt_duration_seconds(&duration_secs, false)
+            } else {
+                sign + &fmt_duration_seconds(&duration_secs, true)
+                    + " " + &fmt_duration_sub_seconds(&duration_nanos, true)
+            }
+        }
+    }
+
+    fn fmt_seconds(&self, always_print_till_seconds: bool) -> String {
+        let (sign, abs) = duration_sign_abs(self);
+        sign + &fmt_duration_seconds(&abs.num_seconds(), always_print_till_seconds)
+    }
+
+    fn fmt_sub_seconds(&self, always_print_millis: bool) -> String {
+        let (sign, abs) = duration_sign_abs(self);
+        sign + &fmt_duration_sub_seconds(&duration_sub_seconds(&abs), always_print_millis)
+    }
+}
+
+fn duration_sign_abs(duration: &Duration) -> (String, Duration) {
+    if duration.num_seconds() < 0 {
+        ("-".to_string(), -*duration)
+    } else {
+        ("".to_string(), *duration)
+    }
+}
+
+fn duration_sub_seconds(duration: &Duration) -> i64 {
+    match duration.num_nanoseconds() {
+        Some(nanos) => nanos % 1_000_000_000,
+        None => 0,
+    }
+}
+
+//TODO maybe add weeks for longer durations
+//TODO do benchmarks for format! macro and pure String concatenation
+fn fmt_duration_seconds(duration_secs: &i64, always_print_till_seconds: bool) -> String {
+    let days = duration_secs / (24 * 60 * 60);
+    let sub_days = duration_secs % (24 * 60 * 60);
+    let hours = sub_days / (60 * 60);
+    let sub_hours = sub_days % (60 * 60);
+    let mins = sub_hours / 60;
+    let secs = sub_hours % 60;
+    if days == 0 {
+        if hours == 0 {
+            if mins == 0 {
+                format!("{}s", secs)
+            } else {
+                if secs == 0 && !always_print_till_seconds {
+                    format!("{}m", mins)
+                } else {
+                    format!("{}m {}s", mins, secs)
+                }
+            }
+        } else {
+            if secs == 0 && !always_print_till_seconds {
+                if mins == 0 {
+                    format!("{}h", hours)
+                } else {
+                    format!("{}h {}m", hours, mins)
+                }
+            } else {
+                format!("{}h {}m {}s", hours, mins, secs)
+            }
+        }
+    } else {
+        if secs == 0 && !always_print_till_seconds {
+            if mins == 0 {
+                if hours == 0 {
+                    format!("{}d", days)
+                } else {
+                    format!("{}d {}h", days, hours)
+                }
+            } else {
+                format!("{}d {}h {}m", days, hours, mins)
+            }
+        } else {
+            format!("{}d {}h {}m {}s", days, hours, mins, secs)
+        }
+    }
+}
+
+fn fmt_duration_sub_seconds(duration_nanos: &i64, always_print_millis: bool) -> String {
+    let millis = duration_nanos / 1_000_000;
+    let nanos = duration_nanos % 1_000;
+    let micros = duration_nanos / 1_000 % 1_000;
+    if millis == 0 && !always_print_millis {
+        if nanos == 0 {
+            if micros == 0 {
+                String::new()
+            } else {
+                format!("{},000ns", micros)
+            }
+        } else {
+            if micros == 0 {
+                format!("{}ns", nanos)
+            } else {
+                format!("{},{:03}ns", micros, nanos)
+            }
+        }
+    } else {
+        if nanos == 0 {
+            if micros == 0 {
+                format!("{}ms", millis)
+            } else {
+                format!("{}ms {},000ns", millis, micros)
+            }
+        } else {
+            if micros == 0 {
+                format!("{}ms {}ns", millis, nanos)
+            } else {
+                format!("{}ms {},{:03}ns", millis, micros, nanos)
+            }
+        }
+    }
 }
 
 
@@ -133,11 +262,11 @@ mod tests {
 
     #[test]
     fn abs_diff_of_signed_neg1_and_1() {
-        assert_that!((-1i8   ).abs_diff(&-1i8   ), is(equal_to(2i8   )));
-        assert_that!((-1i16  ).abs_diff(&-1i16  ), is(equal_to(2i16  )));
-        assert_that!((-1i32  ).abs_diff(&-1i32  ), is(equal_to(2i32  )));
-        assert_that!((-1i64  ).abs_diff(&-1i64  ), is(equal_to(2i64  )));
-        assert_that!((-1isize).abs_diff(&-1isize), is(equal_to(2isize)));
+        assert_that!((-1i8   ).abs_diff(&1i8   ), is(equal_to(2i8   )));
+        assert_that!((-1i16  ).abs_diff(&1i16  ), is(equal_to(2i16  )));
+        assert_that!((-1i32  ).abs_diff(&1i32  ), is(equal_to(2i32  )));
+        assert_that!((-1i64  ).abs_diff(&1i64  ), is(equal_to(2i64  )));
+        assert_that!((-1isize).abs_diff(&1isize), is(equal_to(2isize)));
     }
 
     #[test]
@@ -310,6 +439,136 @@ mod tests {
         assert_that!(1u32  .abs_diff(&u32  ::MAX), is(equal_to(u32  ::MAX - 1)));
         assert_that!(1u64  .abs_diff(&u64  ::MAX), is(equal_to(u64  ::MAX - 1)));
         assert_that!(1usize.abs_diff(&usize::MAX), is(equal_to(usize::MAX - 1)));
+    }
+
+    #[test]
+    fn duration_fmt_zero() {
+        assert_that!(&Duration::zero().fmt(), is(equal_to("0s")));
+    }
+
+    #[test]
+    fn duration_fmt_max() {
+        assert_that!(&Duration::max_value().fmt(), is(equal_to("106751991167d 7h 12m 55s")));
+    }
+
+    #[test]
+    fn duration_fmt_min() {
+        assert_that!(&Duration::min_value().fmt(), is(equal_to("-106751991167d 7h 12m 55s")));
+    }
+
+    #[test]
+    fn duration_fmt_1ns() {
+        assert_that!(&Duration::nanoseconds(1).fmt(), is(equal_to("1ns")));
+    }
+
+    #[test]
+    fn duration_fmt_1000ns() {
+        assert_that!(&Duration::microseconds(1).fmt(), is(equal_to("1,000ns")));
+    }
+
+    #[test]
+    fn duration_fmt_1ms() {
+        assert_that!(&Duration::milliseconds(1).fmt(), is(equal_to("1ms")));
+    }
+
+    #[test]
+    fn duration_fmt_1s() {
+        assert_that!(&Duration::seconds(1).fmt(), is(equal_to("1s")));
+    }
+
+    #[test]
+    fn duration_fmt_1m() {
+        assert_that!(&Duration::minutes(1).fmt(), is(equal_to("1m")));
+    }
+
+    #[test]
+    fn duration_fmt_1h() {
+        assert_that!(&Duration::hours(1).fmt(), is(equal_to("1h")));
+    }
+
+    #[test]
+    fn duration_fmt_1d() {
+        assert_that!(&Duration::days(1).fmt(), is(equal_to("1d")));
+    }
+
+    #[test]
+    fn duration_fmt_1000d() {
+        assert_that!(&Duration::days(1000).fmt(), is(equal_to("1000d")));
+    }
+
+    #[test]
+    fn duration_fmt_1s_1ms() {
+        assert_that!(&Duration::milliseconds(1_001).fmt(), is(equal_to("1s 1ms")));
+    }
+
+    #[test]
+    fn duration_fmt_1s_1ms_1000ns() {
+        assert_that!(&Duration::nanoseconds(1_001_001_000).fmt(), is(equal_to("1s 1ms 1,000ns")));
+    }
+
+    #[test]
+    fn duration_fmt_1s_1ms_1ns() {
+        assert_that!(&Duration::nanoseconds(1_001_000_001).fmt(), is(equal_to("1s 1ms 1ns")));
+    }
+
+    #[test]
+    fn duration_fmt_999ms_999999ns() {
+        assert_that!(&Duration::nanoseconds(999_999_999).fmt(), is(equal_to("999ms 999,999ns")));
+    }
+
+    #[test]
+    fn duration_fmt_1m_1s() {
+        assert_that!(&Duration::seconds(61).fmt(), is(equal_to("1m 1s")));
+    }
+
+    #[test]
+    fn duration_fmt_1h_1s() {
+        assert_that!(&Duration::seconds(3601).fmt(), is(equal_to("1h 0m 1s")));
+    }
+
+    #[test]
+    fn duration_fmt_1d_1s() {
+        assert_that!(&Duration::seconds(24 * 3600 + 1).fmt(), is(equal_to("1d 0h 0m 1s")));
+    }
+
+    #[test]
+    fn duration_fmt_1d_1h() {
+        assert_that!(&Duration::seconds(24 * 3600 + 3600).fmt(), is(equal_to("1d 1h")));
+    }
+
+    #[test]
+    fn duration_fmt_1d_1h_1m() {
+        assert_that!(&Duration::seconds(24 * 3600 + 3600 + 60).fmt(), is(equal_to("1d 1h 1m")));
+    }
+
+    #[test]
+    fn duration_fmt_1d_1h_1s() {
+        assert_that!(&Duration::seconds(24 * 3600 + 3600 + 1).fmt(), is(equal_to("1d 1h 0m 1s")));
+    }
+
+    #[test]
+    fn duration_fmt_1d_1m_1s() {
+        assert_that!(&Duration::seconds(24 * 3600 + 60 + 1).fmt(), is(equal_to("1d 0h 1m 1s")));
+    }
+
+    #[test]
+    fn duration_fmt_1h_1m_1s() {
+        assert_that!(&Duration::seconds(3600 + 60 + 1).fmt(), is(equal_to("1h 1m 1s")));
+    }
+
+    #[test]
+    fn duration_fmt_1h_0m_1s() {
+        assert_that!(&Duration::seconds(3600 + 1).fmt(), is(equal_to("1h 0m 1s")));
+    }
+
+    #[test]
+    fn duration_fmt_1m_1ms() {
+        assert_that!(&Duration::milliseconds(60_000 + 1).fmt(), is(equal_to("1m 0s 1ms")));
+    }
+
+    #[test]
+    fn duration_fmt_1m_1000ns() {
+        assert_that!(&Duration::microseconds(60_000_000 + 1).fmt(), is(equal_to("1m 0s 0ms 1,000ns")));
     }
 
 }
