@@ -14,7 +14,7 @@ use std::ops::{Add, Sub, Mul, Div};
 /// The `Phenotype` represents a subject in the problem domain. It holds its
 /// genes which are its representation in the search space of the genetic
 /// algorithm. The genes are represented as a vector of `Genotype`s.
-pub trait Phenotype<G>: Clone
+pub trait Phenotype<G>: Clone + Send + Sync
     where G: Genotype
 {
     /// Returns its genes as a `Genotype`.
@@ -36,7 +36,7 @@ pub trait Phenotype<G>: Clone
 /// In order to achieve an efficient execution of the genetic algorithm these
 /// properties should be stored in a compact form such as strings or vectors
 /// of primitive types.
-pub trait Genotype: Clone {}
+pub trait Genotype: Clone + Send + Sync {}
 
 /// The `Population` defines a set of possible solutions to the optimization
 /// or search problem.
@@ -45,7 +45,7 @@ pub struct Population<T, G>
     where T: Phenotype<G>, G: Genotype
 {
     /// The individuals or members of the population.
-    pub individuals: Vec<T>,
+    individuals: Vec<T>,
     // Just here to stop the compiler from complaining about the unused
     // type parameter `G`.
     _g: PhantomData<G>,
@@ -64,7 +64,7 @@ impl<T, G> Population<T, G>
     }
 
     /// Returns a slice of all individuals of this `Population`.
-    pub fn individuals(&self) -> &Vec<T> {
+    pub fn individuals(&self) -> &[T] {
         &self.individuals
     }
 
@@ -90,14 +90,21 @@ pub trait FitnessEvaluation<G, F>: Clone
     where G: Genotype, F: Fitness
 {
     /// Calculates the `Fitness` value of the given `Genotype`.
-    fn fitness_of(a: G) -> F;
+    fn fitness_of(&mut self, a: &G) -> F;
+
+    /// Normalizes the given `Fitness` values and returns the normalized
+    /// values in a new vector.
+    fn normalize(&mut self, a: &[F]) -> Vec<F>;
+
+    /// Calculates the average `Fitness` value of the given `Fitness` values.
+    fn average(&mut self, a: &[F]) -> F;
 
     /// Returns the very best of all theoretically possible `Fitness` values.
-    fn best_possible_fitness() -> F;
+    fn best_possible_fitness(&self) -> F;
 
     /// Returns the worst of all theoretically possible `Fitness` values.
     /// This is usually a value equivalent to zero.
-    fn worst_possible_fitness() -> F;
+    fn worst_possible_fitness(&self) -> F;
 }
 
 /// A `Fitness` value is used to determine the quality of a `Genotype`.
@@ -110,7 +117,7 @@ pub trait FitnessEvaluation<G, F>: Clone
 /// It also has to implement the Add, Sub, Mul and Div trait so that the
 /// simulation can normalize the fitness value of each individual across
 /// a population.
-pub trait Fitness: Eq + Ord + Add + Sub + Mul + Div + Clone + Sized {
+pub trait Fitness: Eq + Ord + Add + Sub + Mul + Div + Clone + Sized + Send + Sync {
 
     /// Returns the zero value of this `Fitness` value.
     /// The internal value should be 0.

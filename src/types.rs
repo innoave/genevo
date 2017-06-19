@@ -18,7 +18,6 @@
 
 use chrono::Duration;
 use genetic::Fitness;
-use std::fmt;
 
 macro_rules! implement_fitness_for_signed_integer {
     ( $($t:ty),* ) => {
@@ -116,7 +115,7 @@ fn duration_sub_seconds(duration: &Duration) -> i64 {
     }
 }
 
-//TODO maybe add weeks for longer durations
+//TODO maybe write weeks to formatted string for longer durations
 //TODO do benchmarks for format! macro and pure String concatenation
 fn fmt_duration_seconds(duration_secs: &i64, always_print_till_seconds: bool) -> String {
     let days = duration_secs / (24 * 60 * 60);

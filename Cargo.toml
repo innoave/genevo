@@ -2,14 +2,13 @@
 name = "genevo"
 version = "0.1.0"
 authors = ["haraldmaida <harald.maida@innoave.com>"]
-description = "Execute genetic algorithm (GA) simulations in a customizable and extensible way"
+license = "MIT/Apache-2.0"
+description = "Implements genetic algorithm (GA) simulations in a customizable and extensible way"
 keywords = ["genetic", "evolutionary", "algorithm"]
 
 homepage = "https://github.com/innoave/genevo"
-documentation = "https://docs.rs/genevo"
 repository = "https://github.com/innoave/genevo"
-
-license = "MIT/Apache-2.0"
+documentation = "https://docs.rs/genevo"
 readme = "README.md"
 
 [lib]
@@ -17,8 +16,9 @@ name = "genevo"
 path = "src/lib.rs"
 
 [dependencies]
-chrono = "*"
-futures = "*"
+chrono = "^0.3"
+futures = "^0.1"
+futures-cpupool = "^0.1"
 log = "*"
 rand = "*"
 

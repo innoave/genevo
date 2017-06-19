@@ -28,6 +28,7 @@ pub use self::limiter::*;
 
 use genetic::{Fitness, Genotype, Phenotype};
 use simulation::State;
+use std::sync::Arc;
 
 /// The `StopFlag` is the result of the `Termination` function. It tells
 /// the simulation whether it shall stop or if it can continue.
@@ -54,8 +55,8 @@ pub type StopReason = String;
 /// One implementation of the trait `Termination` should only handle one
 /// single termination condition. In the simulation multiple termination
 /// conditions can be combined through `combinator`s.
-pub trait Termination<'a, T, G, F>: Clone
-    where T: 'a + Phenotype<G>, G: Genotype, F: Fitness
+pub trait Termination<T, G, F>: Clone
+    where T: Phenotype<G>, G: Genotype, F: Fitness
 {
     /// Evaluates the termination condition and returns a `StopFlag` depending
     /// on the result. The `StopFlag` indicates whether the simulation shall
@@ -65,13 +66,14 @@ pub trait Termination<'a, T, G, F>: Clone
     /// returned also a the reason why the simulation shall be stopped is
     /// returned. This reason should explain to the user of the simulation,
     /// why the simulation has been stopped.
-    fn evaluate(&mut self, state: &State<'a, T, G, F>) -> StopFlag;
+    fn evaluate(&mut self, state: Arc<State<T, G, F>>) -> StopFlag;
 
     /// Resets the state of this `Termination` condition. This function is
     /// called on each `Termination` instance when the simulation is reset.
     ///
-    /// This function needs to be implemented by an implementation of
-    /// `Termination` if it has its own state, e.g. own counters.
+    /// This function only needs to be implemented by an implementation of
+    /// `Termination` if it has its own state, e.g. for counting or tracking
+    /// of progress.
     ///
     /// The default implementation does nothing.
     fn reset(&mut self) {}

@@ -15,8 +15,9 @@
 //!
 //! and adding `extern crate genevo;` to your crate root.
 
-#[cfg(test)] #[macro_use] extern crate quickcheck;
+#[cfg(test)] extern crate test;
 #[cfg(test)] #[macro_use] extern crate hamcrest;
+#[cfg(test)] #[macro_use] extern crate quickcheck;
 
 extern crate chrono;
 extern crate futures;
