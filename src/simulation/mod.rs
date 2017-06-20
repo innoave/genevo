@@ -294,9 +294,15 @@ pub enum SimResult<G, F>
 pub enum SimError {
     /// The simulation has been created with an empty population.
     EmptyPopulation(String),
+    /// The (initial) population is smaller than the required minimum.
+    PopulationTooSmall(String),
     /// It has been tried to call run, step or stream while the simulation
     /// is already running. E.g. the step method has been called and now step,
     /// run or stream is called before the simulation of the previous step is
     /// finished.
     SimulationAlreadyRunning(String),
+    /// An unexpected error occurred. This error should be used only in cases
+    /// that theoretically are possible in the code but are avoided through
+    /// other mains on the domain layer.
+    UnexpectedError(String),
 }

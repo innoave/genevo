@@ -36,6 +36,9 @@ use std::marker::PhantomData;
 use std::mem;
 use std::rc::Rc;
 
+
+const MIN_POPULATION_SIZE: usize = 7;
+
 /// The `SimulationBuilder` implements the 'initialization' stage (step 1) of
 /// the genetic algorithm.
 pub struct SimulatorBuilder<G, F, E, S, Q, C, M, P>
@@ -60,8 +63,6 @@ for SimulatorBuilder<G, F, E, S, Q, C, M, P>
           C: CrossoverOp<P, G>, M: MutationOp<G>
 {
     fn initialize(&mut self, population: Population<G>) -> Simulator<G, F, E, S, Q, C, M, P> {
-        let generation = 1;
-        let p_size = population.size();
         Simulator {
             evaluator: self.evaluator.clone(),
             selector: self.selector.clone(),
@@ -70,10 +71,9 @@ for SimulatorBuilder<G, F, E, S, Q, C, M, P>
             termination: self.termination.clone(),
             started: false,
             started_at: Local::now(),
-            generation: generation,
+            generation: 1,
             population: Rc::new(population.individuals().to_vec()),
             processing_time: Duration::zero(),
-            next_population: Vec::with_capacity(p_size),
             initial_population: population,
             _f: PhantomData,
             _p: PhantomData,
@@ -97,7 +97,6 @@ pub struct Simulator<G, F, E, S, Q, C, M, P>
     generation: u64,
     population: Rc<Vec<G>>,
     processing_time: Duration,
-    next_population: Vec<G>,
     _p: PhantomData<P>,
     _f: PhantomData<F>,
 }
@@ -126,22 +125,52 @@ impl<G, F, E, S, Q, C, M, P> Simulation<G, F, E, S, Q, C, M, P>
     fn run(&mut self) -> Result<SimResult<G, F>, SimError> {
         if self.started {
             return Err(SimError::SimulationAlreadyRunning(
-                    format!("Simulation already running since {}", &self.started_at)));
-        } else {
-            self.started = true;
-            self.started_at = Local::now();
+                format!("Simulation already running since {}", &self.started_at)));
         }
-        unimplemented!()
+        if self.initial_population.size() < MIN_POPULATION_SIZE {
+            return Err(SimError::PopulationTooSmall(
+                format!("Initial population of size {} is smaller than the minimum of {}",
+                        self.initial_population.size(), MIN_POPULATION_SIZE)));
+        }
+        self.started = true;
+        self.started_at = Local::now();
+
+        let mut result = Err(SimError::UnexpectedError("Unexpected error!\
+                             No loop of the simulation has ever been processed!".to_string()));
+        let mut finished = false;
+        while !finished {
+            // Stages 2-4: Look at one generation
+            let state = self.process_one_generation();
+
+            // Stage 5: Be aware of the termination:
+            let stop_flag = self.termination.evaluate(&state);
+
+            result = Ok(match stop_flag {
+                StopFlag::Continue => {
+                    SimResult::Intermediate(state)
+                },
+                StopFlag::StopNow(reason) => {
+                    finished = true;
+                    let duration = Local::now().signed_duration_since(self.started_at);
+                    SimResult::Final(state, duration, reason)
+                },
+            })
+        }
+        result
     }
 
     fn step(&mut self) -> Result<SimResult<G, F>, SimError> {
         if self.started {
             return Err(SimError::SimulationAlreadyRunning(
                 format!("Simulation already running since {}", &self.started_at)));
-        } else {
-            self.started = true;
-            self.started_at = Local::now();
         }
+        if self.initial_population.size() < MIN_POPULATION_SIZE {
+            return Err(SimError::PopulationTooSmall(
+                format!("Initial population of size {} is smaller than the minimum of {}",
+                        self.initial_population.size(), MIN_POPULATION_SIZE)));
+        }
+        self.started = true;
+        self.started_at = Local::now();
 
         // Stages 2-4: Look at one generation
         let state = self.process_one_generation();
@@ -165,6 +194,7 @@ impl<G, F, E, S, Q, C, M, P> Simulation<G, F, E, S, Q, C, M, P>
 //                    format!("Simulation still running since {}. Wait for the simulation to finish \
 //                        or abort it before resetting it.", time)))));
         }
+
         unimplemented!()
     }
 }
@@ -177,23 +207,26 @@ impl<G, F, E, S, Q, C, M, P> Simulator<G, F, E, S, Q, C, M, P>
     /// Processes stages 2-4 of the genetic algorithm
     fn process_one_generation(&mut self) -> State<G, F> {
         let loop_started_at = Local::now();
-        let mut processing_time = Duration::zero();
 
         // Stage 2: The fitness check:
-        let score_board = self.evaluate_fitness(self.population.clone());
-        let best_solution = self.determine_best_solution(&score_board);
+        let (score_board, eval_proc_time1) = self.evaluate_fitness(self.population.clone());
+        let (best_solution, eval_proc_time2) = self.determine_best_solution(&score_board);
 
         // Stage 3: The making of a new population:
-        let next_generation = self.create_new_population(&score_board);
+        let (next_generation, new_pop_proc_time) = self.create_new_population(&score_board);
 
         // Stage 4: On to the next generation:
-        let loop_time = Local::now().signed_duration_since(loop_started_at);
-        self.replace_generation(loop_time, processing_time, score_board, best_solution)
+        let loop_processing_time = eval_proc_time1 + eval_proc_time2 + new_pop_proc_time;
+        self.processing_time = self.processing_time + loop_processing_time;
+        let loop_duration = Local::now().signed_duration_since(loop_started_at);
+        self.replace_generation(loop_duration, loop_processing_time, score_board, best_solution,
+                                next_generation)
     }
 
     /// Calculates the `Fitness` value of each `Genotype` and records the
     /// highest and lowest values.
-    fn evaluate_fitness(&self, population: Rc<Vec<G>>) -> EvaluatedPopulation<G, F> {
+    fn evaluate_fitness(&self, population: Rc<Vec<G>>) -> (EvaluatedPopulation<G, F>, Duration) {
+        let started_at = Local::now();
         let mut fitness = Vec::new();
         let mut highest = self.evaluator.lowest_possible_fitness();
         let mut lowest = self.evaluator.highest_possible_fitness();
@@ -209,18 +242,21 @@ impl<G, F, E, S, Q, C, M, P> Simulator<G, F, E, S, Q, C, M, P>
         }
         let normalized = self.evaluator.normalize(&fitness);
         let average = self.evaluator.average(&fitness);
-        EvaluatedPopulation {
+        (EvaluatedPopulation {
             individuals: population,
             fitness_values: fitness,
             normalized_fitness: normalized,
             highest_fitness: highest,
             lowest_fitness: lowest,
             average_fitness: average,
-        }
+        },
+        Local::now().signed_duration_since(started_at))
     }
 
     /// Determines the best solution of the current population
-    fn determine_best_solution(&self, score_board: &EvaluatedPopulation<G, F>) -> BestSolution<G, F> {
+    fn determine_best_solution(&self, score_board: &EvaluatedPopulation<G, F>)
+        -> (BestSolution<G, F>, Duration) {
+        let started_at = Local::now();
         let index_of_best = score_board.index_of_fitness(&score_board.highest_fitness)
             .expect(&format!("No fitness value of {:?} found in this EvaluatedPopulation",
                              &score_board.highest_fitness));
@@ -229,14 +265,16 @@ impl<G, F, E, S, Q, C, M, P> Simulator<G, F, E, S, Q, C, M, P>
             fitness: score_board.fitness_values[index_of_best].clone(),
             normalized_fitness: score_board.normalized_fitness[index_of_best].clone(),
         };
-        BestSolution {
+        (BestSolution {
             found_at: Local::now(),
             generation: self.generation,
             solution: evaluated,
-        }
+        },
+        Local::now().signed_duration_since(started_at))
     }
 
-    fn create_new_population(&self, evaluated_population: &EvaluatedPopulation<G, F>) -> Vec<G> {
+    fn create_new_population(&self, evaluated_population: &EvaluatedPopulation<G, F>)
+        -> (Vec<G>, Duration) {
         self.selector.selection(evaluated_population);
         unimplemented!()
     }
@@ -248,17 +286,17 @@ impl<G, F, E, S, Q, C, M, P> Simulator<G, F, E, S, Q, C, M, P>
                           loop_time: Duration,
                           processing_time: Duration,
                           score_board: EvaluatedPopulation<G, F>,
-                          best_solution: BestSolution<G, F>
+                          best_solution: BestSolution<G, F>,
+                          next_population: Vec<G>,
                          ) -> State<G, F> {
         let curr_generation = self.generation;
-        let p_size = self.next_population.len();
-        let next_p = mem::replace(&mut self.next_population, Vec::with_capacity(p_size));
-        let curr_p = mem::replace(&mut self.population, Rc::new(next_p));
+        let curr_p = mem::replace(&mut self.population, Rc::new(next_population));
+        let curr_p = Rc::try_unwrap(curr_p).expect("Can not unwrap Rc(Vec<G>)");
         self.generation += 1;
         State {
             started_at: self.started_at.clone(),
             generation: curr_generation,
-            population: Rc::try_unwrap(curr_p).expect("Can not unwrap Rc(Vec<G>)"),
+            population: curr_p,
             fitness_values: score_board.fitness_values,
             normalized_fitness: score_board.normalized_fitness,
             duration: loop_time,
