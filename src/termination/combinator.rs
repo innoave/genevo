@@ -5,8 +5,8 @@ use termination::{StopFlag, Termination};
 use std::marker::PhantomData;
 
 //TODO add doc comments
-pub fn and<E1, T2, G, F>(condition1: E1, condition2: T2) -> And<E1, T2, G, F>
-    where E1: Termination<G, F>, T2: Termination<G, F>,
+pub fn and<T1, T2, G, F>(condition1: T1, condition2: T2) -> And<T1, T2, G, F>
+    where T1: Termination<G, F>, T2: Termination<G, F>,
           G: Genotype, F: Fitness
 {
     And::new(condition1, condition2)
@@ -14,11 +14,11 @@ pub fn and<E1, T2, G, F>(condition1: E1, condition2: T2) -> And<E1, T2, G, F>
 
 //TODO add doc comments
 #[derive(Clone)]
-pub struct And<E1, T2, G, F>
-    where E1: Termination<G, F>, T2: Termination<G, F>,
+pub struct And<T1, T2, G, F>
+    where T1: Termination<G, F>, T2: Termination<G, F>,
           G: Genotype, F: Fitness
 {
-    condition1: E1,
+    condition1: T1,
     condition2: T2,
     _g: PhantomData<G>,
     _f: PhantomData<F>,
