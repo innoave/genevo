@@ -57,28 +57,6 @@ pub trait SimulationBuilder<Sim, G, F, E, S, Q, C, M, P>
     fn initialize(&mut self, population: Population<G>) -> Sim;
 }
 
-/// A `PopulationGenerator` creates a new `Population` with a number of newly
-/// created individuals or just individual `Genotype`s.
-///
-/// Typically the `PopulationGenerator` is used to create the initial
-/// population with randomly created individuals.
-pub trait PopulationGenerator<G>
-    where G: Genotype
-{
-    /// Generates a new `Population` containing the given number of individuals.
-    fn generate_population(&self, size: usize) -> Population<G> {
-        let individuals = (0..size).map(|_| {
-            self.generate_genotype()
-        }).collect::<Vec<G>>();
-        Population::new(individuals)
-    }
-
-    /// Generates a new `Genotype`.
-    ///
-    /// An implementation typically generates a randomly created `Genotype`.
-    fn generate_genotype(&self) -> G;
-}
-
 /// The `Evaluated` type marks an individual as evaluated. Mostly this means
 /// that the `Fitness` value has been calculated for this individual.
 ///
