@@ -33,3 +33,8 @@ genetic algorithm.
 
 
 [Rust]: https://www.rust-lang.org/
+
+
+## Ideas
+
+https://github.com/StefanoD/Rust_Random_Choice

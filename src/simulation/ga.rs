@@ -1,20 +1,21 @@
 /// This module provides the `Simulator` which implements the genetic algorithm
 /// (GA) and the related `SimulatorBuilder`.
 ///
-/// The stages of the genetic algorithm are:
+/// The stages of the basic genetic algorithm are:
 ///
 /// 1. **Initialize**: Generate random population of n genotypes (or chromosomes)
 /// 2. **Fitness**: Evaluate the fitness of each genotype in the population
 /// 3. **New Population**: Create a new population by repeating following steps
 ///    until the new population is complete:
 /// 3.1. **Selection**: Select a tuple of parent genotypes from a population
-///      according to their fitness (the better fitness, the bigger chance to
-///      be selected)
+///      according to their fitness and the selection strategy of the
+///      configured `operator::SelectionOp`
 /// 3.2. **Crossover**: With a crossover probability cross over the parents to
-///      form a new offspring (children). If no crossover was performed,
-///      offspring is an exact copy of parents.
+///      form a new offspring (children) by means of the configured
+///      `operator::CrossoverOp`.
 /// 3.3. **Mutation**: With a mutation probability mutate new offspring at each
-///      locus (position in genotype)
+///      locus (position in genotype) by means of the configured
+///      `operator::MutationOp`.
 /// 3.4. **Accepting**: Place new offspring in the new population.
 /// 4. **Replace**: Use new generated population for a further run of the
 ///    algorithm.
@@ -26,10 +27,6 @@
 /// `SimulatorBuilder` implements the `simulation::SimulationBuilder` trait.
 
 use chrono::{DateTime, Duration, Local};
-use futures::future;
-use futures::future::{BoxFuture, Future};
-use futures::stream;
-use futures::stream::{BoxStream, Stream};
 use genetic::{Breeding, Fitness, FitnessEvaluation, Genotype, Population};
 use operator::{CrossoverOp, MutationOp, SelectionOp};
 use simulation::{BestSolution, Evaluated, SimError, SimResult, Simulation, SimulationBuilder,
@@ -81,10 +78,10 @@ impl<G, F, E, S, Q, C, M, P> Simulation<G, F, E, S, Q, C, M, P>
         }
     }
 
-    fn run(&mut self) -> BoxFuture<SimResult<G, F>, SimError> {
+    fn run(&mut self) -> Result<SimResult<G, F>, SimError> {
         if self.started {
-            return Future::boxed(future::err(SimError::SimulationAlreadyRunning(
-                    format!("Simulation already running since {}", &self.started_at))));
+            return Err(SimError::SimulationAlreadyRunning(
+                    format!("Simulation already running since {}", &self.started_at)));
         } else {
             self.started = true;
             self.started_at = Local::now();
@@ -92,10 +89,10 @@ impl<G, F, E, S, Q, C, M, P> Simulation<G, F, E, S, Q, C, M, P>
         unimplemented!()
     }
 
-    fn step(&mut self) -> BoxFuture<SimResult<G, F>, SimError> {
+    fn step(&mut self) -> Result<SimResult<G, F>, SimError> {
         if self.started {
-            return Future::boxed(future::err(SimError::SimulationAlreadyRunning(
-                format!("Simulation already running since {}", &self.started_at))));
+            return Err(SimError::SimulationAlreadyRunning(
+                format!("Simulation already running since {}", &self.started_at)));
         } else {
             self.started = true;
             self.started_at = Local::now();
@@ -114,25 +111,17 @@ impl<G, F, E, S, Q, C, M, P> Simulation<G, F, E, S, Q, C, M, P>
         // Stage 4: On to the next generation:
         let loop_time = Local::now().signed_duration_since(loop_started_at);
         let state = self.replace_generation(loop_time, processing_time, score_board, best_solution);
-        // Stage 5: Be aware of the termination:
-        match self.termination.evaluate(&state) {
-            StopFlag::StopNow(reason) => {
-                unimplemented!()
-            },
-            StopFlag::Continue => (),
-        }
-        unimplemented!()
-    }
 
-    fn stream(&mut self) -> BoxStream<SimResult<G, F>, SimError> {
-        if self.started {
-            return stream::Once::boxed(stream::once(Err(SimError::SimulationAlreadyRunning(
-                    format!("Simulation already running since {}", &self.started_at)))));
-        } else {
-            self.started = true;
-            self.started_at = Local::now();
-        }
-        unimplemented!()
+        // Stage 5: Be aware of the termination:
+        Ok(match self.termination.evaluate(&state) {
+            StopFlag::StopNow(reason) => {
+                let duration = Local::now().signed_duration_since(self.started_at);
+                SimResult::Final(state, duration, reason)
+            },
+            StopFlag::Continue => {
+                SimResult::Intermediate(state)
+            },
+        })
     }
 
     fn reset(&mut self) {
@@ -190,14 +179,6 @@ impl<G, F, E, S, Q, C, M, P> SimulationBuilder<Simulator<G, F, E, S, Q, C, M, P>
         }
     }
 }
-//
-//fn extract_genes<T, G>(population: &Population<G>) -> Vec<G>
-//    where T: Phenotype<G>, G: Genotype
-//{
-//    population.individuals().iter().map(|pheno|
-//        pheno.genes()
-//    ).collect::<Vec<G>>()
-//}
 
 impl<G, F, E, S, Q, C, M, P> Simulator<G, F, E, S, Q, C, M, P>
     where G: Genotype, F: Fitness, P: Breeding<G>,
@@ -222,7 +203,6 @@ impl<G, F, E, S, Q, C, M, P> Simulator<G, F, E, S, Q, C, M, P>
         }
         let normalized = self.evaluator.normalize(&fitness);
         let average = self.evaluator.average(&fitness);
-
         ScoreBoard {
             fitness_values: fitness,
             normalized_fitness: normalized,
@@ -289,7 +269,8 @@ struct ScoreBoard<F> {
 
 impl<F: Fitness> ScoreBoard<F> {
 
-    fn index_of_fitness_1(&self, fitness: F) -> usize {
+    //TODO compare benchmarks of the alternative implementations.
+    fn index_of_fitness_2(&self, fitness: F) -> usize {
         let mut index_of_best = 0;
         for i in 0..self.fitness_values.len() {
             if fitness == self.fitness_values[i] {

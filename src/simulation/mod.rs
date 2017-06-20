@@ -2,8 +2,6 @@
 pub mod ga;
 
 use chrono::{DateTime, Duration, Local};
-use futures::future::BoxFuture;
-use futures::stream::BoxStream;
 use genetic::{Fitness, FitnessEvaluation, Genotype, Population, Breeding};
 use operator::{CrossoverOp, MutationOp, SelectionOp};
 use termination::{StopReason, Termination};
@@ -23,16 +21,11 @@ pub trait Simulation<G, F, E, S, Q, C, M, P>
 
     /// Runs this simulation completely. The simulation ends when the
     /// termination criteria are met.
-    fn run(&mut self) -> BoxFuture<SimResult<G, F>, SimError>;
+    fn run(&mut self) -> Result<SimResult<G, F>, SimError>;
 
     /// Makes one step in this simulation. One step in the simulation performs
     /// one time the complete loop of the genetic algorithm.
-    fn step(&mut self) -> BoxFuture<SimResult<G, F>, SimError>;
-
-    /// Runs the simulation while streaming the results of each step.
-    /// The simulation runs without stopping after each step but the
-    /// results of each step are provided as a `Stream`.
-    fn stream(&mut self) -> BoxStream<SimResult<G, F>, SimError>;
+    fn step(&mut self) -> Result<SimResult<G, F>, SimError>;
 
     /// Resets the simulation in order to be able to rerun it again. This
     /// method resets the simulation in its initial state, as if it's just

@@ -20,7 +20,7 @@
 #[cfg(test)] #[macro_use] extern crate quickcheck;
 
 extern crate chrono;
-extern crate futures;
+extern crate jobsteal;
 extern crate rand;
 
 pub mod breeding;
