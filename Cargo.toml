@@ -8,6 +8,7 @@ keywords = ["genetic", "evolutionary", "algorithm"]
 
 repository = "https://github.com/innoave/genevo"
 documentation = "https://docs.rs/genevo"
+#homepage = "https://innoave.github.id/genevo"
 readme = "README.md"
 
 [lib]
@@ -15,12 +16,12 @@ name = "genevo"
 path = "src/lib.rs"
 
 [dependencies]
-chrono = "^0.3"
-jobsteal = "^0.5"
+chrono = "*"
+jobsteal = "*"
 log = "*"
 rand = "*"
 
 [dev-dependencies]
 quickcheck = "*"
 hamcrest = "*"
-log4rs = "*"
+#log4rs = "*"
