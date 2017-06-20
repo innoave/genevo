@@ -3,6 +3,7 @@
 //! or search problem. The types are named after terms as they are found in
 //! genetic biology.
 
+use std::fmt::Debug;
 use std::ops::{Add, Sub, Mul, Div};
 
 /// A `Phenotype` is a candidate solution of the optimization or search problem.
@@ -13,7 +14,7 @@ use std::ops::{Add, Sub, Mul, Div};
 /// The `Phenotype` represents a subject in the problem domain. It holds its
 /// genes which are its representation in the search space of the genetic
 /// algorithm. The genes are represented as a vector of `Genotype`s.
-pub trait Phenotype<G>: Clone
+pub trait Phenotype<G>: Clone + Debug
     where G: Genotype
 {
     /// Returns its genes as a `Genotype`.
@@ -35,7 +36,7 @@ pub trait Phenotype<G>: Clone
 /// In order to achieve an efficient execution of the genetic algorithm these
 /// properties should be stored in a compact form such as strings or vectors
 /// of primitive types.
-pub trait Genotype: Clone {}
+pub trait Genotype: Clone + Debug + PartialEq {}
 
 /// The `Population` defines a set of possible solutions to the optimization
 /// or search problem.
@@ -100,6 +101,28 @@ pub trait Breeding<G>
     type Parents;
 }
 
+/// A `Fitness` value is used to determine the quality of a `Genotype`.
+/// `Fitness` values should have an ordering, also called ranking.
+///
+/// **Make sure the following statement holds:**
+/// A `Genotype` with a `Fitness` value of `f1` performs better than another
+/// `Genotype` with a `Fitness` value of `f2` if `f1 > f2`.
+///
+/// It also has to implement the Add, Sub, Mul and Div trait so that the
+/// simulation can normalize the fitness value of each individual across
+/// a population.
+pub trait Fitness: PartialEq + Eq + Ord + Add + Sub + Mul + Div + Clone + Debug + Sized {
+
+    /// Returns the zero value of this `Fitness` value.
+    /// The internal value should be 0.
+    fn zero() -> Self;
+
+    /// Returns the absolute difference between this `Fitness` value and the
+    /// other one, i.e. result = |self| - |other|
+    fn abs_diff(&self, other: &Self) -> Self;
+
+}
+
 /// Defines the evaluation function to calculate the `Fitness` value of a
 /// `Genotype` based on its properties.
 pub trait FitnessEvaluation<G, F>: Clone
@@ -121,26 +144,4 @@ pub trait FitnessEvaluation<G, F>: Clone
     /// Returns the lowest of all theoretically possible `Fitness` values.
     /// This is usually a value equivalent to zero.
     fn lowest_possible_fitness(&self) -> F;
-}
-
-/// A `Fitness` value is used to determine the quality of a `Genotype`.
-/// `Fitness` values should have an ordering, also called ranking.
-///
-/// **Make sure the following statement holds:**
-/// A `Genotype` with a `Fitness` value of `f1` performs better than another
-/// `Genotype` with a `Fitness` value of `f2` if `f1 > f2`.
-///
-/// It also has to implement the Add, Sub, Mul and Div trait so that the
-/// simulation can normalize the fitness value of each individual across
-/// a population.
-pub trait Fitness: Eq + Ord + Add + Sub + Mul + Div + Clone + Sized {
-
-    /// Returns the zero value of this `Fitness` value.
-    /// The internal value should be 0.
-    fn zero() -> Self;
-
-    /// Returns the absolute difference between this `Fitness` value and the
-    /// other one, i.e. result = |self| - |other|
-    fn abs_diff(&self, other: &Self) -> Self;
-
 }

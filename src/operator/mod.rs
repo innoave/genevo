@@ -1,5 +1,6 @@
 
-use genetic::{Breeding, Genotype};
+use genetic::{Breeding, Fitness, Genotype};
+use simulation::EvaluatedPopulation;
 
 /// A `GeneticOperator` defines a function used to guide the genetic algorithm
 /// towards a solution to a given problem. There are three main types of
@@ -22,6 +23,18 @@ pub trait GeneticOperator<G>: Clone
     fn name() -> str;
 }
 
+/// A `SelectionOp` defines the function of how to select solutions for being
+/// the parents of the next generation. Typically this function gives
+/// preference to the better solutions. The implemented method chooses which
+/// solutions are considered to be 'best'.
+pub trait SelectionOp<G, F, P>: GeneticOperator<G>
+    where G: Genotype, F: Fitness, P: Breeding<G>
+{
+    /// Selects individuals from the given population according to the
+    /// implemented selection strategy.
+    fn selection(&self, population: &EvaluatedPopulation<G, F>) -> Vec<<P>::Parents>;
+}
+
 /// A `CrossoverOp` defines a function of how to crossover two `Genotype`s,
 /// often called parent genotypes, to derive a new `Genotype`. It is analogous
 /// to reproduction and biological crossover. Cross over is a process of taking
@@ -31,7 +44,7 @@ pub trait CrossoverOp<P, G>: GeneticOperator<G>
 {
     /// Performs the crossover of the `Parents` and returns the result as a new
     /// `Genotype`.
-    fn crossover(&mut self, p: &<P>::Parents) -> G;
+    fn crossover(&self, p: &<P>::Parents) -> G;
 }
 
 /// A `MutationOp` defines a function of how a `Genotype` mutates. It is used
@@ -47,17 +60,5 @@ pub trait MutationOp<G>: GeneticOperator<G>
     where G: Genotype
 {
     /// Mutates the given 'Genotype' and returns it as a new 'Genotype'.
-    fn mutate(&mut self, a: &G) -> G;
-}
-
-/// A `SelectionOp` defines the function of how to select solutions for being
-/// the parents of the next generation. Typically this function gives
-/// preference to the better solutions. The implemented method chooses which
-/// solutions are considered to be 'best'.
-pub trait SelectionOp<G, P>: GeneticOperator<G>
-    where G: Genotype, P: Breeding<G>
-{
-    /// Selects individuals from the given population according to the
-    /// implemented selection strategy.
-    fn selection(&mut self, population: &[G]) -> Vec<<P>::Parents>;
+    fn mutate(&self, a: &G) -> G;
 }

@@ -5,12 +5,13 @@ use chrono::{DateTime, Duration, Local};
 use genetic::{Fitness, FitnessEvaluation, Genotype, Population, Breeding};
 use operator::{CrossoverOp, MutationOp, SelectionOp};
 use termination::{StopReason, Termination};
+use std::rc::Rc;
 
 
 /// A `Simulation` is the execution of a genetic algorithm.
 pub trait Simulation<G, F, E, S, Q, C, M, P>
     where G: Genotype, F: Fitness, P: Breeding<G>,
-          E: FitnessEvaluation<G, F>, S: SelectionOp<G, P>, Q: Termination<G, F>,
+          E: FitnessEvaluation<G, F>, S: SelectionOp<G, F, P>, Q: Termination<G, F>,
           C: CrossoverOp<P, G>, M: MutationOp<G>, Self: Sized
 {
     /// A `SimulationBuilder` that can build this `Simulation`.
@@ -38,7 +39,7 @@ pub trait Simulation<G, F, E, S, Q, C, M, P>
 pub trait SimulationBuilder<Sim, G, F, E, S, Q, C, M, P>
     where Sim: Simulation<G, F, E, S, Q, C, M, P>,
           G: Genotype, F: Fitness, P: Breeding<G>,
-          E: FitnessEvaluation<G, F>, S: SelectionOp<G, P>, Q: Termination<G, F>,
+          E: FitnessEvaluation<G, F>, S: SelectionOp<G, F, P>, Q: Termination<G, F>,
           C: CrossoverOp<P, G>, M: MutationOp<G>
 {
     /// Finally initializes the `Simulation` with the given `Population`
@@ -63,12 +64,167 @@ pub struct Evaluated<G, F>
 {
     /// The `Genotype` that has been evaluated.
     pub genome: G,
-    /// The `Fitness` value of the evaluated `Phenotype`.
+    /// The `Fitness` value of the evaluated `Genotype`.
     pub fitness: F,
     /// The normalized fitness value.
     pub normalized_fitness: F,
 }
 
+/// The `EvaluatedPopulation` holds the results of the evaluation stage of
+/// the genetic algorithm. It is used to pass these values to the
+/// `operator::SelectionOp` for enable this operator to do its job.
+///
+/// Currently is contains the fitness value of each individual in a population,
+/// their normalized fitness values and highest and average fitness of the
+/// population.
+///
+/// As the information in this struct is only used to pass the output of the
+/// evaluation stage to the selection operator and this happens once for every
+/// population the types of the fields are designed to avoid cloning of whole
+/// data structures. To be able to change the fields internally later when
+/// new optimization are found the fields are kept private.
+#[derive(Debug, Eq, PartialEq)]
+pub struct EvaluatedPopulation<G, F>
+    where G: Genotype, F: Fitness
+{
+    individuals: Rc<Vec<G>>,
+    fitness_values: Vec<F>,
+    normalized_fitness: Vec<F>,
+    highest_fitness: F,
+    lowest_fitness: F,
+    average_fitness: F,
+}
+
+impl<G, F> EvaluatedPopulation<G, F>
+    where G: Genotype, F: Fitness
+{
+    /// Construct a new instance of the `EvaluatedPopulation` struct.
+    pub fn new(individuals: Rc<Vec<G>>,
+               fitness_values: Vec<F>,
+               normalized_fitness: Vec<F>,
+               highest_fitness: F,
+               lowest_fitness: F,
+               average_fitness: F
+            ) -> EvaluatedPopulation<G, F> {
+        EvaluatedPopulation {
+            individuals: individuals,
+            fitness_values: fitness_values,
+            normalized_fitness: normalized_fitness,
+            highest_fitness: highest_fitness,
+            lowest_fitness: lowest_fitness,
+            average_fitness: average_fitness
+        }
+    }
+
+    /// Returns the individuals of the population that has been evaluated.
+    pub fn individuals(&self) -> Rc<Vec<G>> {
+        self.individuals.clone()
+    }
+
+    /// Returns the fitness values of all individuals of the evaluated
+    /// population.
+    ///
+    /// The returned slice contains the fitness values of the individuals
+    /// in the same order as the slice returned by function `individuals`
+    /// contains the individuals itself, i.e. for individual with index `i`
+    /// in `individuals()[i]` the fitness value is stored in
+    /// `fitness_values()[i]`.
+    pub fn fitness_values(&self) -> &[F] {
+        &self.fitness_values
+    }
+
+    /// Returns the normalized fitness values of all individuals of the
+    /// evaluated population.
+    ///
+    /// The returned slice contains the normalized fitness values
+    /// in the same order as the slice returned by function `individuals`
+    /// contains the individuals itself, i.e. for individual with index `i`
+    /// in `individuals()[i]` the normalized fitness value is stored in
+    /// `normalized_fitness()[i]`.
+    pub fn normalized_fitness(&self) -> &[F] {
+        &self.normalized_fitness
+    }
+
+    /// Returns the highest `Fitness` value found in the evaluated population.
+    pub fn highest_fitness(&self) -> &F {
+        &self.highest_fitness
+    }
+
+    /// Returns the lowest `Fitness` value found in the evaluated population.
+    pub fn lowest_fitness(&self) -> &F {
+        &self.lowest_fitness
+    }
+
+    /// Returns the average of all `Fitness` values of the evaluated
+    /// population.
+    pub fn average_fitness(&self) -> &F {
+        &self.average_fitness
+    }
+
+    /// Returns the individual at the given index.
+    pub fn individual(&self, index: usize) -> Option<&G> {
+        self.individuals.get(index)
+    }
+
+    /// Returns the `Fitness` value of the given individual.
+    ///
+    /// Note: This function might be more expensive due to the data structure
+    /// chosen for this struct. So use it sparingly.
+    pub fn fitness_of_individual(&self, individual: &G) -> Option<&F> {
+        self.index_of_individual(individual).map(|index|
+            &self.fitness_values[index])
+    }
+
+    /// Returns the normalized `Fitness` value of the given individual.
+    ///
+    /// Note: This function might be more expensive due to the data structure
+    /// chosen for this struct. So use it sparingly.
+    pub fn normalized_fitness_of_individual(&self, individual: &G) -> Option<&F> {
+        self.index_of_individual(individual).map(|index|
+            &self.fitness_values[index])
+    }
+
+    /// Returns the `Genotype` of the individual with a given `Fitness` value.
+    ///
+    /// Note: This function might be more expensive due to the data structure
+    /// chosen for this struct. So use it sparingly.
+    pub fn individual_with_fitness(&self, fitness: &F) -> Option<&G> {
+        self.index_of_fitness(fitness).map(|index|
+            &self.individuals[index])
+    }
+
+    /// Determines the index in the `individuals` slice of an individual.
+    fn index_of_individual(&self, individual: &G) -> Option<usize> {
+        self.individuals.iter().position(|v| *v == *individual)
+    }
+
+    /// Determines the index in the `fitness_values` slice of a fitness value.
+    fn index_of_fitness(&self, fitness: &F) -> Option<usize> {
+        self.fitness_values.iter().position(|v| *v == *fitness)
+    }
+//
+//    fn index_of_fitness(&mut self, fitness: &F) -> usize {
+//        self.fitness_indexes.entry(fitness).get().unwrap_or_else(|e|
+//            e.inser(self.fitness_values.iter().position(|x| *x == *fitness)
+//                .expect("Fitness value not in score board")))
+//    }
+
+    //TODO compare benchmarks of the alternative implementations.
+    fn index_of_fitness_2(&self, fitness: F) -> usize {
+        let mut index_of_best = 0;
+        for i in 0..self.fitness_values.len() {
+            if fitness == self.fitness_values[i] {
+                index_of_best = i;
+                break;
+            }
+        }
+        index_of_best
+    }
+
+}
+
+/// The `State` struct holds the results of one pass of the genetic algorithm
+/// loop, i.e. the processing of the loop for one generation.
 #[derive(Debug, Eq, PartialEq)]
 pub struct State<G, F>
     where G: Genotype, F: Fitness
@@ -112,7 +268,7 @@ pub struct BestSolution<G, F>
     pub found_at: DateTime<Local>,
     /// The number of the generation in which this solution is found.
     pub generation: u64,
-    /// The evaluated `Phenotype` that is considered to be best.
+    /// The evaluated `Genotype` that is considered to be best.
     pub solution: Evaluated<G, F>,
 }
 
