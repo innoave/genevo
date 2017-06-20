@@ -1,51 +1,48 @@
 
-use genetic::{Fitness, Genotype, Phenotype};
+use genetic::{Fitness, Genotype};
 use simulation::State;
 use termination::{StopFlag, Termination};
 use std::marker::PhantomData;
-use std::sync::Arc;
 
 //TODO add doc comments
-pub fn and<E1, E2, T, G, F>(condition1: E1, condition2: E2) -> And<E1, E2, T, G, F>
-    where E1: Termination<T, G, F>, E2: Termination<T, G, F>,
-          T: Phenotype<G>, G: Genotype, F: Fitness
+pub fn and<E1, T2, G, F>(condition1: E1, condition2: T2) -> And<E1, T2, G, F>
+    where E1: Termination<G, F>, T2: Termination<G, F>,
+          G: Genotype, F: Fitness
 {
     And::new(condition1, condition2)
 }
 
 //TODO add doc comments
 #[derive(Clone)]
-pub struct And<E1, E2, T, G, F>
-    where E1: Termination<T, G, F>, E2: Termination<T, G, F>,
-          T: Phenotype<G>, G: Genotype, F: Fitness
+pub struct And<E1, T2, G, F>
+    where E1: Termination<G, F>, T2: Termination<G, F>,
+          G: Genotype, F: Fitness
 {
     condition1: E1,
-    condition2: E2,
-    _t: PhantomData<T>,
+    condition2: T2,
     _g: PhantomData<G>,
     _f: PhantomData<F>,
 }
 
-impl<E1, E2, T, G, F> And<E1, E2, T, G, F>
-    where E1: Termination<T, G, F>, E2: Termination<T, G, F>,
-          T: Phenotype<G>, G: Genotype, F: Fitness
+impl<T1, T2, G, F> And<T1, T2, G, F>
+    where T1: Termination<G, F>, T2: Termination<G, F>,
+          G: Genotype, F: Fitness
 {
-    pub fn new(condition1: E1, condition2: E2) -> Self {
+    pub fn new(condition1: T1, condition2: T2) -> Self {
         And {
             condition1: condition1,
             condition2: condition2,
-            _t: PhantomData,
             _g: PhantomData,
             _f: PhantomData,
         }
     }
 }
 
-impl<E1, E2, T, G, F> Termination<T, G, F> for And<E1, E2, T, G, F>
-    where E1: Termination<T, G, F>, E2: Termination<T, G, F>,
-          T: Phenotype<G>, G: Genotype, F: Fitness
+impl<T1, T2, G, F> Termination<G, F> for And<T1, T2, G, F>
+    where T1: Termination<G, F>, T2: Termination<G, F>,
+          G: Genotype, F: Fitness
 {
-    fn evaluate(&mut self, state: Arc<State<T, G, F>>) -> StopFlag {
+    fn evaluate(&mut self, state: &State<G, F>) -> StopFlag {
         let mut reasons = Vec::with_capacity(2);
         match self.condition1.evaluate(state.clone()) {
             StopFlag::StopNow(reason) => reasons.push(reason),
@@ -64,46 +61,44 @@ impl<E1, E2, T, G, F> Termination<T, G, F> for And<E1, E2, T, G, F>
 }
 
 //TODO add doc comments
-pub fn or<E1, E2, T, G, F>(condition1: E1, condition2: E2) -> Or<E1, E2, T, G, F>
-    where E1: Termination<T, G, F>, E2: Termination<T, G, F>,
-          T: Phenotype<G>, G: Genotype, F: Fitness
+pub fn or<T1, T2, G, F>(condition1: T1, condition2: T2) -> Or<T1, T2, G, F>
+    where T1: Termination<G, F>, T2: Termination<G, F>,
+          G: Genotype, F: Fitness
 {
     Or::new(condition1, condition2)
 }
 
 //TODO add doc comments
 #[derive(Clone)]
-pub struct Or<E1, E2, T, G, F>
-    where E1: Termination<T, G, F>, E2: Termination<T, G, F>,
-          T: Phenotype<G>, G: Genotype, F: Fitness
+pub struct Or<T1, T2, G, F>
+    where T1: Termination<G, F>, T2: Termination<G, F>,
+          G: Genotype, F: Fitness
 {
-    condition1: E1,
-    condition2: E2,
-    _t: PhantomData<T>,
+    condition1: T1,
+    condition2: T2,
     _g: PhantomData<G>,
     _f: PhantomData<F>,
 }
 
-impl<E1, E2, T, G, F> Or<E1, E2, T, G, F>
-    where E1: Termination<T, G, F>, E2: Termination<T, G, F>,
-          T: Phenotype<G>, G: Genotype, F: Fitness
+impl<T1, T2, G, F> Or<T1, T2, G, F>
+    where T1: Termination<G, F>, T2: Termination<G, F>,
+          G: Genotype, F: Fitness
 {
-    pub fn new(condition1: E1, condition2: E2) -> Self {
+    pub fn new(condition1: T1, condition2: T2) -> Self {
         Or {
             condition1: condition1,
             condition2: condition2,
-            _t: PhantomData,
             _g: PhantomData,
             _f: PhantomData,
         }
     }
 }
 
-impl<E1, E2, T, G, F> Termination<T, G, F> for Or<E1, E2, T, G, F>
-    where E1: Termination<T, G, F>, E2: Termination<T, G, F>,
-          T: Phenotype<G>, G: Genotype, F: Fitness
+impl<T1, T2, G, F> Termination<G, F> for Or<T1, T2, G, F>
+    where T1: Termination<G, F>, T2: Termination<G, F>,
+          G: Genotype, F: Fitness
 {
-    fn evaluate(&mut self, state: Arc<State<T, G, F>>) -> StopFlag {
+    fn evaluate(&mut self, state: &State<G, F>) -> StopFlag {
         let mut reasons = Vec::with_capacity(2);
         match self.condition1.evaluate(state.clone()) {
             StopFlag::StopNow(reason) => reasons.push(reason),

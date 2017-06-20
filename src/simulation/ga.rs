@@ -1,7 +1,7 @@
 /// This module provides the `Simulator` which implements the genetic algorithm
 /// (GA) and the related `SimulatorBuilder`.
 ///
-/// The steps of the genetic algorithm are:
+/// The stages of the genetic algorithm are:
 ///
 /// 1. **Initialize**: Generate random population of n genotypes (or chromosomes)
 /// 2. **Fitness**: Evaluate the fitness of each genotype in the population
@@ -30,19 +30,18 @@ use futures::future;
 use futures::future::{BoxFuture, Future};
 use futures::stream;
 use futures::stream::{BoxStream, Stream};
-use genetic::{Breeding, Fitness, FitnessEvaluation, Genotype, Phenotype, Population};
+use genetic::{Breeding, Fitness, FitnessEvaluation, Genotype, Population};
 use operator::{CrossoverOp, MutationOp, SelectionOp};
 use simulation::{BestSolution, Evaluated, SimError, SimResult, Simulation, SimulationBuilder,
                  State};
 use termination::{StopFlag, Termination};
 use std::marker::PhantomData;
 use std::mem;
-use std::sync::Arc;
 
 
-pub struct Simulator<T, G, F, E, S, Q, C, M, P>
-    where T: Phenotype<G>, G: Genotype, F: Fitness, P: Breeding<G>,
-          E: FitnessEvaluation<G, F>, S: SelectionOp<G, P>, Q: Termination<T, G, F>,
+pub struct Simulator<G, F, E, S, Q, C, M, P>
+    where G: Genotype, F: Fitness, P: Breeding<G>,
+          E: FitnessEvaluation<G, F>, S: SelectionOp<G, P>, Q: Termination<G, F>,
           C: CrossoverOp<P, G>, M: MutationOp<G>
 {
     evaluator: Box<E>,
@@ -50,29 +49,24 @@ pub struct Simulator<T, G, F, E, S, Q, C, M, P>
     breeder: Box<C>,
     mutator: Box<M>,
     termination: Box<Q>,
-    initial_population: Population<T, G>,
+    initial_population: Population<G>,
     started: bool,
     started_at: DateTime<Local>,
     generation: u64,
-    curr_population: Vec<G>,
-    fitness_values: Vec<F>,
-    highest_fitness: F,
-    lowest_fitness: F,
-    average_fitness: F,
-    normalized_fitness: Vec<F>,
+    population: Vec<G>,
     processing_time: Duration,
-    best_solution: BestSolution<T, G, F>,
     next_population: Vec<G>,
     _p: PhantomData<P>,
+    _f: PhantomData<F>,
 }
 
-impl<T, G, F, E, S, Q, C, M, P> Simulation<T, G, F, E, S, Q, C, M, P>
-    for Simulator<T, G, F, E, S, Q, C, M, P>
-    where T: Phenotype<G>, G: Genotype, F: Fitness, P: Breeding<G>,
-          E: FitnessEvaluation<G, F>, S: SelectionOp<G, P>, Q: Termination<T, G, F>,
+impl<G, F, E, S, Q, C, M, P> Simulation<G, F, E, S, Q, C, M, P>
+    for Simulator<G, F, E, S, Q, C, M, P>
+    where G: 'static + Genotype + Send + Sync, F: 'static + Fitness + Send + Sync, P: Breeding<G>,
+          E: FitnessEvaluation<G, F>, S: SelectionOp<G, P>, Q: Termination<G, F>,
           C: CrossoverOp<P, G>, M: MutationOp<G>
 {
-    type Builder = SimulatorBuilder<T, G, F, E, S, Q, C, M, P>;
+    type Builder = SimulatorBuilder<G, F, E, S, Q, C, M, P>;
 
     fn builder(evaluator: E, selector: S, breeder: C, mutator: M, termination: Q) -> Self::Builder {
         SimulatorBuilder {
@@ -81,14 +75,13 @@ impl<T, G, F, E, S, Q, C, M, P> Simulation<T, G, F, E, S, Q, C, M, P>
             breeder: Box::new(breeder),
             mutator: Box::new(mutator),
             termination: Box::new(termination),
-            _t: PhantomData,
             _g: PhantomData,
             _f: PhantomData,
             _p: PhantomData,
         }
     }
 
-    fn run(&mut self) -> BoxFuture<SimResult<T, G, F>, SimError> {
+    fn run(&mut self) -> BoxFuture<SimResult<G, F>, SimError> {
         if self.started {
             return Future::boxed(future::err(SimError::SimulationAlreadyRunning(
                     format!("Simulation already running since {}", &self.started_at))));
@@ -99,7 +92,7 @@ impl<T, G, F, E, S, Q, C, M, P> Simulation<T, G, F, E, S, Q, C, M, P>
         unimplemented!()
     }
 
-    fn step(&mut self) -> BoxFuture<SimResult<T, G, F>, SimError> {
+    fn step(&mut self) -> BoxFuture<SimResult<G, F>, SimError> {
         if self.started {
             return Future::boxed(future::err(SimError::SimulationAlreadyRunning(
                 format!("Simulation already running since {}", &self.started_at))));
@@ -108,20 +101,21 @@ impl<T, G, F, E, S, Q, C, M, P> Simulation<T, G, F, E, S, Q, C, M, P>
             self.started_at = Local::now();
         }
         let loop_started_at = Local::now();
+        let mut processing_time = Duration::zero();
+
         // Stage 2: The fitness check:
-        self.evaluate_fitness();
-        self.normalized_fitness = self.evaluator.normalize(&self.fitness_values);
-        self.average_fitness = self.evaluator.average(&self.fitness_values);
+        let score_board = self.evaluate_fitness(&self.population);
+        let best_solution = self.determine_best_solution(&score_board);
 
         // Stage 3: The making of a new population:
 
         self.create_new_population();
 
-        // Stage 4: Replace current generation with next generation:
+        // Stage 4: On to the next generation:
         let loop_time = Local::now().signed_duration_since(loop_started_at);
-        let state = Arc::new(self.replace_generation(loop_time));
+        let state = self.replace_generation(loop_time, processing_time, score_board, best_solution);
         // Stage 5: Be aware of the termination:
-        match self.termination.evaluate(state) {
+        match self.termination.evaluate(&state) {
             StopFlag::StopNow(reason) => {
                 unimplemented!()
             },
@@ -130,10 +124,10 @@ impl<T, G, F, E, S, Q, C, M, P> Simulation<T, G, F, E, S, Q, C, M, P>
         unimplemented!()
     }
 
-    fn stream(&mut self) -> BoxStream<SimResult<T, G, F>, SimError> {
+    fn stream(&mut self) -> BoxStream<SimResult<G, F>, SimError> {
         if self.started {
             return stream::Once::boxed(stream::once(Err(SimError::SimulationAlreadyRunning(
-                    format!("Simulation already running since {}", &self.started_at.clone())))));
+                    format!("Simulation already running since {}", &self.started_at)))));
         } else {
             self.started = true;
             self.started_at = Local::now();
@@ -154,9 +148,9 @@ impl<T, G, F, E, S, Q, C, M, P> Simulation<T, G, F, E, S, Q, C, M, P>
 
 /// The `SimulationBuilder` implements the 'initialization' stage (step 1) of
 /// the genetic algorithm.
-pub struct SimulatorBuilder<T, G, F, E, S, Q, C, M, P>
-    where T: Phenotype<G>, G: Genotype, F: Fitness, P: Breeding<G>,
-          E: FitnessEvaluation<G, F>, S: SelectionOp<G, P>, Q: Termination<T, G, F>,
+pub struct SimulatorBuilder<G, F, E, S, Q, C, M, P>
+    where G: Genotype, F: Fitness, P: Breeding<G>,
+          E: FitnessEvaluation<G, F>, S: SelectionOp<G, P>, Q: Termination<G, F>,
           C: CrossoverOp<P, G>, M: MutationOp<G>
 {
     evaluator: Box<E>,
@@ -164,106 +158,151 @@ pub struct SimulatorBuilder<T, G, F, E, S, Q, C, M, P>
     breeder: Box<C>,
     mutator: Box<M>,
     termination: Box<Q>,
-    _t: PhantomData<T>,
     _g: PhantomData<G>,
     _f: PhantomData<F>,
     _p: PhantomData<P>,
 }
 
-impl<T, G, F, E, S, Q, C, M, P> SimulationBuilder<Simulator<T, G, F, E, S, Q, C, M, P>, T, G, F, E, S, Q, C, M, P>
-    for SimulatorBuilder<T, G, F, E, S, Q, C, M, P>
-    where T: Phenotype<G>, G: Genotype, F: Fitness, P: Breeding<G>,
-          E: FitnessEvaluation<G, F>, S: SelectionOp<G, P>, Q: Termination<T, G, F>,
+impl<G, F, E, S, Q, C, M, P> SimulationBuilder<Simulator<G, F, E, S, Q, C, M, P>, G, F, E, S, Q, C, M, P>
+    for SimulatorBuilder<G, F, E, S, Q, C, M, P>
+    where G: 'static + Genotype + Send + Sync, F: 'static + Fitness + Send + Sync, P: Breeding<G>,
+          E: FitnessEvaluation<G, F>, S: SelectionOp<G, P>, Q: Termination<G, F>,
           C: CrossoverOp<P, G>, M: MutationOp<G>
 {
-    fn initialize(&mut self, population: Population<T, G>) -> Simulator<T, G, F, E, S, Q, C, M, P> {
+    fn initialize(&mut self, population: Population<G>) -> Simulator<G, F, E, S, Q, C, M, P> {
         let generation = 1;
         let p_size = population.size();
-        let best_s = BestSolution {
-            found_at: Local::now(),
-            generation: generation,
-            solution: Arc::new(Evaluated::new(Arc::new(population.individuals()[0].clone()),
-                                              Fitness::zero(), Fitness::zero())),
-        };
         Simulator {
             evaluator: self.evaluator.clone(),
             selector: self.selector.clone(),
             breeder: self.breeder.clone(),
             mutator: self.mutator.clone(),
             termination: self.termination.clone(),
-            initial_population: population,
             started: false,
             started_at: Local::now(),
             generation: generation,
-            curr_population: extract_genes(&population),
-            fitness_values: Vec::with_capacity(p_size),
-            highest_fitness: self.evaluator.worst_possible_fitness(),
-            lowest_fitness: self.evaluator.best_possible_fitness(),
-            average_fitness: <F>::zero(),
-            normalized_fitness: Vec::with_capacity(p_size),
+            population: population.individuals().to_vec(),
             processing_time: Duration::zero(),
-            best_solution: best_s,
             next_population: Vec::with_capacity(p_size),
+            initial_population: population,
+            _f: PhantomData,
             _p: PhantomData,
         }
     }
 }
+//
+//fn extract_genes<T, G>(population: &Population<G>) -> Vec<G>
+//    where T: Phenotype<G>, G: Genotype
+//{
+//    population.individuals().iter().map(|pheno|
+//        pheno.genes()
+//    ).collect::<Vec<G>>()
+//}
 
-fn extract_genes<T, G>(population: &Population<T, G>) -> Vec<G>
-    where T: Phenotype<G>, G: Genotype
-{
-    population.individuals().iter().map(|pheno|
-        pheno.genes()
-    ).collect::<Vec<G>>()
-}
-
-impl<T, G, F, E, S, Q, C, M, P> Simulator<T, G, F, E, S, Q, C, M, P>
-    where T: Phenotype<G>, G: Genotype, F: Fitness, P: Breeding<G>,
-          E: FitnessEvaluation<G, F>, S: SelectionOp<G, P>, Q: Termination<T, G, F>,
+impl<G, F, E, S, Q, C, M, P> Simulator<G, F, E, S, Q, C, M, P>
+    where G: Genotype, F: Fitness, P: Breeding<G>,
+          E: FitnessEvaluation<G, F>, S: SelectionOp<G, P>, Q: Termination<G, F>,
           C: CrossoverOp<P, G>, M: MutationOp<G>
 {
     /// Calculates the `Fitness` value of each `Phenotype` and records the
     /// highest and lowest values.
-    fn evaluate_fitness(&mut self) {
-        for genome in self.curr_population {
+    fn evaluate_fitness(&self, population: &[G]) -> ScoreBoard<F> {
+        let mut fitness = Vec::new();
+        let mut highest = self.evaluator.lowest_possible_fitness();
+        let mut lowest = self.evaluator.highest_possible_fitness();
+        for genome in population {
             let score = self.evaluator.fitness_of(&genome);
-            if score > self.highest_fitness {
-                self.highest_fitness = score.clone();
+            if score > highest {
+                highest = score.clone();
             }
-            if score < self.lowest_fitness {
-                self.lowest_fitness = score.clone();
+            if score < lowest {
+                lowest = score.clone();
             }
-            self.fitness_values.push(score);
+            fitness.push(score);
         }
+        let normalized = self.evaluator.normalize(&fitness);
+        let average = self.evaluator.average(&fitness);
+
+        ScoreBoard {
+            fitness_values: fitness,
+            normalized_fitness: normalized,
+            highest_fitness: highest,
+            lowest_fitness: lowest,
+            average_fitness: average,
+        }
+    }
+
+    /// Determines the best solution of the current population
+    fn determine_best_solution(&self, score_board: &ScoreBoard<F>) -> BestSolution<G, F> {
+        let index_of_best = score_board.index_of_fitness(&score_board.highest_fitness);
+        let evaluated = Evaluated {
+            genome: self.population[index_of_best].clone(),
+            fitness: score_board.fitness_values[index_of_best].clone(),
+            normalized_fitness: score_board.normalized_fitness[index_of_best].clone(),
+        };
+        BestSolution {
+            found_at: Local::now(),
+            generation: self.generation,
+            solution: evaluated,
+        }
+    }
+
+    fn create_new_population(&self) {
+        unimplemented!()
     }
 
     /// Generates a `State` object about the last processed loop, replaces the
     /// current generation with the next generation and increases the
     /// generation counter.
-    fn replace_generation(&mut self, loop_time: Duration) -> State<T, G, F> {
+    fn replace_generation(&mut self, loop_time: Duration, processing_time: Duration,
+                          score_board: ScoreBoard<F>, best_solution: BestSolution<G, F>
+                         ) -> State<G, F> {
         let curr_generation = self.generation;
         let p_size = self.next_population.len();
         let next_p = mem::replace(&mut self.next_population, Vec::with_capacity(p_size));
-        let curr_p = mem::replace(&mut self.curr_population, next_p);
+        let curr_p = mem::replace(&mut self.population, next_p);
         self.generation += 1;
         State {
             started_at: self.started_at.clone(),
             generation: curr_generation,
-            population: Arc::new(curr_p),
-            fitness_values: Arc::new(Vec::with_capacity(p_size)),
-            normalized_fitness: Arc::new(Vec::with_capacity(p_size)),
-            time: loop_time,
-            average_fitness: self.average_fitness.clone(),
-            highest_fitness: self.highest_fitness.clone(),
-            lowest_fitness: self.lowest_fitness.clone(),
-            best_solution: Arc::new(self.best_solution.clone()),
+            population: curr_p,
+            fitness_values: score_board.fitness_values,
+            normalized_fitness: score_board.normalized_fitness,
+            duration: loop_time,
+            processing_time: processing_time,
+            average_fitness: score_board.average_fitness,
+            highest_fitness: score_board.highest_fitness,
+            lowest_fitness: score_board.lowest_fitness,
+            best_solution: best_solution,
         }
     }
 
 }
 
-fn create_new_population<G>(current_population: &Vec<G>) -> Vec<G>
-    where G: Genotype
-{
-    unimplemented!()
+struct ScoreBoard<F> {
+    pub fitness_values: Vec<F>,
+    pub normalized_fitness: Vec<F>,
+    pub highest_fitness: F,
+    pub lowest_fitness: F,
+    pub average_fitness: F,
+}
+
+impl<F: Fitness> ScoreBoard<F> {
+
+    fn index_of_fitness_1(&self, fitness: F) -> usize {
+        let mut index_of_best = 0;
+        for i in 0..self.fitness_values.len() {
+            if fitness == self.fitness_values[i] {
+                index_of_best = i;
+                break;
+            }
+        }
+        index_of_best
+    }
+
+    fn index_of_fitness(&self, fitness: &F) -> usize {
+        self.fitness_values.iter().position(|x| *x == *fitness)
+            .expect("Fitness value not in score board")
+    }
+
 }
