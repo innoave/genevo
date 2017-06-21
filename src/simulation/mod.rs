@@ -9,13 +9,13 @@ use std::rc::Rc;
 
 
 /// A `Simulation` is the execution of a genetic algorithm.
-pub trait Simulation<G, F, E, S, Q, C, M, P>
-    where G: Genotype, F: Fitness, P: Breeding<G>,
-          E: FitnessEvaluation<G, F>, S: SelectionOp<G, F, P>, Q: Termination<G, F>,
-          C: CrossoverOp<P, G>, M: MutationOp<G>, Self: Sized
+pub trait Simulation<G, F, E, S, Q, C, M, B>
+    where G: Genotype, F: Fitness, B: Breeding<G>,
+          E: FitnessEvaluation<G, F>, S: SelectionOp<G, F, B>, Q: Termination<G, F>,
+          C: CrossoverOp<B, G>, M: MutationOp<G>, Self: Sized
 {
     /// A `SimulationBuilder` that can build this `Simulation`.
-    type Builder: SimulationBuilder<Self, G, F, E, S, Q, C, M, P>;
+    type Builder: SimulationBuilder<Self, G, F, E, S, Q, C, M, B>;
 
     /// Start building a new instance of a `Simulation`.
     fn builder(evaluator: E, selector: S, breeder: C, mutator: M, termination: Q) -> Self::Builder;
@@ -39,11 +39,11 @@ pub trait Simulation<G, F, E, S, Q, C, M, P>
 
 /// The `SimulationBuilder` creates a new `Simulation` with given parameters
 /// and options. It forms the initialization stage of the genetic algorithm.
-pub trait SimulationBuilder<Sim, G, F, E, S, Q, C, M, P>
-    where Sim: Simulation<G, F, E, S, Q, C, M, P>,
-          G: Genotype, F: Fitness, P: Breeding<G>,
-          E: FitnessEvaluation<G, F>, S: SelectionOp<G, F, P>, Q: Termination<G, F>,
-          C: CrossoverOp<P, G>, M: MutationOp<G>
+pub trait SimulationBuilder<Sim, G, F, E, S, Q, C, M, B>
+    where Sim: Simulation<G, F, E, S, Q, C, M, B>,
+          G: Genotype, F: Fitness, B: Breeding<G>,
+          E: FitnessEvaluation<G, F>, S: SelectionOp<G, F, B>, Q: Termination<G, F>,
+          C: CrossoverOp<B, G>, M: MutationOp<G>
 {
     /// Finally initializes the `Simulation` with the given `Population`
     /// and returns the newly created `Simulation`.
@@ -69,8 +69,6 @@ pub struct Evaluated<G, F>
     pub genome: G,
     /// The `Fitness` value of the evaluated `Genotype`.
     pub fitness: F,
-    /// The normalized fitness value.
-    pub normalized_fitness: F,
 }
 
 /// The `EvaluatedPopulation` holds the results of the evaluation stage of
@@ -92,7 +90,6 @@ pub struct EvaluatedPopulation<G, F>
 {
     individuals: Rc<Vec<G>>,
     fitness_values: Vec<F>,
-    normalized_fitness: Vec<F>,
     highest_fitness: F,
     lowest_fitness: F,
     average_fitness: F,
@@ -104,7 +101,6 @@ impl<G, F> EvaluatedPopulation<G, F>
     /// Construct a new instance of the `EvaluatedPopulation` struct.
     pub fn new(individuals: Rc<Vec<G>>,
                fitness_values: Vec<F>,
-               normalized_fitness: Vec<F>,
                highest_fitness: F,
                lowest_fitness: F,
                average_fitness: F
@@ -112,7 +108,6 @@ impl<G, F> EvaluatedPopulation<G, F>
         EvaluatedPopulation {
             individuals: individuals,
             fitness_values: fitness_values,
-            normalized_fitness: normalized_fitness,
             highest_fitness: highest_fitness,
             lowest_fitness: lowest_fitness,
             average_fitness: average_fitness
@@ -134,18 +129,6 @@ impl<G, F> EvaluatedPopulation<G, F>
     /// `fitness_values()[i]`.
     pub fn fitness_values(&self) -> &[F] {
         &self.fitness_values
-    }
-
-    /// Returns the normalized fitness values of all individuals of the
-    /// evaluated population.
-    ///
-    /// The returned slice contains the normalized fitness values
-    /// in the same order as the slice returned by function `individuals`
-    /// contains the individuals itself, i.e. for individual with index `i`
-    /// in `individuals()[i]` the normalized fitness value is stored in
-    /// `normalized_fitness()[i]`.
-    pub fn normalized_fitness(&self) -> &[F] {
-        &self.normalized_fitness
     }
 
     /// Returns the highest `Fitness` value found in the evaluated population.
@@ -178,15 +161,6 @@ impl<G, F> EvaluatedPopulation<G, F>
             &self.fitness_values[index])
     }
 
-    /// Returns the normalized `Fitness` value of the given individual.
-    ///
-    /// Note: This function might be more expensive due to the data structure
-    /// chosen for this struct. So use it sparingly.
-    pub fn normalized_fitness_of_individual(&self, individual: &G) -> Option<&F> {
-        self.index_of_individual(individual).map(|index|
-            &self.fitness_values[index])
-    }
-
     /// Returns the `Genotype` of the individual with a given `Fitness` value.
     ///
     /// Note: This function might be more expensive due to the data structure
@@ -209,7 +183,8 @@ impl<G, F> EvaluatedPopulation<G, F>
 }
 
 /// The `State` struct holds the results of one pass of the genetic algorithm
-/// loop, i.e. the processing of the loop for one generation.
+/// loop, i.e. the processing of the evoluation from one generation to the
+/// next generation.
 #[derive(Debug, Eq, PartialEq)]
 pub struct State<G, F>
     where G: Genotype, F: Fitness
@@ -224,12 +199,13 @@ pub struct State<G, F>
     pub population: Vec<G>,
     /// The fitness values of all individuals of the current population.
     pub fitness_values: Vec<F>,
-    /// The normalized fitness values of all individuals of the current
-    /// population.
-    pub normalized_fitness: Vec<F>,
-    /// Duration of processing the current generation.
+    /// Duration of processing the current generation. This is the time it
+    /// took to process one iteration of the algorithm.
     pub duration: Duration,
     /// Accumulated time spent by each thread in case of parallel processing.
+    /// In case of sequential processing this time is nearly the same as the
+    /// `duration` value. In case of parallel processing this time is usually
+    /// a multitude of the `duration`.
     pub processing_time: Duration,
     /// Average fitness value of the current generation.
     pub average_fitness: F,

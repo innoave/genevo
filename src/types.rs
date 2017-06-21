@@ -17,7 +17,7 @@
 //! * `usize`
 
 use chrono::Duration;
-use genetic::Fitness;
+use genetic::{Fitness, ToScalar};
 
 macro_rules! implement_fitness_for_signed_integer {
     ( $($t:ty),* ) => {
@@ -30,6 +30,13 @@ macro_rules! implement_fitness_for_signed_integer {
                 fn abs_diff(&self, other: &$t) -> $t {
                     let diff = self - other;
                     diff.abs()
+                }
+            }
+
+            impl ToScalar for $t {
+                #[inline]
+                fn to_scalar(&self) -> f64 {
+                    *self as f64
                 }
             }
         )*
@@ -53,6 +60,13 @@ macro_rules! implement_fitness_for_unsigned_integer {
                     } else {
                         other - self
                     }
+                }
+            }
+
+            impl ToScalar for $t {
+                #[inline]
+                fn to_scalar(&self) -> f64 {
+                    *self as f64
                 }
             }
         )*

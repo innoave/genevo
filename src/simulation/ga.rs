@@ -11,7 +11,7 @@
 //!      according to their fitness and the selection strategy of the
 //!      configured `operator::SelectionOp`
 //! 3.2. **Crossover**: With a crossover probability cross over the parents to
-//!      form a new offspring (children) by means of the configured
+//!      form a new offspring (child) by means of the configured
 //!      `operator::CrossoverOp`.
 //! 3.3. **Mutation**: With a mutation probability mutate new offspring at each
 //!      locus (position in genotype) by means of the configured
@@ -54,10 +54,10 @@ enum RunMode {
 
 /// The `SimulationBuilder` implements the 'initialization' stage (step 1) of
 /// the genetic algorithm.
-pub struct SimulatorBuilder<G, F, E, S, Q, C, M, P>
-    where G: Genotype, F: Fitness, P: Breeding<G>,
-          E: FitnessEvaluation<G, F>, S: SelectionOp<G, F, P>, Q: Termination<G, F>,
-          C: CrossoverOp<P, G>, M: MutationOp<G>
+pub struct SimulatorBuilder<G, F, E, S, Q, C, M, B>
+    where G: Genotype, F: Fitness, B: Breeding<G>,
+          E: FitnessEvaluation<G, F>, S: SelectionOp<G, F, B>, Q: Termination<G, F>,
+          C: CrossoverOp<B, G>, M: MutationOp<G>
 {
     evaluator: Box<E>,
     selector: Box<S>,
@@ -66,16 +66,16 @@ pub struct SimulatorBuilder<G, F, E, S, Q, C, M, P>
     termination: Box<Q>,
     _g: PhantomData<G>,
     _f: PhantomData<F>,
-    _p: PhantomData<P>,
+    _p: PhantomData<B>,
 }
 
-impl<G, F, E, S, Q, C, M, P> SimulationBuilder<Simulator<G, F, E, S, Q, C, M, P>, G, F, E, S, Q, C, M, P>
-for SimulatorBuilder<G, F, E, S, Q, C, M, P>
-    where G: Genotype + Send + Sync, F: Fitness + Send + Sync, P: Breeding<G>,
-          E: FitnessEvaluation<G, F>, S: SelectionOp<G, F, P>, Q: Termination<G, F>,
-          C: CrossoverOp<P, G>, M: MutationOp<G>
+impl<G, F, E, S, Q, C, M, B> SimulationBuilder<Simulator<G, F, E, S, Q, C, M, B>, G, F, E, S, Q, C, M, B>
+for SimulatorBuilder<G, F, E, S, Q, C, M, B>
+    where G: Genotype + Send + Sync, F: Fitness + Send + Sync, B: Breeding<G>,
+          E: FitnessEvaluation<G, F>, S: SelectionOp<G, F, B>, Q: Termination<G, F>,
+          C: CrossoverOp<B, G>, M: MutationOp<G>
 {
-    fn initialize(&mut self, population: Population<G>) -> Simulator<G, F, E, S, Q, C, M, P> {
+    fn initialize(&mut self, population: Population<G>) -> Simulator<G, F, E, S, Q, C, M, B> {
         Simulator {
             evaluator: self.evaluator.clone(),
             selector: self.selector.clone(),
@@ -95,10 +95,10 @@ for SimulatorBuilder<G, F, E, S, Q, C, M, P>
     }
 }
 
-pub struct Simulator<G, F, E, S, Q, C, M, P>
-    where G: Genotype, F: Fitness, P: Breeding<G>,
-          E: FitnessEvaluation<G, F>, S: SelectionOp<G, F, P>, Q: Termination<G, F>,
-          C: CrossoverOp<P, G>, M: MutationOp<G>
+pub struct Simulator<G, F, E, S, Q, C, M, B>
+    where G: Genotype, F: Fitness, B: Breeding<G>,
+          E: FitnessEvaluation<G, F>, S: SelectionOp<G, F, B>, Q: Termination<G, F>,
+          C: CrossoverOp<B, G>, M: MutationOp<G>
 {
     evaluator: Box<E>,
     selector: Box<S>,
@@ -112,17 +112,17 @@ pub struct Simulator<G, F, E, S, Q, C, M, P>
     population: Rc<Vec<G>>,
     processing_time: Duration,
     finished: bool,
-    _p: PhantomData<P>,
+    _p: PhantomData<B>,
     _f: PhantomData<F>,
 }
 
-impl<G, F, E, S, Q, C, M, P> Simulation<G, F, E, S, Q, C, M, P>
-    for Simulator<G, F, E, S, Q, C, M, P>
-    where G: Genotype + Send + Sync, F: Fitness + Send + Sync, P: Breeding<G>,
-          E: FitnessEvaluation<G, F>, S: SelectionOp<G, F, P>, Q: Termination<G, F>,
-          C: CrossoverOp<P, G>, M: MutationOp<G>
+impl<G, F, E, S, Q, C, M, B> Simulation<G, F, E, S, Q, C, M, B>
+    for Simulator<G, F, E, S, Q, C, M, B>
+    where G: Genotype + Send + Sync, F: Fitness + Send + Sync, B: Breeding<G>,
+          E: FitnessEvaluation<G, F>, S: SelectionOp<G, F, B>, Q: Termination<G, F>,
+          C: CrossoverOp<B, G>, M: MutationOp<G>
 {
-    type Builder = SimulatorBuilder<G, F, E, S, Q, C, M, P>;
+    type Builder = SimulatorBuilder<G, F, E, S, Q, C, M, B>;
 
     fn builder(evaluator: E, selector: S, breeder: C, mutator: M, termination: Q) -> Self::Builder {
         SimulatorBuilder {
@@ -145,15 +145,10 @@ impl<G, F, E, S, Q, C, M, P> Simulation<G, F, E, S, Q, C, M, P>
             RunMode::Step =>
                 return Err(SimError::SimulationAlreadyRunning(
                     format!("Simulation already running in step mode since {}", &self.started_at))),
-            RunMode::NotRunning =>
-                if self.initial_population.size() < MIN_POPULATION_SIZE {
-                    return Err(SimError::PopulationTooSmall(
-                        format!("Initial population of size {} is smaller than the required minimum of {}",
-                                self.initial_population.size(), MIN_POPULATION_SIZE)))
-                } else {
-                    self.run_mode = RunMode::Loop;
-                    self.started_at = Local::now();
-                },
+            RunMode::NotRunning => {
+                self.run_mode = RunMode::Loop;
+                self.started_at = Local::now();
+            },
         }
         let mut result = Err(SimError::UnexpectedError("Unexpected error! \
                              No loop of the simulation has ever been processed!".to_string()));
@@ -186,15 +181,16 @@ impl<G, F, E, S, Q, C, M, P> Simulation<G, F, E, S, Q, C, M, P>
                 return Err(SimError::SimulationAlreadyRunning(
                     format!("Simulation already running in loop since {}", &self.started_at))),
             RunMode::Step => (),
-            RunMode::NotRunning =>
-                if self.initial_population.size() < MIN_POPULATION_SIZE {
-                    return Err(SimError::PopulationTooSmall(
-                        format!("Initial population of size {} is smaller than the required minimum of {}",
-                                self.initial_population.size(), MIN_POPULATION_SIZE)))
-                } else {
+            RunMode::NotRunning => {
                     self.run_mode = RunMode::Step;
                     self.started_at = Local::now();
                 },
+        }
+        if self.population.len() < MIN_POPULATION_SIZE {
+            return Err(SimError::PopulationTooSmall(
+                format!("Population of generation {} has a size of {} which is smaller than the \
+                        required minimum size of {}",
+                        self.generation, self.initial_population.size(), MIN_POPULATION_SIZE)))
         }
 
         // Stages 2-4: Look at one generation
@@ -250,10 +246,10 @@ impl<G, F, E, S, Q, C, M, P> Simulation<G, F, E, S, Q, C, M, P>
     }
 }
 
-impl<G, F, E, S, Q, C, M, P> Simulator<G, F, E, S, Q, C, M, P>
-    where G: Genotype, F: Fitness, P: Breeding<G>,
-          E: FitnessEvaluation<G, F>, S: SelectionOp<G, F, P>, Q: Termination<G, F>,
-          C: CrossoverOp<P, G>, M: MutationOp<G>
+impl<G, F, E, S, Q, C, M, B> Simulator<G, F, E, S, Q, C, M, B>
+    where G: Genotype, F: Fitness, B: Breeding<G>,
+          E: FitnessEvaluation<G, F>, S: SelectionOp<G, F, B>, Q: Termination<G, F>,
+          C: CrossoverOp<B, G>, M: MutationOp<G>
 {
     /// Processes stages 2-4 of the genetic algorithm
     fn process_one_generation(&mut self) -> State<G, F> {
@@ -291,12 +287,10 @@ impl<G, F, E, S, Q, C, M, P> Simulator<G, F, E, S, Q, C, M, P>
             }
             fitness.push(score);
         }
-        let normalized = self.evaluator.normalize(&fitness);
         let average = self.evaluator.average(&fitness);
         (EvaluatedPopulation {
             individuals: population,
             fitness_values: fitness,
-            normalized_fitness: normalized,
             highest_fitness: highest,
             lowest_fitness: lowest,
             average_fitness: average,
@@ -314,7 +308,6 @@ impl<G, F, E, S, Q, C, M, P> Simulator<G, F, E, S, Q, C, M, P>
         let evaluated = Evaluated {
             genome: self.population[index_of_best].clone(),
             fitness: score_board.fitness_values[index_of_best].clone(),
-            normalized_fitness: score_board.normalized_fitness[index_of_best].clone(),
         };
         (BestSolution {
             found_at: Local::now(),
@@ -337,7 +330,7 @@ impl<G, F, E, S, Q, C, M, P> Simulator<G, F, E, S, Q, C, M, P>
         Local::now().signed_duration_since(started_at))
     }
 
-    /// Generates a `State` object about the last processed loop, replaces the
+    /// Generates a `State` object about the last processed evolution, replaces the
     /// current generation with the next generation and increases the
     /// generation counter.
     fn replace_generation(&mut self,
@@ -356,7 +349,6 @@ impl<G, F, E, S, Q, C, M, P> Simulator<G, F, E, S, Q, C, M, P>
             generation: curr_generation,
             population: curr_p,
             fitness_values: score_board.fitness_values,
-            normalized_fitness: score_board.normalized_fitness,
             duration: loop_time,
             processing_time: processing_time,
             average_fitness: score_board.average_fitness,

@@ -4,7 +4,6 @@
 //! genetic biology.
 
 use std::fmt::Debug;
-use std::ops::{Add, Sub, Mul, Div};
 
 /// A `Phenotype` is a candidate solution of the optimization or search problem.
 /// Phenotypes are also called individuals or creatures. A `Phenotype` is the
@@ -95,10 +94,31 @@ pub trait PopulationGenerator<G>
 /// and used for breeding in the `CrossoverOp`. Commonly parents are
 /// defined as tuple of two `Genotype`s but maybe some derivation of the
 /// genetic algorithm wants to use three or more `Genotype`s for breeding.
-pub trait Breeding<G>
+pub trait Breeding<G>: Clone
     where G: Genotype
 {
+    /// A `Parents` type defines a tuple of individuals that are needed for
+    /// breeding one offspring.
+    ///
+    /// For example a tuple of 2 `Genotype`:
+    /// ```ignore
+    /// type Parents = (G, G)
+    /// ```
     type Parents;
+
+    /// Constructs an instance of `Self::Parents` from given tuple of
+    /// `Genotype`s. The number of `Genotype`s given in parameter tuple
+    /// must match the value returned by the `num_individuals_per_parents`
+    /// function.
+    fn mate_parents(&self, tuple: Vec<G>) -> Self::Parents;
+
+    /// Returns the number of individuals that are needed to construct an
+    /// instance of `Self::Parents` using the `mate_parents` function.
+    fn num_individuals_per_parents(&self) -> usize;
+
+    /// Returns the parent with index one from the given `Self::Parents`
+    /// instance.
+    fn parent(&self, index: usize, parents: Self::Parents) -> G;
 }
 
 /// A `Fitness` value is used to determine the quality of a `Genotype`.
@@ -108,11 +128,12 @@ pub trait Breeding<G>
 /// A `Genotype` with a `Fitness` value of `f1` performs better than another
 /// `Genotype` with a `Fitness` value of `f2` if `f1 > f2`.
 ///
-/// It also has to implement the Add, Sub, Mul and Div trait so that the
-/// simulation can normalize the fitness value of each individual across
-/// a population.
-pub trait Fitness: PartialEq + Eq + Ord + Add + Sub + Mul + Div + Clone + Debug + Sized {
-
+/// For multi-objective `Fitness` values either `operator::GeneticOperator`s
+/// suitable for multi-objective optimization are used or the implementation
+/// of the multi-objective `Fitness` value additionally implements the
+/// `ToScalar` trait. Using single-objective optimization for multi-objective
+/// problems has some drawbacks though.
+pub trait Fitness: PartialEq + Eq + Ord + Clone + Debug + Sized {
     /// Returns the zero value of this `Fitness` value.
     /// The internal value should be 0.
     fn zero() -> Self;
@@ -120,6 +141,20 @@ pub trait Fitness: PartialEq + Eq + Ord + Add + Sub + Mul + Div + Clone + Debug 
     /// Returns the absolute difference between this `Fitness` value and the
     /// other one, i.e. result = |self| - |other|
     fn abs_diff(&self, other: &Self) -> Self;
+}
+
+/// In order to be able to use `operator::GeneticOperator`s designed for
+/// single-objective optimization to be used for multi-objective `Fitness`
+/// values the struct implementing the `Fitness` trait must also implement
+/// this `ToScalar` trait.
+///
+/// The implementation will use a scalarization method to convert a
+/// multi-objective `Fitness` value into a scalar representation. A well-known
+/// method is calculating the weighted sum F = Sum(W * f).
+pub trait ToScalar {
+
+    /// Returns a float value that represents this type in scalar form.
+    fn to_scalar(&self) -> f64;
 
 }
 
@@ -130,10 +165,6 @@ pub trait FitnessEvaluation<G, F>: Clone
 {
     /// Calculates the `Fitness` value of the given `Genotype`.
     fn fitness_of(&self, a: &G) -> F;
-
-    /// Normalizes the given `Fitness` values and returns the normalized
-    /// values in a new vector.
-    fn normalize(&self, a: &[F]) -> Vec<F>;
 
     /// Calculates the average `Fitness` value of the given `Fitness` values.
     fn average(&self, a: &[F]) -> F;
