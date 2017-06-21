@@ -75,7 +75,7 @@ impl Display for Duration {
         let duration_nanos = duration_sub_seconds(self);
         if duration_secs == 0 {
             if duration_nanos == 0 {
-                0.to_string() + "s"
+                format!("{}s", duration_secs)
             } else {
                 sign + &fmt_duration_sub_seconds(&duration_nanos, false)
             }
@@ -115,50 +115,70 @@ fn duration_sub_seconds(duration: &Duration) -> i64 {
     }
 }
 
-//TODO maybe write weeks to formatted string for longer durations
-//TODO do benchmarks for format! macro and pure String concatenation
 fn fmt_duration_seconds(duration_secs: &i64, always_print_till_seconds: bool) -> String {
-    let days = duration_secs / (24 * 60 * 60);
-    let sub_days = duration_secs % (24 * 60 * 60);
+    let weeks = duration_secs / (7 * 24 * 60 * 60);
+    let sub_weeks = duration_secs % (7 * 24 * 60 * 60);
+    let days = sub_weeks / (24 * 60 * 60);
+    let sub_days = sub_weeks % (24 * 60 * 60);
     let hours = sub_days / (60 * 60);
     let sub_hours = sub_days % (60 * 60);
     let mins = sub_hours / 60;
     let secs = sub_hours % 60;
-    if days == 0 {
-        if hours == 0 {
-            if mins == 0 {
-                format!("{}s", secs)
+    if weeks == 0 {
+        if days == 0 {
+            if hours == 0 {
+                if mins == 0 {
+                    format!("{}s", secs)
+                } else {
+                    if secs == 0 && !always_print_till_seconds {
+                        format!("{}m", mins)
+                    } else {
+                        format!("{}m {}s", mins, secs)
+                    }
+                }
             } else {
                 if secs == 0 && !always_print_till_seconds {
-                    format!("{}m", mins)
+                    if mins == 0 {
+                        format!("{}h", hours)
+                    } else {
+                        format!("{}h {}m", hours, mins)
+                    }
                 } else {
-                    format!("{}m {}s", mins, secs)
+                    format!("{}h {}m {}s", hours, mins, secs)
                 }
             }
         } else {
             if secs == 0 && !always_print_till_seconds {
                 if mins == 0 {
-                    format!("{}h", hours)
+                    if hours == 0 {
+                        format!("{}d", days)
+                    } else {
+                        format!("{}d {}h", days, hours)
+                    }
                 } else {
-                    format!("{}h {}m", hours, mins)
+                    format!("{}d {}h {}m", days, hours, mins)
                 }
             } else {
-                format!("{}h {}m {}s", hours, mins, secs)
+                format!("{}d {}h {}m {}s", days, hours, mins, secs)
             }
         }
     } else {
         if secs == 0 && !always_print_till_seconds {
             if mins == 0 {
                 if hours == 0 {
-                    format!("{}d", days)
+                    if days == 0 {
+                        format!("{}w", weeks)
+                    } else {
+                        format!("{}w {}d", weeks, days)
+                    }
                 } else {
-                    format!("{}d {}h", days, hours)
+                    format!("{}w {}d {}h", weeks, days, hours)
                 }
             } else {
-                format!("{}d {}h {}m", days, hours, mins)
+                format!("{}w {}d {}h {}m", weeks, days, hours, mins)
             }
         } else {
-            format!("{}d {}h {}m {}s", days, hours, mins, secs)
+            format!("{}w {}d {}h {}m {}s", weeks, days, hours, mins, secs)
         }
     }
 }
@@ -447,12 +467,12 @@ mod tests {
 
     #[test]
     fn duration_fmt_max() {
-        assert_that!(&Duration::max_value().fmt(), is(equal_to("106751991167d 7h 12m 55s")));
+        assert_that!(&Duration::max_value().fmt(), is(equal_to("15250284452w 3d 7h 12m 55s")));
     }
 
     #[test]
     fn duration_fmt_min() {
-        assert_that!(&Duration::min_value().fmt(), is(equal_to("-106751991167d 7h 12m 55s")));
+        assert_that!(&Duration::min_value().fmt(), is(equal_to("-15250284452w 3d 7h 12m 55s")));
     }
 
     #[test]
@@ -491,8 +511,13 @@ mod tests {
     }
 
     #[test]
-    fn duration_fmt_1000d() {
-        assert_that!(&Duration::days(1000).fmt(), is(equal_to("1000d")));
+    fn duration_fmt_6d() {
+        assert_that!(&Duration::days(6).fmt(), is(equal_to("6d")));
+    }
+
+    #[test]
+    fn duration_fmt_1w() {
+        assert_that!(&Duration::days(7).fmt(), is(equal_to("1w")));
     }
 
     #[test]
@@ -568,6 +593,32 @@ mod tests {
     #[test]
     fn duration_fmt_1m_1000ns() {
         assert_that!(&Duration::microseconds(60_000_000 + 1).fmt(), is(equal_to("1m 0s 0ms 1,000ns")));
+    }
+
+    #[test]
+    fn duration_fmt_1w_6d() {
+        assert_that!(&Duration::days(13).fmt(), is(equal_to("1w 6d")));
+    }
+
+    #[test]
+    fn duration_fmt_2w() {
+        assert_that!(&Duration::days(14).fmt(), is(equal_to("2w")));
+    }
+
+    #[test]
+    fn duration_fmt_2w_1d() {
+        assert_that!(&Duration::days(15).fmt(), is(equal_to("2w 1d")));
+    }
+
+    #[test]
+    fn duration_fmt_1000w_6d_23h_59m_59s_999ms_999999ns() {
+        let duration = 1_001 * 7 * 24 * 3600 * 1_000_000_000 - 1;
+        assert_that!(&Duration::nanoseconds(duration).fmt(), is(equal_to("1000w 6d 23h 59m 59s 999ms 999,999ns")));
+    }
+
+    #[test]
+    fn duration_fmt_1w_999ms() {
+        assert_that!(&Duration::milliseconds(1 * 7 * 24 * 3600 * 1_000 + 999).fmt(), is(equal_to("1w 0d 0h 0m 0s 999ms")));
     }
 
 }
