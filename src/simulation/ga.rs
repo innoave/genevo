@@ -324,10 +324,17 @@ impl<G, F, E, S, Q, C, M, P> Simulator<G, F, E, S, Q, C, M, P>
         Local::now().signed_duration_since(started_at))
     }
 
+    /// Creates a new population which is derived from the current population
+    /// applying 'Selection', 'Crossover' and 'Mutation'.
     fn create_new_population(&self, evaluated_population: &EvaluatedPopulation<G, F>)
         -> (Vec<G>, Duration) {
-        self.selector.selection(evaluated_population);
-        unimplemented!()
+        let started_at = Local::now();
+        let selection = self.selector.selection(evaluated_population);
+        (selection.iter()
+            .map(|parents| self.breeder.crossover(&parents))
+            .map(|offspring| self.mutator.mutate(&offspring))
+            .collect(),
+        Local::now().signed_duration_since(started_at))
     }
 
     /// Generates a `State` object about the last processed loop, replaces the
@@ -358,5 +365,4 @@ impl<G, F, E, S, Q, C, M, P> Simulator<G, F, E, S, Q, C, M, P>
             best_solution: best_solution,
         }
     }
-
 }
