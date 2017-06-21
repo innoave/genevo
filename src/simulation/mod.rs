@@ -205,24 +205,6 @@ impl<G, F> EvaluatedPopulation<G, F>
     fn index_of_fitness(&self, fitness: &F) -> Option<usize> {
         self.fitness_values.iter().position(|v| *v == *fitness)
     }
-//
-//    fn index_of_fitness(&mut self, fitness: &F) -> usize {
-//        self.fitness_indexes.entry(fitness).get().unwrap_or_else(|e|
-//            e.inser(self.fitness_values.iter().position(|x| *x == *fitness)
-//                .expect("Fitness value not in score board")))
-//    }
-
-    //TODO compare benchmarks of the alternative implementations.
-    fn index_of_fitness_2(&self, fitness: F) -> usize {
-        let mut index_of_best = 0;
-        for i in 0..self.fitness_values.len() {
-            if fitness == self.fitness_values[i] {
-                index_of_best = i;
-                break;
-            }
-        }
-        index_of_best
-    }
 
 }
 
