@@ -1,6 +1,9 @@
 //! The `proportional` module provides `operator::SelectionOp`s that implement
 //! selection strategies where individuals with a higher `Fitness` value are
 //! selected with a proportional higher probability.
+//!
+//! The provided selection operators are:
+//! * `RouletteWheelSelector`
 
 use genetic::{Breeding, Fitness, Genotype, ToScalar};
 use operator::{GeneticOperator, SelectionOp, SingleObjective};
