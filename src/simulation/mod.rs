@@ -28,10 +28,13 @@ pub trait Simulation<G, F, E, S, Q, C, M, P>
     /// one time the complete loop of the genetic algorithm.
     fn step(&mut self) -> Result<SimResult<G, F>, SimError>;
 
+    /// Stops the simulation after the current loop is finished.
+    fn stop(&mut self) -> Result<bool, SimError>;
+
     /// Resets the simulation in order to be able to rerun it again. This
     /// method resets the simulation in its initial state, as if it's just
     /// newly created.
-    fn reset(&mut self);
+    fn reset(&mut self) -> Result<bool, SimError>;
 }
 
 /// The `SimulationBuilder` creates a new `Simulation` with given parameters

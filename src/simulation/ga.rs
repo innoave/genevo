@@ -1,30 +1,30 @@
-/// This module provides the `Simulator` which implements the genetic algorithm
-/// (GA) and the related `SimulatorBuilder`.
-///
-/// The stages of the basic genetic algorithm are:
-///
-/// 1. **Initialize**: Generate random population of n genotypes (or chromosomes)
-/// 2. **Fitness**: Evaluate the fitness of each genotype in the population
-/// 3. **New Population**: Create a new population by repeating following steps
-///    until the new population is complete:
-/// 3.1. **Selection**: Select a tuple of parent genotypes from a population
-///      according to their fitness and the selection strategy of the
-///      configured `operator::SelectionOp`
-/// 3.2. **Crossover**: With a crossover probability cross over the parents to
-///      form a new offspring (children) by means of the configured
-///      `operator::CrossoverOp`.
-/// 3.3. **Mutation**: With a mutation probability mutate new offspring at each
-///      locus (position in genotype) by means of the configured
-///      `operator::MutationOp`.
-/// 3.4. **Accepting**: Place new offspring in the new population.
-/// 4. **Replace**: Use new generated population for a further run of the
-///    algorithm.
-/// 5. **Termination**: If the end condition is satisfied, stop, and return the
-///    best solution in current population.
-/// 6. **Loop**: Go to step 2
-///
-/// The `Simulator` implements the `simulation::Simulation` trait. The
-/// `SimulatorBuilder` implements the `simulation::SimulationBuilder` trait.
+//! This module provides the `Simulator` which implements the genetic algorithm
+//! (GA) and the related `SimulatorBuilder`.
+//!
+//! The stages of the basic genetic algorithm are:
+//!
+//! 1. **Initialize**: Generate random population of n genotypes (or chromosomes)
+//! 2. **Fitness**: Evaluate the fitness of each genotype in the population
+//! 3. **New Population**: Create a new population by repeating following steps
+//!    until the new population is complete:
+//! 3.1. **Selection**: Select a tuple of parent genotypes from a population
+//!      according to their fitness and the selection strategy of the
+//!      configured `operator::SelectionOp`
+//! 3.2. **Crossover**: With a crossover probability cross over the parents to
+//!      form a new offspring (children) by means of the configured
+//!      `operator::CrossoverOp`.
+//! 3.3. **Mutation**: With a mutation probability mutate new offspring at each
+//!      locus (position in genotype) by means of the configured
+//!      `operator::MutationOp`.
+//! 3.4. **Accepting**: Place new offspring in the new population.
+//! 4. **Replace**: Use new generated population for a further run of the
+//!    algorithm.
+//! 5. **Termination**: If the end condition is satisfied, stop, and return the
+//!    best solution in current population.
+//! 6. **Loop**: Go to step 2
+//!
+//! The `Simulator` implements the `simulation::Simulation` trait. The
+//! `SimulatorBuilder` implements the `simulation::SimulationBuilder` trait.
 
 use chrono::{DateTime, Duration, Local};
 use genetic::{Breeding, Fitness, FitnessEvaluation, Genotype, Population};
@@ -36,8 +36,21 @@ use std::marker::PhantomData;
 use std::mem;
 use std::rc::Rc;
 
-
+//TODO make MIN_POPULATION_SIZE a parameter of the Simulator
 const MIN_POPULATION_SIZE: usize = 7;
+
+/// The `RunMode` identifies whether the simulation is running and how it has
+/// been started.
+enum RunMode {
+    /// The simulation is running in loop mode. i.e. it was started by calling
+    /// the `run` function.
+    Loop,
+    /// The simulation is running in step mode. i.e. it was started by calling
+    /// the `step` function.
+    Step,
+    /// The simulation is not running.
+    NotRunning,
+}
 
 /// The `SimulationBuilder` implements the 'initialization' stage (step 1) of
 /// the genetic algorithm.
@@ -58,7 +71,7 @@ pub struct SimulatorBuilder<G, F, E, S, Q, C, M, P>
 
 impl<G, F, E, S, Q, C, M, P> SimulationBuilder<Simulator<G, F, E, S, Q, C, M, P>, G, F, E, S, Q, C, M, P>
 for SimulatorBuilder<G, F, E, S, Q, C, M, P>
-    where G: 'static + Genotype + Send + Sync, F: 'static + Fitness + Send + Sync, P: Breeding<G>,
+    where G: Genotype + Send + Sync, F: Fitness + Send + Sync, P: Breeding<G>,
           E: FitnessEvaluation<G, F>, S: SelectionOp<G, F, P>, Q: Termination<G, F>,
           C: CrossoverOp<P, G>, M: MutationOp<G>
 {
@@ -69,11 +82,12 @@ for SimulatorBuilder<G, F, E, S, Q, C, M, P>
             breeder: self.breeder.clone(),
             mutator: self.mutator.clone(),
             termination: self.termination.clone(),
-            started: false,
+            run_mode: RunMode::NotRunning,
             started_at: Local::now(),
             generation: 1,
             population: Rc::new(population.individuals().to_vec()),
             processing_time: Duration::zero(),
+            finished: false,
             initial_population: population,
             _f: PhantomData,
             _p: PhantomData,
@@ -92,18 +106,19 @@ pub struct Simulator<G, F, E, S, Q, C, M, P>
     mutator: Box<M>,
     termination: Box<Q>,
     initial_population: Population<G>,
-    started: bool,
+    run_mode: RunMode,
     started_at: DateTime<Local>,
     generation: u64,
     population: Rc<Vec<G>>,
     processing_time: Duration,
+    finished: bool,
     _p: PhantomData<P>,
     _f: PhantomData<F>,
 }
 
 impl<G, F, E, S, Q, C, M, P> Simulation<G, F, E, S, Q, C, M, P>
     for Simulator<G, F, E, S, Q, C, M, P>
-    where G: 'static + Genotype + Send + Sync, F: 'static + Fitness + Send + Sync, P: Breeding<G>,
+    where G: Genotype + Send + Sync, F: Fitness + Send + Sync, P: Breeding<G>,
           E: FitnessEvaluation<G, F>, S: SelectionOp<G, F, P>, Q: Termination<G, F>,
           C: CrossoverOp<P, G>, M: MutationOp<G>
 {
@@ -123,22 +138,27 @@ impl<G, F, E, S, Q, C, M, P> Simulation<G, F, E, S, Q, C, M, P>
     }
 
     fn run(&mut self) -> Result<SimResult<G, F>, SimError> {
-        if self.started {
-            return Err(SimError::SimulationAlreadyRunning(
-                format!("Simulation already running since {}", &self.started_at)));
+        match self.run_mode {
+            RunMode::Loop =>
+                return Err(SimError::SimulationAlreadyRunning(
+                    format!("Simulation already running in loop since {}", &self.started_at))),
+            RunMode::Step =>
+                return Err(SimError::SimulationAlreadyRunning(
+                    format!("Simulation already running in step mode since {}", &self.started_at))),
+            RunMode::NotRunning =>
+                if self.initial_population.size() < MIN_POPULATION_SIZE {
+                    return Err(SimError::PopulationTooSmall(
+                        format!("Initial population of size {} is smaller than the required minimum of {}",
+                                self.initial_population.size(), MIN_POPULATION_SIZE)))
+                } else {
+                    self.run_mode = RunMode::Loop;
+                    self.started_at = Local::now();
+                },
         }
-        if self.initial_population.size() < MIN_POPULATION_SIZE {
-            return Err(SimError::PopulationTooSmall(
-                format!("Initial population of size {} is smaller than the minimum of {}",
-                        self.initial_population.size(), MIN_POPULATION_SIZE)));
-        }
-        self.started = true;
-        self.started_at = Local::now();
-
-        let mut result = Err(SimError::UnexpectedError("Unexpected error!\
+        let mut result = Err(SimError::UnexpectedError("Unexpected error! \
                              No loop of the simulation has ever been processed!".to_string()));
-        let mut finished = false;
-        while !finished {
+        self.finished = false;
+        while !self.finished {
             // Stages 2-4: Look at one generation
             let state = self.process_one_generation();
 
@@ -150,52 +170,83 @@ impl<G, F, E, S, Q, C, M, P> Simulation<G, F, E, S, Q, C, M, P>
                     SimResult::Intermediate(state)
                 },
                 StopFlag::StopNow(reason) => {
-                    finished = true;
+                    self.finished = true;
                     let duration = Local::now().signed_duration_since(self.started_at);
                     SimResult::Final(state, duration, reason)
                 },
             })
         }
+        self.run_mode = RunMode::NotRunning;
         result
     }
 
     fn step(&mut self) -> Result<SimResult<G, F>, SimError> {
-        if self.started {
-            return Err(SimError::SimulationAlreadyRunning(
-                format!("Simulation already running since {}", &self.started_at)));
+        match self.run_mode {
+            RunMode::Loop =>
+                return Err(SimError::SimulationAlreadyRunning(
+                    format!("Simulation already running in loop since {}", &self.started_at))),
+            RunMode::Step => (),
+            RunMode::NotRunning =>
+                if self.initial_population.size() < MIN_POPULATION_SIZE {
+                    return Err(SimError::PopulationTooSmall(
+                        format!("Initial population of size {} is smaller than the required minimum of {}",
+                                self.initial_population.size(), MIN_POPULATION_SIZE)))
+                } else {
+                    self.run_mode = RunMode::Step;
+                    self.started_at = Local::now();
+                },
         }
-        if self.initial_population.size() < MIN_POPULATION_SIZE {
-            return Err(SimError::PopulationTooSmall(
-                format!("Initial population of size {} is smaller than the minimum of {}",
-                        self.initial_population.size(), MIN_POPULATION_SIZE)));
-        }
-        self.started = true;
-        self.started_at = Local::now();
 
         // Stages 2-4: Look at one generation
         let state = self.process_one_generation();
 
         // Stage 5: Be aware of the termination:
         Ok(match self.termination.evaluate(&state) {
-            StopFlag::StopNow(reason) => {
-                let duration = Local::now().signed_duration_since(self.started_at);
-                SimResult::Final(state, duration, reason)
-            },
             StopFlag::Continue => {
                 SimResult::Intermediate(state)
+            },
+            StopFlag::StopNow(reason) => {
+                let duration = Local::now().signed_duration_since(self.started_at);
+                self.run_mode = RunMode::NotRunning;
+                SimResult::Final(state, duration, reason)
             },
         })
     }
 
-    fn reset(&mut self) {
-        if self.started {
-            return; //TODO we should not silently ignore this command -> need some error handling!
-//                    Err(SimError::SimulationAlreadyRunning(
-//                    format!("Simulation still running since {}. Wait for the simulation to finish \
-//                        or abort it before resetting it.", time)))));
+    fn stop(&mut self) -> Result<bool, SimError> {
+        match self.run_mode {
+            RunMode::Loop => {
+                self.finished = true;
+                Ok(true)
+            },
+            RunMode::Step => {
+                self.finished = true;
+                Ok(true)
+            },
+            RunMode::NotRunning =>
+                Ok(false)
         }
+    }
 
-        unimplemented!()
+    fn reset(&mut self) -> Result<bool, SimError> {
+        match self.run_mode {
+            RunMode::Loop =>
+                return Err(SimError::SimulationAlreadyRunning(
+                    format!("Simulation still running in loop mode since {}. Wait for the \
+                             simulation to finish or stop it before resetting it.",
+                            &self.started_at))),
+            RunMode::Step =>
+                return Err(SimError::SimulationAlreadyRunning(
+                    format!("Simulation still running in step mode since {}. Wait for the \
+                             simulation to finish or stop it before resetting it.",
+                             &self.started_at))),
+            RunMode::NotRunning => (),
+        }
+        self.run_mode = RunMode::NotRunning;
+        self.processing_time = Duration::zero();
+        self.generation = 1;
+        self.population = Rc::new(self.initial_population.individuals().to_vec());
+        Ok(true)
     }
 }
 
