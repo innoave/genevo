@@ -1,6 +1,6 @@
 
 use genetic::{Breeding, Fitness, Genotype};
-use simulation::EvaluatedPopulation;
+use simulation::{EvaluatedPopulation, SimError};
 
 
 /// Marker trait for genetic operators and functions that are used for
@@ -37,7 +37,7 @@ pub trait SelectionOp<G, F, B>: GeneticOperator
 {
     /// Selects individuals from the given population according to the
     /// implemented selection strategy.
-    fn selection(&self, population: &EvaluatedPopulation<G, F>) -> Vec<<B>::Parents>;
+    fn selection(&self, population: &EvaluatedPopulation<G, F>) -> Result<Vec<<B>::Parents>, SimError>;
 }
 
 /// A `CrossoverOp` defines a function of how to crossover two `Genotype`s,
@@ -49,7 +49,7 @@ pub trait CrossoverOp<B, G>: GeneticOperator
 {
     /// Performs the crossover of the `Parents` and returns the result as a new
     /// `Genotype` - the offspring.
-    fn crossover(&self, p: &<B>::Parents) -> G;
+    fn crossover(&self, p: &<B>::Parents) -> Result<G, SimError>;
 }
 
 /// A `MutationOp` defines a function of how a `Genotype` mutates. It is used
@@ -65,5 +65,5 @@ pub trait MutationOp<G>: GeneticOperator
     where G: Genotype
 {
     /// Mutates the given 'Genotype' and returns it as a new 'Genotype'.
-    fn mutate(&self, a: &G) -> G;
+    fn mutate(&self, a: &G) -> Result<G, SimError>;
 }

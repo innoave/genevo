@@ -17,7 +17,7 @@
 use genetic::{Breeding, Fitness, Genotype, ToScalar};
 use operator::{GeneticOperator, SelectionOp, SingleObjective};
 use rand::{Rng, thread_rng};
-use simulation::EvaluatedPopulation;
+use simulation::{EvaluatedPopulation, SimError};
 use std::marker::PhantomData;
 
 
@@ -81,7 +81,7 @@ impl<G, B> GeneticOperator for RouletteWheelSelector<G, B>
 impl<G, F, B> SelectionOp<G, F, B> for RouletteWheelSelector<G, B>
     where G: Genotype, F: Fitness + ToScalar, B: Breeding<G>
 {
-    fn selection(&self, evaluated: &EvaluatedPopulation<G, F>) -> Vec<<B>::Parents> {
+    fn selection(&self, evaluated: &EvaluatedPopulation<G, F>) -> Result<Vec<<B>::Parents>, SimError> {
         let mut parents = Vec::with_capacity(self.num_parents_to_select);
         let parents_size = self.breeding.num_individuals_per_parents();
         let (weights, weight_sum) = calc_cumulative_weight_distribution(evaluated.fitness_values());
@@ -95,7 +95,7 @@ impl<G, F, B> SelectionOp<G, F, B> for RouletteWheelSelector<G, B>
             }
             parents.push(self.breeding.mate_parents(tuple));
         }
-        parents
+        Ok(parents)
     }
 }
 
@@ -184,7 +184,7 @@ impl<G, B> GeneticOperator for UniversalSamplingSelector<G, B>
 impl<G, F, B> SelectionOp<G, F, B> for UniversalSamplingSelector<G, B>
     where G: Genotype, F: Fitness + ToScalar, B: Breeding<G>
 {
-    fn selection(&self, evaluated: &EvaluatedPopulation<G, F>) -> Vec<<B>::Parents> {
+    fn selection(&self, evaluated: &EvaluatedPopulation<G, F>) -> Result<Vec<<B>::Parents>, SimError> {
         let mut parents = Vec::with_capacity(self.num_parents_to_select);
         let parents_size = self.breeding.num_individuals_per_parents();
         let (weights, weight_sum) = calc_cumulative_weight_distribution(evaluated.fitness_values());
@@ -199,7 +199,7 @@ impl<G, F, B> SelectionOp<G, F, B> for UniversalSamplingSelector<G, B>
             }
             parents.push(self.breeding.mate_parents(tuple));
         }
-        parents
+        Ok(parents)
     }
 }
 

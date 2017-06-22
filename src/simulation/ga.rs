@@ -155,21 +155,22 @@ impl<G, F, E, S, Q, C, M, B> Simulation<G, F, E, S, Q, C, M, B>
         self.finished = false;
         while !self.finished {
             // Stages 2-4: Look at one generation
-            let state = self.process_one_generation();
-
-            // Stage 5: Be aware of the termination:
-            let stop_flag = self.termination.evaluate(&state);
-
-            result = Ok(match stop_flag {
-                StopFlag::Continue => {
-                    SimResult::Intermediate(state)
-                },
-                StopFlag::StopNow(reason) => {
-                    self.finished = true;
-                    let duration = Local::now().signed_duration_since(self.started_at);
-                    SimResult::Final(state, duration, reason)
-                },
-            })
+            result = self.process_one_generation().and_then(|state| {
+                // Stage 5: Be aware of the termination:
+                Ok(match self.termination.evaluate(&state) {
+                    StopFlag::Continue => {
+                        SimResult::Intermediate(state)
+                    },
+                    StopFlag::StopNow(reason) => {
+                        self.finished = true;
+                        let duration = Local::now().signed_duration_since(self.started_at);
+                        SimResult::Final(state, duration, reason)
+                    },
+                })
+            }).or_else(|error| {
+                self.finished = true;
+                Err(error)
+            });
         }
         self.run_mode = RunMode::NotRunning;
         result
@@ -194,19 +195,20 @@ impl<G, F, E, S, Q, C, M, B> Simulation<G, F, E, S, Q, C, M, B>
         }
 
         // Stages 2-4: Look at one generation
-        let state = self.process_one_generation();
+        self.process_one_generation().and_then(|state|
 
-        // Stage 5: Be aware of the termination:
-        Ok(match self.termination.evaluate(&state) {
-            StopFlag::Continue => {
-                SimResult::Intermediate(state)
-            },
-            StopFlag::StopNow(reason) => {
-                let duration = Local::now().signed_duration_since(self.started_at);
-                self.run_mode = RunMode::NotRunning;
-                SimResult::Final(state, duration, reason)
-            },
-        })
+            // Stage 5: Be aware of the termination:
+            Ok(match self.termination.evaluate(&state) {
+                StopFlag::Continue => {
+                    SimResult::Intermediate(state)
+                },
+                StopFlag::StopNow(reason) => {
+                    let duration = Local::now().signed_duration_since(self.started_at);
+                    self.run_mode = RunMode::NotRunning;
+                    SimResult::Final(state, duration, reason)
+                },
+            })
+        )
     }
 
     fn stop(&mut self) -> Result<bool, SimError> {
@@ -252,7 +254,7 @@ impl<G, F, E, S, Q, C, M, B> Simulator<G, F, E, S, Q, C, M, B>
           C: CrossoverOp<B, G>, M: MutationOp<G>
 {
     /// Processes stages 2-4 of the genetic algorithm
-    fn process_one_generation(&mut self) -> State<G, F> {
+    fn process_one_generation(&mut self) -> Result<State<G, F>, SimError> {
         let loop_started_at = Local::now();
 
         // Stage 2: The fitness check:
@@ -261,18 +263,20 @@ impl<G, F, E, S, Q, C, M, B> Simulator<G, F, E, S, Q, C, M, B>
 
         // Stage 3: The making of a new population:
         let (next_generation, new_pop_proc_time) = self.create_new_population(&score_board);
+        next_generation.and_then(|next_generation| {
 
-        // Stage 4: On to the next generation:
-        let loop_processing_time = eval_proc_time1 + eval_proc_time2 + new_pop_proc_time;
-        self.processing_time = self.processing_time + loop_processing_time;
-        let loop_duration = Local::now().signed_duration_since(loop_started_at);
-        self.replace_generation(loop_duration, loop_processing_time, score_board, best_solution,
-                                next_generation)
+            // Stage 4: On to the next generation:
+            let loop_processing_time = eval_proc_time1 + eval_proc_time2 + new_pop_proc_time;
+            self.processing_time = self.processing_time + loop_processing_time;
+            let loop_duration = Local::now().signed_duration_since(loop_started_at);
+            Ok(self.replace_generation(loop_duration, loop_processing_time, score_board, best_solution,
+                                    next_generation))
+        })
     }
 
     /// Calculates the `Fitness` value of each `Genotype` and records the
     /// highest and lowest values.
-    fn evaluate_fitness(&self, population: Rc<Vec<G>>) -> (EvaluatedPopulation<G, F>, Duration) {
+    fn evaluate_fitness<'a>(&self, population: Rc<Vec<G>>) -> (EvaluatedPopulation<G, F>, Duration) {
         let started_at = Local::now();
         let mut fitness = Vec::new();
         let mut highest = self.evaluator.lowest_possible_fitness();
@@ -320,14 +324,15 @@ impl<G, F, E, S, Q, C, M, B> Simulator<G, F, E, S, Q, C, M, B>
     /// Creates a new population which is derived from the current population
     /// applying 'Selection', 'Crossover' and 'Mutation'.
     fn create_new_population(&self, evaluated_population: &EvaluatedPopulation<G, F>)
-        -> (Vec<G>, Duration) {
+        -> (Result<Vec<G>, SimError>, Duration) {
         let started_at = Local::now();
-        let selection = self.selector.selection(evaluated_population);
-        (selection.iter()
-            .map(|parents| self.breeder.crossover(&parents))
-            .map(|offspring| self.mutator.mutate(&offspring))
-            .collect(),
-        Local::now().signed_duration_since(started_at))
+        let offsprings = self.selector.selection(evaluated_population)
+            .and_then(|selection| selection.iter()
+                .map(|parents| self.breeder.crossover(&parents)
+                    .and_then(|offspring| self.mutator.mutate(&offspring))
+            ).collect());
+        let new_population = offsprings;  //TODO reinsert_offspring(evaluated_population, offsprings);
+        (new_population, Local::now().signed_duration_since(started_at))
     }
 
     /// Generates a `State` object about the last processed evolution, replaces the
