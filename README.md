@@ -38,7 +38,7 @@ _genevo_ is written in [Rust]. The library's API utilizes lots of traits and
 types for modelling the domain of genetic algorithms.
 
 
-### Research
+## Research
 
 [[BT95]] Tobias Blickle, Lothar Thiele, 1995: A Comparison of Selection Schemes used in Genetic Algorithms.
 
