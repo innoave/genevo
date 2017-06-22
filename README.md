@@ -40,6 +40,12 @@ types for modelling the domain of genetic algorithms.
 
 ## Research
 
+
+[[CT9YT]] The Coding Train: 9: Genetic Algorithms - The Nature of Code
+
+[CT9YT]: https://www.youtube.com/playlist?list=PLRqwX-V7Uu6bJM3VgzjNV5YxVxUwzALHV
+
+
 [[BT95]] Tobias Blickle, Lothar Thiele, 1995: A Comparison of Selection Schemes used in Genetic Algorithms.
 
 [BT95]: http://www.tik.ee.ethz.ch/file/6c0e384dceb283cd4301339a895b72b8/TIK-Report11.pdf
