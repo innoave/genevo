@@ -24,8 +24,6 @@
 [l2l]: https://www.apache.org/licenses/LICENSE-2.0
 [gcl]: https://gitter.im/innoave/genevo
 
-_Execute genetic algorithm (GA) simulations in a customizable and extensible way_
-
 _genevo_ provides building blocks to run simulations of optimization and search
 problems using [genetic algorithms][GA] ([GA]).
 
