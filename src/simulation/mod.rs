@@ -3,22 +3,23 @@ pub mod ga;
 
 use chrono::{DateTime, Duration, Local};
 use genetic::{Fitness, FitnessEvaluation, Genotype, Population, Breeding};
-use operator::{CrossoverOp, MutationOp, SelectionOp};
+use operator::{CrossoverOp, MutationOp, ReinsertionOp, SelectionOp};
 use termination::{StopReason, Termination};
 use std::rc::Rc;
 
 
 /// A `Simulation` is the execution of a genetic algorithm.
-pub trait Simulation<G, F, E, S, Q, C, M, B>
+pub trait Simulation<G, F, E, S, B, C, M, R, Q>
     where G: Genotype, F: Fitness, B: Breeding<G>,
           E: FitnessEvaluation<G, F>, S: SelectionOp<G, F, B>, Q: Termination<G, F>,
-          C: CrossoverOp<B, G>, M: MutationOp<G>, Self: Sized
+          C: CrossoverOp<B, G>, M: MutationOp<G>, R: ReinsertionOp<G, F>, Self: Sized
 {
     /// A `SimulationBuilder` that can build this `Simulation`.
-    type Builder: SimulationBuilder<Self, G, F, E, S, Q, C, M, B>;
+    type Builder: SimulationBuilder<Self, G, F, E, S, B, C, M, R, Q>;
 
     /// Start building a new instance of a `Simulation`.
-    fn builder(evaluator: E, selector: S, breeder: C, mutator: M, termination: Q) -> Self::Builder;
+    fn builder(evaluator: E, selector: S, breeder: C, mutator: M, reinserter: R, termination: Q)
+        -> Self::Builder;
 
     /// Runs this simulation completely. The simulation ends when the
     /// termination criteria are met.
@@ -39,11 +40,11 @@ pub trait Simulation<G, F, E, S, Q, C, M, B>
 
 /// The `SimulationBuilder` creates a new `Simulation` with given parameters
 /// and options. It forms the initialization stage of the genetic algorithm.
-pub trait SimulationBuilder<Sim, G, F, E, S, Q, C, M, B>
-    where Sim: Simulation<G, F, E, S, Q, C, M, B>,
+pub trait SimulationBuilder<Sim, G, F, E, S, B, C, M, R, Q>
+    where Sim: Simulation<G, F, E, S, B, C, M, R, Q>,
           G: Genotype, F: Fitness, B: Breeding<G>,
           E: FitnessEvaluation<G, F>, S: SelectionOp<G, F, B>, Q: Termination<G, F>,
-          C: CrossoverOp<B, G>, M: MutationOp<G>
+          C: CrossoverOp<B, G>, M: MutationOp<G>, R: ReinsertionOp<G, F>
 {
     /// Finally initializes the `Simulation` with the given `Population`
     /// and returns the newly created `Simulation`.
