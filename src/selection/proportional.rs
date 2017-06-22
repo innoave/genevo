@@ -1,7 +1,9 @@
 //! The `proportional` module provides `operator::SelectionOp`s that implement
-//! selection strategies where individuals with a higher `Fitness` value are
-//! selected with a proportional higher probability.
+//! stochastic fitness proportionate selection strategies. Individuals are
+//! randomly selected. Individuals with a higher `Fitness` value are having a
+//! higher probability to be selected.
 //!
+//! How is this achieved?
 //! In fitness proportionate selection each individual gets assigned a weight
 //! that is equal to its fitness value plus the sum of fitness values of all
 //! individuals in the list before him (cumulative weight distribution). Then
@@ -18,7 +20,6 @@ use rand::{Rng, thread_rng};
 use simulation::EvaluatedPopulation;
 use std::marker::PhantomData;
 
-const OPERATOR_NAME: &str = "Roulette-Wheel-Selection";
 
 /// The `RouletteWheelSelector` implements stochastic fitness proportionate
 /// selection. Each candidate is picked randomly with a probability of being
@@ -29,7 +30,7 @@ const OPERATOR_NAME: &str = "Roulette-Wheel-Selection";
 pub struct RouletteWheelSelector<G, B>
     where G: Genotype, B: Breeding<G>
 {
-    /// The type object used to know how to 'breed'.
+    /// The breeding used to create parents.
     breeding: B,
     /// The number of parents to select.
     num_parents_to_select: usize,
@@ -73,7 +74,7 @@ impl<G, B> GeneticOperator for RouletteWheelSelector<G, B>
     where G: Genotype, B: Breeding<G>
 {
     fn name() -> String {
-        OPERATOR_NAME.to_string()
+        "Roulette-Wheel-Selection".to_string()
     }
 }
 
@@ -143,7 +144,7 @@ pub struct UniversalSamplingSelector<G, B>
 impl<G, B> UniversalSamplingSelector<G, B>
     where G: Genotype, B: Breeding<G>
 {
-    /// Constructs a new instance of `RouletteWheelSelector`.
+    /// Constructs a new instance of `UniversalSamplingSelector`.
     pub fn new(breeding: B, num_parents_to_select: usize) -> UniversalSamplingSelector<G, B> {
         UniversalSamplingSelector {
             breeding: breeding,
@@ -176,7 +177,7 @@ impl<G, B> GeneticOperator for UniversalSamplingSelector<G, B>
     where G: Genotype, B: Breeding<G>
 {
     fn name() -> String {
-        OPERATOR_NAME.to_string()
+        "Stochastic-Universal-Sampling-Selection".to_string()
     }
 }
 

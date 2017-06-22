@@ -4,17 +4,14 @@
 //! The provided `operator::SelectionOp`s are organized in sub-modules
 //! named after the utilized selection method:
 //! * `truncation`
-//! * `linear_ranking`
-//! * `exponential_ranking`
+//! * `ranking`
 //! * `proportional`
 //! * `tournament`
 
-pub mod truncation;
-
-pub mod linear_ranking;
-
-pub mod exponential_ranking;
-
 pub mod proportional;
 
+pub mod ranking;
+
 pub mod tournament;
+
+pub mod truncation;
