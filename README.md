@@ -37,4 +37,8 @@ genetic algorithm.
 
 ## Ideas
 
+
+
+## Research
+
 https://github.com/StefanoD/Rust_Random_Choice
