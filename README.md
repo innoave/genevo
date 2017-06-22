@@ -22,7 +22,7 @@
 [lil]: COPYRIGHT.txt
 [l1l]: https://opensource.org/licenses/MIT
 [l2l]: https://www.apache.org/licenses/LICENSE-2.0
-[gcl]: https://gitter.im/orgs/innoave/genevo
+[gcl]: https://gitter.im/innoave/genevo
 
 _Execute genetic algorithm (GA) simulations in a customizable and extensible way_
 
