@@ -3,7 +3,12 @@ name = "genevo"
 version = "0.1.0"
 authors = ["haraldmaida <harald.maida@innoave.com>"]
 license = "MIT/Apache-2.0"
-description = "Implements genetic algorithm (GA) simulations in a customizable and extensible way"
+description = """
+genevo provides building blocks to run simulations of optimization and search problems using
+genetic algorithms (GA).
+
+Execute genetic algorithm (GA) simulations in a customizable and extensible way.
+"""
 keywords = ["genetic", "evolutionary", "algorithm"]
 
 repository = "https://github.com/innoave/genevo"
