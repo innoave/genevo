@@ -326,12 +326,12 @@ impl<G, F, E, S, Q, C, M, B> Simulator<G, F, E, S, Q, C, M, B>
     fn create_new_population(&self, evaluated_population: &EvaluatedPopulation<G, F>)
         -> (Result<Vec<G>, SimError>, Duration) {
         let started_at = Local::now();
-        let offsprings = self.selector.selection(evaluated_population)
+        let offspring = self.selector.selection(evaluated_population)
             .and_then(|selection| selection.iter()
                 .map(|parents| self.breeder.crossover(&parents)
                     .and_then(|offspring| self.mutator.mutate(&offspring))
             ).collect());
-        let new_population = offsprings;  //TODO reinsert_offspring(evaluated_population, offsprings);
+        let new_population = offspring;  //TODO reinsert_offspring(evaluated_population, offspring);
         (new_population, Local::now().signed_duration_since(started_at))
     }
 
