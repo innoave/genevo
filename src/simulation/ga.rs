@@ -331,13 +331,36 @@ impl<G, F, E, S, B, C, M, R, Q> Simulator<G, F, E, S, B, C, M, R, Q>
     fn create_new_population(&self, evaluated_population: &EvaluatedPopulation<G, F>)
         -> (Result<Vec<G>, SimError>, Duration) {
         let started_at = Local::now();
-        let new_population = self.selector.selection(evaluated_population)
-            .and_then(|selection| selection.iter()
-                .map(|parents| self.breeder.crossover(&parents)
-                    .and_then(|offspring| self.mutator.mutate(&offspring))
-            ).collect())
-            .and_then(|mut offspring| self.reinserter.combine(&mut offspring, evaluated_population));
+        let selection = self.selector.selection(evaluated_population);
+        let offspring = selection.and_then(|selection|
+            self.breed_offspring(selection));
+        let new_population = offspring.and_then(|mut offspring|
+            self.reinserter.combine(&mut offspring, evaluated_population));
         (new_population, Local::now().signed_duration_since(started_at))
+    }
+
+    /// Lets the parents breed their offspring and mutate its children. And finally
+    /// combines the offspring of all parents into one big offspring.
+    fn breed_offspring(&self, parents: Vec<B::Parents>) -> Result<Vec<G>, SimError> {
+        let mut offspring: Vec<G> = Vec::new();
+        for parents in parents {
+            match self.breeder.crossover(&parents) {
+                Ok(children) => {
+                    for child in children {
+                        match self.mutator.mutate(&child) {
+                            Ok(mutated) => {
+                                offspring.push(mutated);
+                            },
+                            Err(error) =>
+                                return Err(error),
+                        }
+                    }
+                },
+                Err(error) =>
+                    return Err(error),
+            }
+        }
+        Ok(offspring)
     }
 
     /// Generates a `State` object about the last processed evolution, replaces the

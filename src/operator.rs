@@ -45,19 +45,19 @@ pub trait SelectionOp<G, F, B>: GeneticOperator
 {
     /// Selects individuals from the given population according to the
     /// implemented selection strategy.
-    fn selection(&self, population: &EvaluatedPopulation<G, F>) -> Result<Vec<<B>::Parents>, SimError>;
+    fn selection(&self, population: &EvaluatedPopulation<G, F>) -> Result<Vec<B::Parents>, SimError>;
 }
 
 /// A `CrossoverOp` defines a function of how to crossover two `Genotype`s,
-/// often called parent genotypes, to derive a new `Genotype`. It is analogous
+/// often called parent genotypes, to derive new `Genotype`s. It is analogous
 /// to reproduction and biological crossover. Cross over is a process of taking
 /// two parent solutions and producing an offspring solution from them.
 pub trait CrossoverOp<B, G>: GeneticOperator
     where B: Breeding<G>, G: Genotype
 {
     /// Performs the crossover of the `Parents` and returns the result as a new
-    /// `Genotype` - the offspring.
-    fn crossover(&self, parents_list: &<B>::Parents) -> Result<G, SimError>;
+    /// vector of `Genotype` - the offspring.
+    fn crossover(&self, parents: &B::Parents) -> Result<Vec<G>, SimError>;
 }
 
 /// A `MutationOp` defines a function of how a `Genotype` mutates. It is used

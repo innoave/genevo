@@ -22,17 +22,20 @@ extern crate chrono;
 extern crate jobsteal;
 extern crate rand;
 
-pub mod breeding;
 
 pub mod genetic;
 
-pub mod mutation;
-
 pub mod operator;
+
+pub mod simulation;
 
 pub mod selection;
 
-pub mod simulation;
+pub mod recombination;
+
+pub mod mutation;
+
+pub mod reinsertion;
 
 pub mod termination;
 

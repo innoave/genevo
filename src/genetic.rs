@@ -116,8 +116,8 @@ pub trait Breeding<G>: Clone
     /// instance of `Self::Parents` using the `mate_parents` function.
     fn num_individuals_per_parents(&self) -> usize;
 
-    /// Returns the parent with index one from the given `Self::Parents`
-    /// instance.
+    /// Returns the parent on the requested index from the given
+    /// `Self::Parents` instance.
     fn parent(&self, index: usize, parents: Self::Parents) -> G;
 }
 
@@ -150,7 +150,7 @@ pub trait Fitness: PartialEq + Eq + Ord + Clone + Debug + Sized {
 ///
 /// The implementation will use a scalarization method to convert a
 /// multi-objective `Fitness` value into a scalar representation. A well-known
-/// method is calculating the weighted sum F = Sum(W * f).
+/// method is calculating the weighted sum: F = Sum(W * f).
 pub trait ToScalar {
 
     /// Returns a float value that represents this type in scalar form.
@@ -172,7 +172,7 @@ pub trait FitnessEvaluation<G, F>: Clone
     /// Returns the very best of all theoretically possible `Fitness` values.
     fn highest_possible_fitness(&self) -> F;
 
-    /// Returns the lowest of all theoretically possible `Fitness` values.
+    /// Returns the worst of all theoretically possible `Fitness` values.
     /// This is usually a value equivalent to zero.
     fn lowest_possible_fitness(&self) -> F;
 }
