@@ -78,6 +78,20 @@ pub trait MutationOp<G>: GeneticOperator
 
 /// A `ReinsertionOp` defines a function that combines the offspring with the
 /// current population to create the population for the next generation.
+/// At the end the new population must be of the same size as the original
+/// population.
+///
+/// The `ReinsertionOp` may decide which individuals in the offspring will
+/// make it into the new population. It is not required that all individuals
+/// of the offspring are reinserted into the new population.
+///
+/// The only hard requirement is that the new population is of same size as
+/// the original population. If the offspring contains less individuals than
+/// the size of the original population or not all individuals are moved
+/// to the new population then some individuals from the original population
+/// are taken over into the new population. If the size of the offspring is
+/// bigger than the size of the original population, then not all individuals
+/// from the offspring are inserted into the new population.
 pub trait ReinsertionOp<G, F>: GeneticOperator
     where G: Genotype, F: Fitness
 {
@@ -90,7 +104,6 @@ pub trait ReinsertionOp<G, F>: GeneticOperator
     /// finishes the offspring vector should hold only those `Genotype`s that
     /// have not been included in the resulting population. If by the end of
     /// this function all `Genotype`s in offspring have been moved to the
-    /// resulting population the offspring vector the offspring vector should
-    /// be left empty.
+    /// resulting population the offspring vector should be left empty.
     fn combine(&self, offspring: &mut Vec<G>, population: &EvaluatedPopulation<G, F>) -> Result<Vec<G>, SimError>;
 }

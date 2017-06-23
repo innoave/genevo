@@ -82,7 +82,7 @@ impl<G, B> GeneticOperator for MaximizeSelector<G, B>
 impl<G, F, B> SelectionOp<G, F, B> for MaximizeSelector<G, B>
     where G: Genotype, F: Fitness, B: Breeding<G>
 {
-    fn selection(&self, evaluated: &EvaluatedPopulation<G, F>) -> Result<Vec<<B>::Parents>, SimError> {
+    fn selection(&self, evaluated: &EvaluatedPopulation<G, F>) -> Result<Vec<B::Parents>, SimError> {
         let individuals = evaluated.individuals();
         let fitness_values = evaluated.fitness_values();
 
