@@ -1,5 +1,7 @@
 # genevo
 
+[![Join the chat at https://gitter.im/innoave/genevo](https://badges.gitter.im/innoave/genevo.svg)](https://gitter.im/innoave/genevo?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 [![Build Status][tcb]][tcl]
 [![MIT/Apache][lib]][lil]
 [![Join the chat][gcb]][gcl]
