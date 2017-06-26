@@ -1,0 +1,309 @@
+//! The `order` module provides implementations of `operator::CrossoverOp` for
+//! permutation encoded `genetic::Genotype`s. Crossover of permutation encoded
+//! values must assure that the permutation does not invalidate the order
+//! values.
+//!
+//! The provided `operator::CrossoverOp`s for permutation encoded values are:
+//! * `OrderOneCrossover` (OX1)
+//! * `PartiallyMappedCrossover` (PMX)
+
+use genetic::{Children, Parents};
+use operator::{CrossoverOp, GeneticOperator};
+use simulation::SimError;
+use random::random_cut_points;
+use rand::thread_rng;
+use std::collections::HashMap;
+
+
+/// The `OrderOneCrossover` operator combines permutation encoded
+/// `genetic::Genotype`s according the order one crossover scheme (OX1).
+///
+/// This crossover operator always creates as many child individuals as there
+/// are individuals in the given `genetic::Parents` parameter.
+#[derive(Clone)]
+pub struct OrderOneCrossover {}
+
+impl OrderOneCrossover {
+    pub fn new() -> Self {
+        OrderOneCrossover {}
+    }
+}
+
+impl GeneticOperator for OrderOneCrossover {
+    fn name() -> String {
+        "Order-One-Crossover".to_string()
+    }
+}
+
+impl CrossoverOp<Vec<usize>> for OrderOneCrossover {
+    fn crossover(&self, parents: &Parents<Vec<usize>>) -> Result<Children<Vec<usize>>, SimError> {
+        multi_parents_cyclic_crossover(parents, order_one_crossover)
+    }
+}
+
+
+/// The `PartiallyMappedCrossover` operator combines permutation encoded
+/// `genetic::Genotype`s according the partially mapped crossover scheme (PMX).
+///
+/// This crossover operator always creates as many child individuals as there
+/// are individuals in the given `genetic::Parents` parameter.
+#[derive(Clone)]
+pub struct PartiallyMappedCrossover {}
+
+impl PartiallyMappedCrossover {
+    pub fn new() -> Self {
+        PartiallyMappedCrossover {}
+    }
+}
+
+impl GeneticOperator for PartiallyMappedCrossover {
+    fn name() -> String {
+        "Partially-Mapped-Crossover".to_string()
+    }
+}
+
+impl CrossoverOp<Vec<usize>> for PartiallyMappedCrossover {
+    fn crossover(&self, parents: &Parents<Vec<usize>>) -> Result<Children<Vec<usize>>, SimError> {
+        multi_parents_cyclic_crossover(parents, partial_mapped_crossover)
+    }
+}
+
+
+fn multi_parents_cyclic_crossover<'a, FN>(parents: &'a Parents<Vec<usize>>, crossover: FN)
+    -> Result<Children<Vec<usize>>, SimError>
+    where FN: Fn(&'a [usize], &'a [usize], usize, usize) -> Vec<usize> {
+    let mut rng = thread_rng();
+    let parents_size = parents.len();
+    let genome_length = parents[0].len();
+    // breed one child for each parent in parents
+    let mut offspring: Vec<Vec<usize>> = Vec::with_capacity(parents_size);
+    let mut p1_index = 0; let mut p2_index = 1;
+    while p1_index < parents_size {
+        let (cutpoint1, cutpoint2) = random_cut_points(&mut rng, genome_length);
+        let genome = crossover(&parents[p1_index], &parents[p2_index], cutpoint1, cutpoint2);
+        offspring.push(genome);
+        p1_index += 1; p2_index += 1;
+        if p2_index >= genome_length {
+            p2_index = 0;
+        }
+    }
+    Ok(offspring)
+}
+
+fn order_one_crossover(parent1: &[usize], parent2: &[usize],
+                       cutpoint1: usize, cutpoint2: usize)
+    -> Vec<usize> {
+    let genome_length = parent1.len();
+    let mut genome: Vec<usize> = Vec::with_capacity(genome_length);
+    // collect genes of parent1 located at cutpoint1 to cutpoint2
+    let mut p1_slice: Vec<&usize> = if cutpoint1 == 0 {
+        parent1.iter().take(cutpoint2 + 1).collect()
+    } else {
+        parent1.iter().skip(cutpoint1).take(cutpoint2 - cutpoint1 + 1).collect()
+    };
+    // collect genes from parent2 which are not in cut slice
+    let mut p2_slice: Vec<&usize> = Vec::with_capacity(genome_length);
+    let mut p2_index = (cutpoint2 + 1) % genome_length;
+    for _ in 0..genome_length {
+        let p2_genome = &parent2[p2_index];
+        if p1_slice.iter().all(|g| p2_genome != *g) {
+            p2_slice.push(p2_genome);
+        }
+        p2_index += 1;
+        if p2_index >= genome_length {
+            p2_index = 0;
+        }
+    }
+//    println!("{}-{} : {:?} <-> {:?}", cutpoint1, cutpoint2, p1_slice, p2_slice);
+    // insert genes into child genome at correct position
+    let right_offset = genome_length - cutpoint2 - 1;
+    for locus in 0..genome_length {
+        if locus < cutpoint1 {
+            genome.push(*p2_slice.remove(right_offset));
+        } else if locus > cutpoint2 {
+            genome.push(*p2_slice.remove(0));
+        } else {
+            genome.push(*p1_slice.remove(0));
+        }
+    }
+    genome
+}
+
+fn partial_mapped_crossover(parent1: &[usize], parent2: &[usize],
+                            cutpoint1: usize, cutpoint2: usize)
+    -> Vec<usize> {
+    let genome_length = parent1.len();
+    let mut genome: Vec<usize> = Vec::with_capacity(genome_length);
+    // using HashMap as indexed array of variable length
+    let mut result: HashMap<usize, usize> = HashMap::with_capacity(genome_length);
+    // mapping of value to index
+    let mut inverse: HashMap<usize, usize> = HashMap::with_capacity(genome_length);
+    for i in 0..genome_length {
+        let v2 = parent2[i];
+        result.insert(i, v2);
+        inverse.insert(v2, i);
+    }
+    for j in cutpoint1..cutpoint2 + 1 {
+        let orig = result[&j];
+        let v1 = parent1[j];
+        result.insert(j, v1);
+        let k = inverse[&v1];
+        result.insert(k, orig);
+        inverse.insert(orig, k);
+    }
+    for i in 0..genome_length {
+        genome.push(result[&i])
+    }
+    genome
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use hamcrest::prelude::*;
+
+    #[test]
+    fn order_one_crossover_cutpoints_3_6() {
+        let p1 = vec![1, 2, 3, 4, 5, 6, 7, 8, 9];
+        let p2 = vec![9, 3, 7, 8, 2, 6, 5, 1, 4];
+
+        let children = order_one_crossover(&p1, &p2, 3, 6);
+        assert_that!(children, is(equal_to(vec![3, 8, 2, 4, 5, 6, 7, 1, 9])));
+
+        let children = order_one_crossover(&p2, &p1, 3, 6);
+        assert_that!(children, is(equal_to(vec![3, 4, 7, 8, 2, 6, 5, 9, 1])));
+    }
+
+    #[test]
+    fn order_one_crossover_cutpoints_0_0() {
+        let p1 = vec![1, 2, 3, 4, 5, 6, 7, 8, 9];
+        let p2 = vec![9, 3, 7, 8, 2, 6, 5, 1, 4];
+
+        let children = order_one_crossover(&p1, &p2, 0, 0);
+        assert_that!(children, is(equal_to(vec![1, 3, 7, 8, 2, 6, 5, 4, 9])));
+
+        let children = order_one_crossover(&p2, &p1, 0, 0);
+        assert_that!(children, is(equal_to(vec![9, 2, 3, 4, 5, 6, 7, 8, 1])));
+    }
+
+    #[test]
+    fn order_one_crossover_cutpoints_0_8() {
+        let p1 = vec![1, 2, 3, 4, 5, 6, 7, 8, 9];
+        let p2 = vec![9, 3, 7, 8, 2, 6, 5, 1, 4];
+
+        let children = order_one_crossover(&p1, &p2, 0, 8);
+        assert_that!(children, is(equal_to(vec![1, 2, 3, 4, 5, 6, 7, 8, 9])));
+
+        let children = order_one_crossover(&p2, &p1, 0, 8);
+        assert_that!(children, is(equal_to(vec![9, 3, 7, 8, 2, 6, 5, 1, 4])));
+    }
+
+    #[test]
+    fn order_one_crossover_cutpoints_1_8() {
+        let p1 = vec![1, 2, 3, 4, 5, 6, 7, 8, 9];
+        let p2 = vec![9, 3, 7, 8, 2, 6, 5, 1, 4];
+
+        let children = order_one_crossover(&p1, &p2, 1, 8);
+        assert_that!(children, is(equal_to(vec![1, 2, 3, 4, 5, 6, 7, 8, 9])));
+
+        let children = order_one_crossover(&p2, &p1, 1, 8);
+        assert_that!(children, is(equal_to(vec![9, 3, 7, 8, 2, 6, 5, 1, 4])));
+    }
+
+    #[test]
+    fn order_one_crossover_cutpoints_0_7() {
+        let p1 = vec![1, 2, 3, 4, 5, 6, 7, 8, 9];
+        let p2 = vec![9, 3, 7, 8, 2, 6, 5, 1, 4];
+
+        let children = order_one_crossover(&p1, &p2, 0, 7);
+        assert_that!(children, is(equal_to(vec![1, 2, 3, 4, 5, 6, 7, 8, 9])));
+
+        let children = order_one_crossover(&p2, &p1, 0, 7);
+        assert_that!(children, is(equal_to(vec![9, 3, 7, 8, 2, 6, 5, 1, 4])));
+    }
+
+    #[test]
+    fn order_one_crossover_cutpoints_1_7() {
+        let p1 = vec![1, 2, 3, 4, 5, 6, 7, 8, 9];
+        let p2 = vec![1, 3, 7, 8, 2, 6, 5, 9, 4];
+
+        let children = order_one_crossover(&p1, &p2, 1, 7);
+        assert_that!(children, is(equal_to(vec![9, 2, 3, 4, 5, 6, 7, 8, 1])));
+
+        let children = order_one_crossover(&p2, &p1, 1, 7);
+        assert_that!(children, is(equal_to(vec![4, 3, 7, 8, 2, 6, 5, 9, 1])));
+    }
+
+    #[test]
+    fn partial_mapped_crossover_cutpoints_3_6() {
+        let p1 = vec![1, 2, 3, 4, 5, 6, 7, 8, 9];
+        let p2 = vec![9, 3, 7, 8, 2, 6, 5, 1, 4];
+
+        let children = partial_mapped_crossover(&p1, &p2, 3, 6);
+        assert_that!(children, is(equal_to(vec![9, 3, 2, 4, 5, 6, 7, 1, 8])));
+
+        let children = partial_mapped_crossover(&p2, &p1, 3, 6);
+        assert_that!(children, is(equal_to(vec![1, 7, 3, 8, 2, 6, 5, 4, 9])));
+    }
+
+    #[test]
+    fn partial_mapped_crossover_cutpoints_0_0() {
+        let p1 = vec![1, 2, 3, 4, 5, 6, 7, 8, 9];
+        let p2 = vec![9, 3, 7, 8, 2, 6, 5, 1, 4];
+
+        let children = partial_mapped_crossover(&p1, &p2, 0, 0);
+        assert_that!(children, is(equal_to(vec![1, 3, 7, 8, 2, 6, 5, 9, 4])));
+
+        let children = partial_mapped_crossover(&p2, &p1, 0, 0);
+        assert_that!(children, is(equal_to(vec![9, 2, 3, 4, 5, 6, 7, 8, 1])));
+    }
+
+    #[test]
+    fn partial_mapped_crossover_cutpoints_0_8() {
+        let p1 = vec![1, 2, 3, 4, 5, 6, 7, 8, 9];
+        let p2 = vec![9, 3, 7, 8, 2, 6, 5, 1, 4];
+
+        let children = partial_mapped_crossover(&p1, &p2, 0, 8);
+        assert_that!(children, is(equal_to(vec![1, 2, 3, 4, 5, 6, 7, 8, 9])));
+
+        let children = partial_mapped_crossover(&p2, &p1, 0, 8);
+        assert_that!(children, is(equal_to(vec![9, 3, 7, 8, 2, 6, 5, 1, 4])));
+    }
+
+    #[test]
+    fn partial_mapped_crossover_cutpoints_1_8() {
+        let p1 = vec![1, 2, 3, 4, 5, 6, 7, 8, 9];
+        let p2 = vec![9, 3, 7, 8, 2, 6, 5, 1, 4];
+
+        let children = partial_mapped_crossover(&p1, &p2, 1, 8);
+        assert_that!(children, is(equal_to(vec![1, 2, 3, 4, 5, 6, 7, 8, 9])));
+
+        let children = partial_mapped_crossover(&p2, &p1, 1, 8);
+        assert_that!(children, is(equal_to(vec![9, 3, 7, 8, 2, 6, 5, 1, 4])));
+    }
+
+    #[test]
+    fn partial_mapped_crossover_cutpoints_0_7() {
+        let p1 = vec![1, 2, 3, 4, 5, 6, 7, 8, 9];
+        let p2 = vec![9, 3, 7, 8, 2, 6, 5, 1, 4];
+
+        let children = partial_mapped_crossover(&p1, &p2, 0, 7);
+        assert_that!(children, is(equal_to(vec![1, 2, 3, 4, 5, 6, 7, 8, 9])));
+
+        let children = partial_mapped_crossover(&p2, &p1, 0, 7);
+        assert_that!(children, is(equal_to(vec![9, 3, 7, 8, 2, 6, 5, 1, 4])));
+    }
+
+    #[test]
+    fn partial_mapped_crossover_cutpoints_1_7() {
+        let p1 = vec![1, 2, 3, 4, 5, 6, 7, 8, 9];
+        let p2 = vec![1, 3, 7, 8, 2, 6, 5, 9, 4];
+
+        let children = partial_mapped_crossover(&p1, &p2, 1, 7);
+        assert_that!(children, is(equal_to(vec![1, 2, 3, 4, 5, 6, 7, 8, 9])));
+
+        let children = partial_mapped_crossover(&p2, &p1, 1, 7);
+        assert_that!(children, is(equal_to(vec![1, 3, 7, 8, 2, 6, 5, 9, 4])));
+    }
+}

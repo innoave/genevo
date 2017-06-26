@@ -38,19 +38,33 @@ types for modelling the domain of genetic algorithms.
 
 ## Research
 
+[[OBI98]] Marek Obitko: Genetic Algorithms Tutorial
+
+[OBI98]: http://www.obitko.com/tutorials/genetic-algorithms/
+
+[[GEAT]]: GEATbx: Evolutionary Algorithms
+ 
+[GEAT]: http://www.geatbx.com/docu/algindex.html
+
+[[IGAYT]]: Noureddin Sadawi: A Practical Introduction to Genetic Algorithms
+ 
+[IGAYT]: https://www.youtube.com/playlist?list=PLea0WJq13cnARQILcbHUPINYLy1lOSmjH 
 
 [[CT9YT]] The Coding Train: 9: Genetic Algorithms - The Nature of Code
 
 [CT9YT]: https://www.youtube.com/playlist?list=PLRqwX-V7Uu6bJM3VgzjNV5YxVxUwzALHV
 
-
 [[BT95]] Tobias Blickle, Lothar Thiele, 1995: A Comparison of Selection Schemes used in Genetic Algorithms.
 
 [BT95]: http://www.tik.ee.ethz.ch/file/6c0e384dceb283cd4301339a895b72b8/TIK-Report11.pdf
 
-[[RRC-GH]] StefanoD: Rust_Random_Choice Rust library.
+[[RRCGH]] StefanoD: Rust_Random_Choice Rust library.
 
-[RRC-GH]: https://github.com/StefanoD/Rust_Random_Choice
+[RRCGH]: https://github.com/StefanoD/Rust_Random_Choice
+
+[[TSP95]] TSPLIB95: library of sample instances for the TSP (and related problems)
+
+[TSP95]: http://comopt.ifi.uni-heidelberg.de/software/TSPLIB95/index.html
 
 --------------------------------------------------------------------------------
 [GA]: https://en.wikipedia.org/wiki/Genetic_algorithm

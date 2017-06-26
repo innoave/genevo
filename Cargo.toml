@@ -21,6 +21,7 @@ name = "genevo"
 path = "src/lib.rs"
 
 [dependencies]
+fixedbitset = "*"
 chrono = "*"
 jobsteal = "*"
 log = "*"
@@ -30,3 +31,7 @@ rand = "*"
 quickcheck = "*"
 hamcrest = "*"
 #log4rs = "*"
+
+[[example]]
+name = "monkeys"
+path = "examples/monkeys/main.rs"

@@ -27,7 +27,7 @@
 //! `SimulatorBuilder` implements the `simulation::SimulationBuilder` trait.
 
 use chrono::{DateTime, Duration, Local};
-use genetic::{Breeding, Fitness, FitnessEvaluation, Genotype, Population};
+use genetic::{Fitness, FitnessEvaluation, Genotype, Offspring, Parents, Population};
 use operator::{CrossoverOp, MutationOp, ReinsertionOp, SelectionOp};
 use simulation::{BestSolution, Evaluated, EvaluatedPopulation, SimError, SimResult, Simulation,
                  SimulationBuilder, State};
@@ -54,10 +54,10 @@ enum RunMode {
 
 /// The `SimulationBuilder` implements the 'initialization' stage (step 1) of
 /// the genetic algorithm.
-pub struct SimulatorBuilder<G, F, E, S, B, C, M, R, Q>
-    where G: Genotype, F: Fitness, B: Breeding<G>,
-          E: FitnessEvaluation<G, F>, S: SelectionOp<G, F, B>, Q: Termination<G, F>,
-          C: CrossoverOp<B, G>, M: MutationOp<G>
+pub struct SimulatorBuilder<G, F, E, S, C, M, R, Q>
+    where G: Genotype, F: Fitness,
+          E: FitnessEvaluation<G, F>, S: SelectionOp<G, F>, Q: Termination<G, F>,
+          C: CrossoverOp<G>, M: MutationOp<G>
 {
     evaluator: Box<E>,
     selector: Box<S>,
@@ -67,16 +67,15 @@ pub struct SimulatorBuilder<G, F, E, S, B, C, M, R, Q>
     termination: Box<Q>,
     _g: PhantomData<G>,
     _f: PhantomData<F>,
-    _p: PhantomData<B>,
 }
 
-impl<G, F, E, S, B, C, M, R, Q> SimulationBuilder<Simulator<G, F, E, S, B, C, M, R, Q>, G, F, E, S, B, C, M, R, Q>
-    for SimulatorBuilder<G, F, E, S, B, C, M, R, Q>
-    where G: Genotype + Send + Sync, F: Fitness + Send + Sync, B: Breeding<G>,
-          E: FitnessEvaluation<G, F>, S: SelectionOp<G, F, B>, Q: Termination<G, F>,
-          C: CrossoverOp<B, G>, M: MutationOp<G>, R: ReinsertionOp<G, F>
+impl<G, F, E, S, C, M, R, Q> SimulationBuilder<Simulator<G, F, E, S, C, M, R, Q>, G, F, E, S, C, M, R, Q>
+    for SimulatorBuilder<G, F, E, S, C, M, R, Q>
+    where G: Genotype + Send + Sync, F: Fitness + Send + Sync,
+          E: FitnessEvaluation<G, F>, S: SelectionOp<G, F>, Q: Termination<G, F>,
+          C: CrossoverOp<G>, M: MutationOp<G>, R: ReinsertionOp<G, F>
 {
-    fn initialize(&mut self, population: Population<G>) -> Simulator<G, F, E, S, B, C, M, R, Q> {
+    fn initialize(&mut self, population: Population<G>) -> Simulator<G, F, E, S, C, M, R, Q> {
         Simulator {
             evaluator: self.evaluator.clone(),
             selector: self.selector.clone(),
@@ -92,15 +91,14 @@ impl<G, F, E, S, B, C, M, R, Q> SimulationBuilder<Simulator<G, F, E, S, B, C, M,
             finished: false,
             initial_population: population,
             _f: PhantomData,
-            _p: PhantomData,
         }
     }
 }
 
-pub struct Simulator<G, F, E, S, B, C, M, R, Q>
-    where G: Genotype, F: Fitness, B: Breeding<G>,
-          E: FitnessEvaluation<G, F>, S: SelectionOp<G, F, B>, Q: Termination<G, F>,
-          C: CrossoverOp<B, G>, M: MutationOp<G>, R: ReinsertionOp<G, F>
+pub struct Simulator<G, F, E, S, C, M, R, Q>
+    where G: Genotype, F: Fitness,
+          E: FitnessEvaluation<G, F>, S: SelectionOp<G, F>, Q: Termination<G, F>,
+          C: CrossoverOp<G>, M: MutationOp<G>, R: ReinsertionOp<G, F>
 {
     evaluator: Box<E>,
     selector: Box<S>,
@@ -115,17 +113,16 @@ pub struct Simulator<G, F, E, S, B, C, M, R, Q>
     population: Rc<Vec<G>>,
     processing_time: Duration,
     finished: bool,
-    _p: PhantomData<B>,
     _f: PhantomData<F>,
 }
 
-impl<G, F, E, S, B, C, M, R, Q> Simulation<G, F, E, S, B, C, M, R, Q>
-    for Simulator<G, F, E, S, B, C, M, R, Q>
-    where G: Genotype + Send + Sync, F: Fitness + Send + Sync, B: Breeding<G>,
-          E: FitnessEvaluation<G, F>, S: SelectionOp<G, F, B>, Q: Termination<G, F>,
-          C: CrossoverOp<B, G>, M: MutationOp<G>, R: ReinsertionOp<G, F>
+impl<G, F, E, S, C, M, R, Q> Simulation<G, F, E, S, C, M, R, Q>
+    for Simulator<G, F, E, S, C, M, R, Q>
+    where G: Genotype + Send + Sync, F: Fitness + Send + Sync,
+          E: FitnessEvaluation<G, F>, S: SelectionOp<G, F>, Q: Termination<G, F>,
+          C: CrossoverOp<G>, M: MutationOp<G>, R: ReinsertionOp<G, F>
 {
-    type Builder = SimulatorBuilder<G, F, E, S, B, C, M, R, Q>;
+    type Builder = SimulatorBuilder<G, F, E, S, C, M, R, Q>;
 
     fn builder(evaluator: E, selector: S, breeder: C, mutator: M, reinserter: R, termination: Q)
         -> Self::Builder {
@@ -138,7 +135,6 @@ impl<G, F, E, S, B, C, M, R, Q> Simulation<G, F, E, S, B, C, M, R, Q>
             termination: Box::new(termination),
             _g: PhantomData,
             _f: PhantomData,
-            _p: PhantomData,
         }
     }
 
@@ -253,10 +249,10 @@ impl<G, F, E, S, B, C, M, R, Q> Simulation<G, F, E, S, B, C, M, R, Q>
     }
 }
 
-impl<G, F, E, S, B, C, M, R, Q> Simulator<G, F, E, S, B, C, M, R, Q>
-    where G: Genotype, F: Fitness, B: Breeding<G>,
-          E: FitnessEvaluation<G, F>, S: SelectionOp<G, F, B>, Q: Termination<G, F>,
-          C: CrossoverOp<B, G>, M: MutationOp<G>, R: ReinsertionOp<G, F>
+impl<G, F, E, S, C, M, R, Q> Simulator<G, F, E, S, C, M, R, Q>
+    where G: Genotype, F: Fitness,
+          E: FitnessEvaluation<G, F>, S: SelectionOp<G, F>, Q: Termination<G, F>,
+          C: CrossoverOp<G>, M: MutationOp<G>, R: ReinsertionOp<G, F>
 {
     /// Processes stages 2-4 of the genetic algorithm
     fn process_one_generation(&mut self) -> Result<State<G, F>, SimError> {
@@ -331,20 +327,20 @@ impl<G, F, E, S, B, C, M, R, Q> Simulator<G, F, E, S, B, C, M, R, Q>
     fn create_new_population(&self, evaluated_population: &EvaluatedPopulation<G, F>)
         -> (Result<Vec<G>, SimError>, Duration) {
         let started_at = Local::now();
-        let selection = self.selector.selection(evaluated_population);
-        let offspring = selection.and_then(|selection|
-            self.breed_offspring(selection));
-        let new_population = offspring.and_then(|mut offspring|
-            self.reinserter.combine(&mut offspring, evaluated_population));
+        let new_population = self.selector.select_from(evaluated_population)
+            .and_then(|mut selection|
+                self.breed_offspring(&mut selection))
+            .and_then(|mut offspring|
+                self.reinserter.combine(&mut offspring, evaluated_population));
         (new_population, Local::now().signed_duration_since(started_at))
     }
 
     /// Lets the parents breed their offspring and mutate its children. And finally
     /// combines the offspring of all parents into one big offspring.
-    fn breed_offspring(&self, parents: Vec<B::Parents>) -> Result<Vec<G>, SimError> {
-        let mut offspring: Vec<G> = Vec::new();
+    fn breed_offspring(&self, parents: &mut Vec<Parents<G>>) -> Result<Offspring<G>, SimError> {
+        let mut offspring: Offspring<G> = Vec::new();
         for parents in parents {
-            match self.breeder.crossover(&parents) {
+            match self.breeder.crossover(parents) {
                 Ok(children) => {
                     for child in children {
                         match self.mutator.mutate(&child) {

@@ -2,7 +2,7 @@
 //! individuals from the offspring and the old population by choosing the best
 //! individuals from both.
 
-use genetic::{Fitness, FitnessEvaluation, Genotype};
+use genetic::{Fitness, FitnessEvaluation, Genotype, Offspring};
 use operator::{GeneticOperator, MultiObjective, ReinsertionOp, SingleObjective};
 use simulation::{EvaluatedPopulation, SimError};
 use std::marker::PhantomData;
@@ -47,8 +47,7 @@ impl<G, F, E> ElitistReinserter<G, F, E>
     where G: Genotype, F: Fitness, E: FitnessEvaluation<G, F>
 {
     /// Constructs a new instance of the `ElitistReinserter`.
-    pub fn new(fitness_evaluator: E, offspring_has_precedence: bool, replace_ratio: f64)
-        -> ElitistReinserter<G, F, E> {
+    pub fn new(fitness_evaluator: E, offspring_has_precedence: bool, replace_ratio: f64) -> Self {
         ElitistReinserter {
             fitness_evaluator: Box::new(fitness_evaluator),
             offspring_has_precedence: offspring_has_precedence,
@@ -100,7 +99,7 @@ impl<G, F, E> MultiObjective for ElitistReinserter<G, F, E>
 impl<G, F, E> ReinsertionOp<G, F> for ElitistReinserter<G, F, E>
     where G: Genotype, F: Fitness, E: FitnessEvaluation<G, F>
 {
-    fn combine(&self, offspring: &mut Vec<G>, evaluated: &EvaluatedPopulation<G, F>)
+    fn combine(&self, offspring: &mut Offspring<G>, evaluated: &EvaluatedPopulation<G, F>)
                -> Result<Vec<G>, SimError> {
         let old_individuals = evaluated.individuals();
         let old_fitness_values = evaluated.fitness_values();

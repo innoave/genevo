@@ -5,10 +5,9 @@
 //! The provided `SelectionOp` implementations are:
 //! * `MaximizeSelector`
 
-use genetic::{Breeding, Fitness, Genotype};
+use genetic::{Fitness, Genotype, Parents};
 use operator::{GeneticOperator, SelectionOp, SingleObjective, MultiObjective};
 use simulation::{EvaluatedPopulation, SimError};
-use std::marker::PhantomData;
 
 
 /// The `MaximizeSelector` selects the best performing `genetic::Genotype`s
@@ -17,34 +16,23 @@ use std::marker::PhantomData;
 /// This `MaximizeSelector` can be used for single-objective fitness values
 /// as well as multi-objective fitness values.
 #[derive(Clone)]
-pub struct MaximizeSelector<G, B>
-    where G: Genotype, B: Breeding<G>
-{
-    /// The breeding used to create parents.
-    breeding: B,
+pub struct MaximizeSelector {
     /// The truncation threshold is the ratio between the number of parents
     /// to be selected and the size of the population:
     /// threshold = number of parents / size of population
     truncation_threshold: f64,
+    /// The number of individuals per parents.
+    num_individuals_per_parents: usize,
     // phantom types
-    _g: PhantomData<G>,
 }
 
-impl<G, B> MaximizeSelector<G, B>
-    where G: Genotype, B: Breeding<G>
-{
+impl MaximizeSelector {
     /// Constructs a new instance of the `MaximizeSelector`.
-    pub fn new(breeding: B, truncation_threshold: f64) -> MaximizeSelector<G, B> {
+    pub fn new(truncation_threshold: f64, num_individuals_per_parents: usize) -> Self {
         MaximizeSelector {
-            breeding: breeding,
             truncation_threshold: truncation_threshold,
-            _g: PhantomData,
+            num_individuals_per_parents: num_individuals_per_parents,
         }
-    }
-
-    /// Returns the `Breeding` used by this `MaximizeSelector`.
-    pub fn breeding(&self) -> &B {
-        &self.breeding
     }
 
     /// Returns the truncation threshold used by this `MaximizeSelector`.
@@ -64,25 +52,33 @@ impl<G, B> MaximizeSelector<G, B>
     pub fn set_truncation_threshold(&mut self, value: f64) {
         self.truncation_threshold = value;
     }
+
+    /// Returns the number of individuals per parents use by this selector.
+    pub fn num_individuals_per_parents(&self) -> usize {
+        self.num_individuals_per_parents
+    }
+
+    /// Sets the number of individuals per parents to the given value.
+    pub fn set_num_individuals_per_parents(&mut self, value: usize) {
+        self.num_individuals_per_parents = value;
+    }
 }
 
 /// Can be used for single-objective optimization
-impl<G, B> SingleObjective for MaximizeSelector<G, B> where G: Genotype, B: Breeding<G> {}
+impl SingleObjective for MaximizeSelector {}
 /// Can be used for multi-objective optimization
-impl<G, B> MultiObjective for MaximizeSelector<G, B> where G: Genotype, B: Breeding<G> {}
+impl MultiObjective for MaximizeSelector {}
 
-impl<G, B> GeneticOperator for MaximizeSelector<G, B>
-    where G: Genotype, B: Breeding<G>
-{
+impl GeneticOperator for MaximizeSelector {
     fn name() -> String {
         "Maximizing-Truncation-Selection".to_string()
     }
 }
 
-impl<G, F, B> SelectionOp<G, F, B> for MaximizeSelector<G, B>
-    where G: Genotype, F: Fitness, B: Breeding<G>
+impl<G, F> SelectionOp<G, F> for MaximizeSelector
+    where G: Genotype, F: Fitness
 {
-    fn selection(&self, evaluated: &EvaluatedPopulation<G, F>) -> Result<Vec<B::Parents>, SimError> {
+    fn select_from(&self, evaluated: &EvaluatedPopulation<G, F>) -> Result<Vec<Parents<G>>, SimError> {
         let individuals = evaluated.individuals();
         let fitness_values = evaluated.fitness_values();
 
@@ -93,14 +89,13 @@ impl<G, F, B> SelectionOp<G, F, B> for MaximizeSelector<G, B>
         let mating_pool = mating_pool;
 
         let num_parents_to_select = (individuals.len() as f64 * self.truncation_threshold).floor() as usize;
-        let parents_size = self.breeding.num_individuals_per_parents();
         let pool_size = mating_pool.len();
-        let mut selected: Vec<B::Parents> = Vec::with_capacity(num_parents_to_select);
+        let mut selected: Vec<Parents<G>> = Vec::with_capacity(num_parents_to_select);
 
         let mut index_m = 0;
         for _ in 0..num_parents_to_select {
-            let mut tuple = Vec::with_capacity(parents_size);
-            for _ in 0..parents_size {
+            let mut tuple = Vec::with_capacity(self.num_individuals_per_parents);
+            for _ in 0..self.num_individuals_per_parents {
                 // index into mating pool
                 index_m = index_m % pool_size;
                 // index into individuals slice
@@ -108,7 +103,7 @@ impl<G, F, B> SelectionOp<G, F, B> for MaximizeSelector<G, B>
                 tuple.push(individuals[index_i].clone());
                 index_m += 1;
             }
-            selected.push(self.breeding.mate_parents(tuple));
+            selected.push(tuple);
         }
         Ok(selected)
     }

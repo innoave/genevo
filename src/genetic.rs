@@ -37,6 +37,9 @@ pub trait Phenotype<G>: Clone + Debug
 /// of primitive types.
 pub trait Genotype: Clone + Debug + PartialEq {}
 
+/// The `Locus` is a position within a `Genotype`.
+pub type Locus = usize;
+
 /// The `Population` defines a set of possible solutions to the optimization
 /// or search problem.
 #[derive(Debug)]
@@ -51,7 +54,7 @@ impl<G> Population<G>
     where G: Genotype
 {
     /// Creates a new `Population` with an given individuals as members.
-    pub fn new(individuals: Vec<G>) -> Population<G> {
+    pub fn new(individuals: Vec<G>) -> Self {
         Population {
             individuals: individuals,
         }
@@ -90,36 +93,26 @@ pub trait PopulationGenerator<G>
     fn generate_genotype(&self) -> G;
 }
 
-/// A `Breeding` defines the type of `Parents` returned by the `SelectionOp`
-/// and used for breeding in the `CrossoverOp`. Commonly parents are
-/// defined as tuple of two `Genotype`s but maybe some derivation of the
-/// genetic algorithm wants to use three or more `Genotype`s for breeding.
-pub trait Breeding<G>: Clone
-    where G: Genotype
-{
-    /// A `Parents` type defines a tuple of individuals that are needed for
-    /// breeding one offspring.
-    ///
-    /// For example a tuple of 2 `Genotype`:
-    /// ```ignore
-    /// type Parents = (G, G)
-    /// ```
-    type Parents;
+/// The `Parents` type defines a tuple of individuals that are needed for
+/// breeding one offspring. The `operator::SelectionOp` selects a list of
+/// parents which are taken by the `operator::CrossoverOp` for breeding
+/// the offspring.
+///
+/// Commonly parents are defined as tuple of two `Genotype`s but some
+/// derivation of the genetic algorithm wants to use three or more
+/// `Genotype`s for breeding.
+///
+/// Note: For an efficient and easy to use implementation the logical tuple
+/// of parents is software technically typed as vector.
+pub type Parents<G> = Vec<G>;
 
-    /// Constructs an instance of `Self::Parents` from given tuple of
-    /// `Genotype`s. The number of `Genotype`s given in parameter tuple
-    /// must match the value returned by the `num_individuals_per_parents`
-    /// function.
-    fn mate_parents(&self, tuple: Vec<G>) -> Self::Parents;
+/// The `Children` type defines a set of `Genotype`s which is the outcome of
+/// the `operator::CrossoverOp` function.
+pub type Children<G> = Vec<G>;
 
-    /// Returns the number of individuals that are needed to construct an
-    /// instance of `Self::Parents` using the `mate_parents` function.
-    fn num_individuals_per_parents(&self) -> usize;
-
-    /// Returns the parent on the requested index from the given
-    /// `Self::Parents` instance.
-    fn parent(&self, index: usize, parents: Self::Parents) -> G;
-}
+/// The `Offspring` type defines the set of `Children` of type `Genotype`
+/// which represents the all children of all `Parents` of one generation.
+pub type Offspring<G> = Vec<G>;
 
 /// A `Fitness` value is used to determine the quality of a `Genotype`.
 /// `Fitness` values should have an ordering, also called ranking.

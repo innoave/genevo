@@ -18,12 +18,15 @@
 #[cfg(test)] #[macro_use] extern crate hamcrest;
 #[cfg(test)] #[macro_use] extern crate quickcheck;
 
+extern crate fixedbitset;
 extern crate chrono;
 extern crate jobsteal;
 extern crate rand;
 
 
 pub mod genetic;
+
+pub mod encoding;
 
 pub mod operator;
 
@@ -39,4 +42,8 @@ pub mod reinsertion;
 
 pub mod termination;
 
-mod types;
+pub mod math;
+
+pub mod random;
+
+pub mod types;

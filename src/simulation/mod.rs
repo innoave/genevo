@@ -2,20 +2,20 @@
 pub mod ga;
 
 use chrono::{DateTime, Duration, Local};
-use genetic::{Fitness, FitnessEvaluation, Genotype, Population, Breeding};
+use genetic::{Fitness, FitnessEvaluation, Genotype, Population};
 use operator::{CrossoverOp, MutationOp, ReinsertionOp, SelectionOp};
 use termination::{StopReason, Termination};
 use std::rc::Rc;
 
 
 /// A `Simulation` is the execution of a genetic algorithm.
-pub trait Simulation<G, F, E, S, B, C, M, R, Q>
-    where G: Genotype, F: Fitness, B: Breeding<G>,
-          E: FitnessEvaluation<G, F>, S: SelectionOp<G, F, B>, Q: Termination<G, F>,
-          C: CrossoverOp<B, G>, M: MutationOp<G>, R: ReinsertionOp<G, F>, Self: Sized
+pub trait Simulation<G, F, E, S, C, M, R, Q>
+    where G: Genotype, F: Fitness,
+          E: FitnessEvaluation<G, F>, S: SelectionOp<G, F>, Q: Termination<G, F>,
+          C: CrossoverOp<G>, M: MutationOp<G>, R: ReinsertionOp<G, F>, Self: Sized
 {
     /// A `SimulationBuilder` that can build this `Simulation`.
-    type Builder: SimulationBuilder<Self, G, F, E, S, B, C, M, R, Q>;
+    type Builder: SimulationBuilder<Self, G, F, E, S, C, M, R, Q>;
 
     /// Start building a new instance of a `Simulation`.
     fn builder(evaluator: E, selector: S, breeder: C, mutator: M, reinserter: R, termination: Q)
@@ -40,11 +40,11 @@ pub trait Simulation<G, F, E, S, B, C, M, R, Q>
 
 /// The `SimulationBuilder` creates a new `Simulation` with given parameters
 /// and options. It forms the initialization stage of the genetic algorithm.
-pub trait SimulationBuilder<Sim, G, F, E, S, B, C, M, R, Q>
-    where Sim: Simulation<G, F, E, S, B, C, M, R, Q>,
-          G: Genotype, F: Fitness, B: Breeding<G>,
-          E: FitnessEvaluation<G, F>, S: SelectionOp<G, F, B>, Q: Termination<G, F>,
-          C: CrossoverOp<B, G>, M: MutationOp<G>, R: ReinsertionOp<G, F>
+pub trait SimulationBuilder<Sim, G, F, E, S, C, M, R, Q>
+    where Sim: Simulation<G, F, E, S, C, M, R, Q>,
+          G: Genotype, F: Fitness,
+          E: FitnessEvaluation<G, F>, S: SelectionOp<G, F>, Q: Termination<G, F>,
+          C: CrossoverOp<G>, M: MutationOp<G>, R: ReinsertionOp<G, F>
 {
     /// Finally initializes the `Simulation` with the given `Population`
     /// and returns the newly created `Simulation`.
@@ -105,7 +105,7 @@ impl<G, F> EvaluatedPopulation<G, F>
                highest_fitness: F,
                lowest_fitness: F,
                average_fitness: F
-            ) -> EvaluatedPopulation<G, F> {
+            ) -> Self {
         EvaluatedPopulation {
             individuals: individuals,
             fitness_values: fitness_values,
@@ -235,7 +235,7 @@ pub struct BestSolution<G, F>
 }
 
 /// The result of running a step in the `Simulation`.
-#[derive(PartialEq, Eq, Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum SimResult<G, F>
     where G: Genotype, F: Fitness
 {
@@ -253,6 +253,7 @@ pub enum SimResult<G, F>
 }
 
 /// An error occurred during `Simulation`.
+#[derive(Debug)]
 pub enum SimError {
     /// The simulation has been created with an empty population.
     EmptyPopulation(String),

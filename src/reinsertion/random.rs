@@ -2,10 +2,11 @@
 //! individuals from the offspring and the old population without considering
 //! the fitness or any other attribute of the individuals.
 
-use genetic::{Fitness, Genotype};
+use genetic::{Fitness, Genotype, Offspring};
 use operator::{GeneticOperator, MultiObjective, ReinsertionOp, SingleObjective};
 use simulation::{EvaluatedPopulation, SimError};
-use rand::{Rng, thread_rng};
+use random::random_index;
+use rand::thread_rng;
 
 
 /// The `UniformReinserter` takes n individuals from the offspring and
@@ -34,7 +35,7 @@ pub struct UniformReinserter {
 impl UniformReinserter {
     /// Constructs a new instance of the `UniformReinserter` with the given
     /// parameters.
-    pub fn new(replace_ratio: f64) -> UniformReinserter {
+    pub fn new(replace_ratio: f64) -> Self {
         UniformReinserter {
             replace_ratio: replace_ratio,
         }
@@ -66,7 +67,7 @@ impl MultiObjective for UniformReinserter {}
 impl<G, F> ReinsertionOp<G, F> for UniformReinserter
     where G: Genotype, F: Fitness
 {
-    fn combine(&self, offspring: &mut Vec<G>, evaluated: &EvaluatedPopulation<G, F>)
+    fn combine(&self, offspring: &mut Offspring<G>, evaluated: &EvaluatedPopulation<G, F>)
                -> Result<Vec<G>, SimError> {
         let mut rng = thread_rng();
         let old_individuals = evaluated.individuals();
@@ -80,7 +81,7 @@ impl<G, F> ReinsertionOp<G, F> for UniformReinserter
         if num_offspring < offspring.len() {
             // pick individuals from the offspring uniformly at random
             while num_offspring > new_population.len() {
-                let index = rng.gen_range(0, offspring.len());
+                let index = random_index(&mut rng, offspring.len());
                 new_population.push(offspring.remove(index));
             }
         } else {
@@ -93,7 +94,7 @@ impl<G, F> ReinsertionOp<G, F> for UniformReinserter
         // (as many as needed).
         let num_old_population = population_size - new_population.len();
         for _ in 0..num_old_population {
-            let index = rng.gen_range(0, old_individuals.len());
+            let index = random_index(&mut rng, old_individuals.len());
             new_population.push(old_individuals[index].clone());
         }
         Ok(new_population)

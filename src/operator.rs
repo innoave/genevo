@@ -7,7 +7,7 @@
 //! Their different implementations can be combined in a variety of ways to
 //! make up the actual simulation of a specific problem.
 
-use genetic::{Breeding, Fitness, Genotype};
+use genetic::{Children, Fitness, Genotype, Offspring, Parents};
 use simulation::{EvaluatedPopulation, SimError};
 
 
@@ -40,24 +40,24 @@ pub trait GeneticOperator: Clone {
 
 /// A `SelectionOp` defines the function of how to select solutions for being
 /// the parents of the next generation.
-pub trait SelectionOp<G, F, B>: GeneticOperator
-    where G: Genotype, F: Fitness, B: Breeding<G>
+pub trait SelectionOp<G, F>: GeneticOperator
+    where G: Genotype, F: Fitness
 {
     /// Selects individuals from the given population according to the
     /// implemented selection strategy.
-    fn selection(&self, population: &EvaluatedPopulation<G, F>) -> Result<Vec<B::Parents>, SimError>;
+    fn select_from(&self, population: &EvaluatedPopulation<G, F>) -> Result<Vec<Parents<G>>, SimError>;
 }
 
 /// A `CrossoverOp` defines a function of how to crossover two `Genotype`s,
 /// often called parent genotypes, to derive new `Genotype`s. It is analogous
 /// to reproduction and biological crossover. Cross over is a process of taking
 /// two parent solutions and producing an offspring solution from them.
-pub trait CrossoverOp<B, G>: GeneticOperator
-    where B: Breeding<G>, G: Genotype
+pub trait CrossoverOp<G>: GeneticOperator
+    where G: Genotype
 {
     /// Performs the crossover of the `Parents` and returns the result as a new
-    /// vector of `Genotype` - the offspring.
-    fn crossover(&self, parents: &B::Parents) -> Result<Vec<G>, SimError>;
+    /// vector of `Genotype` - the `Offspring`.
+    fn crossover(&self, parents: &Parents<G>) -> Result<Children<G>, SimError>;
 }
 
 /// A `MutationOp` defines a function of how a `Genotype` mutates. It is used
@@ -105,5 +105,5 @@ pub trait ReinsertionOp<G, F>: GeneticOperator
     /// have not been included in the resulting population. If by the end of
     /// this function all `Genotype`s in offspring have been moved to the
     /// resulting population the offspring vector should be left empty.
-    fn combine(&self, offspring: &mut Vec<G>, population: &EvaluatedPopulation<G, F>) -> Result<Vec<G>, SimError>;
+    fn combine(&self, offspring: &mut Offspring<G>, population: &EvaluatedPopulation<G, F>) -> Result<Vec<G>, SimError>;
 }
