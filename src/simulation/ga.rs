@@ -275,8 +275,8 @@ impl<G, F, E, S, C, M, R, Q> Simulator<G, F, E, S, C, M, R, Q>
         })
     }
 
-    /// Calculates the `Fitness` value of each `Genotype` and records the
-    /// highest and lowest values.
+    /// Calculates the `genetic::Fitness` value of each `genetic::Genotype` and
+    /// records the highest and lowest values.
     fn evaluate_fitness<'a>(&self, population: Rc<Vec<G>>) -> (EvaluatedPopulation<G, F>, Duration) {
         let started_at = Local::now();
         let mut fitness = Vec::new();
@@ -335,8 +335,8 @@ impl<G, F, E, S, C, M, R, Q> Simulator<G, F, E, S, C, M, R, Q>
         (new_population, Local::now().signed_duration_since(started_at))
     }
 
-    /// Lets the parents breed their offspring and mutate its children. And finally
-    /// combines the offspring of all parents into one big offspring.
+    /// Lets the parents breed their offspring and mutate its children. And
+    /// finally combines the offspring of all parents into one big offspring.
     fn breed_offspring(&self, parents: &mut Vec<Parents<G>>) -> Result<Offspring<G>, SimError> {
         let mut offspring: Offspring<G> = Vec::new();
         for parents in parents {
@@ -359,9 +359,9 @@ impl<G, F, E, S, C, M, R, Q> Simulator<G, F, E, S, C, M, R, Q>
         Ok(offspring)
     }
 
-    /// Generates a `State` object about the last processed evolution, replaces the
-    /// current generation with the next generation and increases the
-    /// generation counter.
+    /// Generates a `simulation::State` object about the last processed
+    /// evolution, replaces the current generation with the next generation and
+    /// increases the generation counter.
     fn replace_generation(&mut self,
                           loop_time: Duration,
                           processing_time: Duration,

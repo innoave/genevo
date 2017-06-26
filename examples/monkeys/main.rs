@@ -28,6 +28,7 @@ type TextGenome = Vec<char>;
 
 type MonkeyBreeding = ([char], [char]);
 
+/// Calculator for the fitness value of `TextGenome`s.
 #[derive(Clone)]
 struct FitnessCalc {}
 
@@ -57,13 +58,14 @@ impl FitnessEvaluation<TextGenome, usize> for FitnessCalc {
     }
 }
 
-/// This is our random population generator
+/// This is the random population generator
 struct Monkey {}
 
 impl PopulationGenerator<TextGenome> for Monkey {
     fn generate_genotype(&self) -> TextGenome {
+        let mut rng = thread_rng;
         (0..TARGET_TEXT.len()).map(|_|
-            thread_rng().gen_range(32u8, 126u8) as char
+            rng.gen_range(32u8, 126u8) as char
         ).collect()
     }
 }

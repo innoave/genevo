@@ -45,24 +45,26 @@ pub trait SelectionOp<G, F>: GeneticOperator
 {
     /// Selects individuals from the given population according to the
     /// implemented selection strategy.
-    fn select_from(&self, population: &EvaluatedPopulation<G, F>) -> Result<Vec<Parents<G>>, SimError>;
+    fn select_from(&self, population: &EvaluatedPopulation<G, F>)
+        -> Result<Vec<Parents<G>>, SimError>;
 }
 
-/// A `CrossoverOp` defines a function of how to crossover two `Genotype`s,
-/// often called parent genotypes, to derive new `Genotype`s. It is analogous
-/// to reproduction and biological crossover. Cross over is a process of taking
-/// two parent solutions and producing an offspring solution from them.
+/// A `CrossoverOp` defines a function of how to crossover two
+/// `genetic::Genotype`s, often called parent genotypes, to derive new
+/// `genetic::Genotype`s. It is analogous to reproduction and biological
+/// crossover. Cross over is a process of taking two parent solutions and
+/// producing an offspring solution from them.
 pub trait CrossoverOp<G>: GeneticOperator
     where G: Genotype
 {
-    /// Performs the crossover of the `Parents` and returns the result as a new
-    /// vector of `Genotype` - the `Offspring`.
+    /// Performs the crossover of the `genetic::Parents` and returns the result
+    /// as a new vector of `genetic::Genotype` - the `genetic::Children`.
     fn crossover(&self, parents: &Parents<G>) -> Result<Children<G>, SimError>;
 }
 
-/// A `MutationOp` defines a function of how a `Genotype` mutates. It is used
-/// to maintain genetic diversity from one generation of a population of
-/// genetic algorithm genotypes to the next. It is analogous to biological
+/// A `MutationOp` defines a function of how a `genetic::Genotype` mutates. It
+/// is used to maintain genetic diversity from one generation of a population
+/// of genetic algorithm genotypes to the next. It is analogous to biological
 /// mutation. Mutation alters one or more gene values in a chromosome from its
 /// initial state. In mutation, the solution may change entirely from the
 /// previous solution. Hence GA can come to a better solution by using
@@ -99,11 +101,13 @@ pub trait ReinsertionOp<G, F>: GeneticOperator
     /// the population of the next generation.
     ///
     /// The offspring parameter is passed as mutable borrow. It can be
-    /// mutated to avoid cloning. The `Genotype`s that make it up into the
-    /// new population should be moved instead of cloned. After this function
-    /// finishes the offspring vector should hold only those `Genotype`s that
-    /// have not been included in the resulting population. If by the end of
-    /// this function all `Genotype`s in offspring have been moved to the
-    /// resulting population the offspring vector should be left empty.
-    fn combine(&self, offspring: &mut Offspring<G>, population: &EvaluatedPopulation<G, F>) -> Result<Vec<G>, SimError>;
+    /// mutated to avoid cloning. The `genetic::Genotype`s that make it up into
+    /// the new population should be moved instead of cloned. After this
+    /// function finishes the offspring vector should hold only those
+    /// `genetic::Genotype`s that have not been included in the resulting
+    /// population. If by the end of this function all `genetic::Genotype`s in
+    /// offspring have been moved to the resulting population the offspring
+    /// vector should be left empty.
+    fn combine(&self, offspring: &mut Offspring<G>, population: &EvaluatedPopulation<G, F>)
+        -> Result<Vec<G>, SimError>;
 }

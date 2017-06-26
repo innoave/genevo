@@ -56,7 +56,7 @@ pub trait SimulationBuilder<Sim, G, F, E, S, C, M, R, Q>
 }
 
 /// The `Evaluated` type marks an individual as evaluated. Mostly this means
-/// that the `Fitness` value has been calculated for this individual.
+/// that the `genetic::Fitness` value has been calculated for this individual.
 ///
 /// This structure is used to store the fitness value, so that the fitness
 /// value needs to be calculated only one time for each individual. For
@@ -66,9 +66,9 @@ pub trait SimulationBuilder<Sim, G, F, E, S, C, M, R, Q>
 pub struct Evaluated<G, F>
     where G: Genotype, F: Fitness
 {
-    /// The `Genotype` that has been evaluated.
+    /// The `genetic::Genotype` that has been evaluated.
     pub genome: G,
-    /// The `Fitness` value of the evaluated `Genotype`.
+    /// The `genetic::Fitness` value of the evaluated `genetic::Genotype`.
     pub fitness: F,
 }
 
@@ -132,17 +132,19 @@ impl<G, F> EvaluatedPopulation<G, F>
         &self.fitness_values
     }
 
-    /// Returns the highest `Fitness` value found in the evaluated population.
+    /// Returns the highest `genetic::Fitness` value found in the evaluated
+    /// population.
     pub fn highest_fitness(&self) -> &F {
         &self.highest_fitness
     }
 
-    /// Returns the lowest `Fitness` value found in the evaluated population.
+    /// Returns the lowest `genetic::Fitness` value found in the evaluated
+    /// population.
     pub fn lowest_fitness(&self) -> &F {
         &self.lowest_fitness
     }
 
-    /// Returns the average of all `Fitness` values of the evaluated
+    /// Returns the average of all `genetic::Fitness` values of the evaluated
     /// population.
     pub fn average_fitness(&self) -> &F {
         &self.average_fitness
@@ -153,7 +155,7 @@ impl<G, F> EvaluatedPopulation<G, F>
         self.individuals.get(index)
     }
 
-    /// Returns the `Fitness` value of the given individual.
+    /// Returns the `genetic::Fitness` value of the given individual.
     ///
     /// Note: This function might be more expensive due to the data structure
     /// chosen for this struct. So use it sparingly.
@@ -162,7 +164,8 @@ impl<G, F> EvaluatedPopulation<G, F>
             &self.fitness_values[index])
     }
 
-    /// Returns the `Genotype` of the individual with a given `Fitness` value.
+    /// Returns the `genetic::Genotype` of the individual with a given
+    /// `genetic::Fitness` value.
     ///
     /// Note: This function might be more expensive due to the data structure
     /// chosen for this struct. So use it sparingly.
@@ -230,7 +233,7 @@ pub struct BestSolution<G, F>
     pub found_at: DateTime<Local>,
     /// The number of the generation in which this solution is found.
     pub generation: u64,
-    /// The evaluated `Genotype` that is considered to be best.
+    /// The evaluated `genetic::Genotype` that is considered to be best.
     pub solution: Evaluated<G, F>,
 }
 

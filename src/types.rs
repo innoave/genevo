@@ -1,4 +1,4 @@
-//! This module provides implementations of the `Fitness` trait for
+//! This module provides implementations of the `genetic::Fitness` trait for
 //! some primitive types, such as `i32`, `i64` et cetera.
 //! This is because Rust does not allow programmers to implement
 //! a foreign trait for a foreign type, which would stop you as a library user

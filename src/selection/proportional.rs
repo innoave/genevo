@@ -1,7 +1,7 @@
 //! The `proportional` module provides `operator::SelectionOp`s that implement
 //! stochastic fitness proportionate selection strategies. Individuals are
-//! randomly selected. Individuals with a higher `Fitness` value are having a
-//! higher probability to be selected.
+//! randomly selected. Individuals with a higher `genetic::Fitness` value are
+//! having a higher probability to be selected.
 //!
 //! How is this achieved?
 //! In fitness proportionate selection each individual gets assigned a weight
