@@ -42,8 +42,6 @@ pub mod reinsertion;
 
 pub mod termination;
 
-pub mod math;
-
 pub mod random;
 
 pub mod types;

@@ -15,9 +15,8 @@
 //! * `UniversalSamplingSelector` - no bias - minimal spread.
 
 use genetic::{Fitness, Genotype, Parents, AsScalar};
-use math::WeightedDistribution;
 use operator::{GeneticOperator, SelectionOp, SingleObjective};
-use random::random_probability;
+use random::{WeightedDistribution, random_probability};
 use rand::thread_rng;
 use simulation::{EvaluatedPopulation, SimError};
 
