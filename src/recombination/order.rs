@@ -36,8 +36,8 @@ impl GeneticOperator for OrderOneCrossover {
 }
 
 impl CrossoverOp<Vec<usize>> for OrderOneCrossover {
-    fn crossover(&self, parents: &Parents<Vec<usize>>) -> Result<Children<Vec<usize>>, SimError> {
-        multi_parents_cyclic_crossover(parents, order_one_crossover)
+    fn crossover(&self, parents: Parents<Vec<usize>>) -> Result<Children<Vec<usize>>, SimError> {
+        multi_parents_cyclic_crossover(&parents, order_one_crossover)
     }
 }
 
@@ -63,8 +63,8 @@ impl GeneticOperator for PartiallyMappedCrossover {
 }
 
 impl CrossoverOp<Vec<usize>> for PartiallyMappedCrossover {
-    fn crossover(&self, parents: &Parents<Vec<usize>>) -> Result<Children<Vec<usize>>, SimError> {
-        multi_parents_cyclic_crossover(parents, partial_mapped_crossover)
+    fn crossover(&self, parents: Parents<Vec<usize>>) -> Result<Children<Vec<usize>>, SimError> {
+        multi_parents_cyclic_crossover(&parents, partial_mapped_crossover)
     }
 }
 

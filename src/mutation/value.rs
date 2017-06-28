@@ -38,7 +38,7 @@ impl<V> GeneticOperator for ScalarVectorMutation<V>
 
 impl<V> MutationOp<Vec<V>> for ScalarVectorMutation<V>
     where V: Clone + Debug + PartialEq + PartialOrd + BreederMutation {
-    fn mutate(&self, genome: &Vec<V>) -> Result<Vec<V>, SimError> {
+    fn mutate(&self, genome: Vec<V>) -> Result<Vec<V>, SimError> {
         let mut rng = thread_rng();
         Ok(BreederMutation::mutate_genome(genome,
                                           self.mutation_rate,
@@ -55,12 +55,12 @@ pub trait BreederMutation
 
     fn breeder_mutated(value: Self, range: Self, adjustment: f64, sign: i8) -> Self;
 
-    fn mutate_genome<R>(genome: &Vec<Self>, mutation_rate: f64, range: Self, precision: u8,
+    fn mutate_genome<R>(genome: Vec<Self>, mutation_rate: f64, range: Self, precision: u8,
                         min_value: Self, max_value: Self, rng: &mut R) -> Vec<Self>
         where R: Rng + Sized {
         let genome_length = genome.len();
         let num_mutations = ((genome_length as f64 * mutation_rate) + rng.next_f64()).floor() as usize;
-        let mut mutated = genome.to_vec();
+        let mut mutated = genome;
         for _ in 0..num_mutations {
             let index = random_index(rng, genome_length);
             let sign = *rng.choose(&[-1, 1]).unwrap();

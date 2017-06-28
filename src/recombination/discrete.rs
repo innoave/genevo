@@ -39,7 +39,7 @@ impl GeneticOperator for UniformCrossover {
 
 impl CrossoverOp<FixedBitSet> for UniformCrossover {
 
-    fn crossover(&self, parents: &Parents<FixedBitSet>) -> Result<Children<FixedBitSet>, SimError> {
+    fn crossover(&self, parents: Parents<FixedBitSet>) -> Result<Children<FixedBitSet>, SimError> {
         let mut rng = thread_rng();
         let genome_length = parents[0].len();
         let parents_size = parents.len();
@@ -85,7 +85,7 @@ impl GeneticOperator for DiscreteCrossover {
 impl<V> CrossoverOp<Vec<V>> for DiscreteCrossover
     where V: Clone + Debug + PartialEq
 {
-    fn crossover(&self, parents: &Parents<Vec<V>>) -> Result<Children<Vec<V>>, SimError> {
+    fn crossover(&self, parents: Parents<Vec<V>>) -> Result<Children<Vec<V>>, SimError> {
         let mut rng = thread_rng();
         let genome_length = parents[0].len();
         let parents_size = parents.len();
@@ -137,7 +137,7 @@ impl GeneticOperator for MultiPointCrossover {
 impl<V> CrossoverOp<Vec<V>> for MultiPointCrossover
     where V: Clone + Debug + PartialEq
 {
-    fn crossover(&self, parents: &Parents<Vec<V>>) -> Result<Children<Vec<V>>, SimError> {
+    fn crossover(&self, parents: Parents<Vec<V>>) -> Result<Children<Vec<V>>, SimError> {
         let mut rng = thread_rng();
         let genome_length = parents[0].len();
         let parents_size = parents.len();

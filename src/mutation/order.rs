@@ -38,11 +38,11 @@ impl GeneticOperator for OrderInsertMutation {
 impl<V> MutationOp<Vec<V>> for OrderInsertMutation
     where V: Clone + Debug + PartialEq {
 
-    fn mutate(&self, genome: &Vec<V>) -> Result<Vec<V>, SimError> {
+    fn mutate(&self, genome: Vec<V>) -> Result<Vec<V>, SimError> {
         let mut rng = thread_rng();
         let genome_length = genome.len();
         let num_mutations = ((genome_length as f64 * self.mutation_rate) + rng.next_f64()).floor() as usize;
-        let mut mutated = genome.to_vec();
+        let mut mutated = genome;
         for _ in 0..num_mutations {
             let (locus1, locus2) = random_cut_points(&mut rng, genome_length);
             let value2 = mutated.remove(locus2);
@@ -82,11 +82,11 @@ impl GeneticOperator for OrderSwapMutation {
 impl<V> MutationOp<Vec<V>> for OrderSwapMutation
     where V: Clone + Debug + PartialEq {
 
-    fn mutate(&self, genome: &Vec<V>) -> Result<Vec<V>, SimError> {
+    fn mutate(&self, genome: Vec<V>) -> Result<Vec<V>, SimError> {
         let mut rng = thread_rng();
         let genome_length = genome.len();
         let num_mutations = ((genome_length as f64 * self.mutation_rate) + rng.next_f64()).floor() as usize;
-        let mut mutated = genome.to_vec();
+        let mut mutated = genome;
         for _ in 0..num_mutations {
             let (locus1, locus2) = random_cut_points(&mut rng, genome_length);
             mutated.swap(locus1, locus2);

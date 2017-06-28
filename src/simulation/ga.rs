@@ -328,8 +328,8 @@ impl<G, F, E, S, C, M, R, Q> Simulator<G, F, E, S, C, M, R, Q>
         -> (Result<Vec<G>, SimError>, Duration) {
         let started_at = Local::now();
         let new_population = self.selector.select_from(evaluated_population)
-            .and_then(|mut selection|
-                self.breed_offspring(&mut selection))
+            .and_then(|selection|
+                self.breed_offspring(selection))
             .and_then(|mut offspring|
                 self.reinserter.combine(&mut offspring, evaluated_population));
         (new_population, Local::now().signed_duration_since(started_at))
@@ -337,13 +337,13 @@ impl<G, F, E, S, C, M, R, Q> Simulator<G, F, E, S, C, M, R, Q>
 
     /// Lets the parents breed their offspring and mutate its children. And
     /// finally combines the offspring of all parents into one big offspring.
-    fn breed_offspring(&self, parents: &mut Vec<Parents<G>>) -> Result<Offspring<G>, SimError> {
+    fn breed_offspring(&self, parents: Vec<Parents<G>>) -> Result<Offspring<G>, SimError> {
         let mut offspring: Offspring<G> = Vec::new();
         for parents in parents {
             match self.breeder.crossover(parents) {
                 Ok(children) => {
                     for child in children {
-                        match self.mutator.mutate(&child) {
+                        match self.mutator.mutate(child) {
                             Ok(mutated) => {
                                 offspring.push(mutated);
                             },

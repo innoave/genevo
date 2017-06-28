@@ -59,7 +59,7 @@ pub trait CrossoverOp<G>: GeneticOperator
 {
     /// Performs the crossover of the `genetic::Parents` and returns the result
     /// as a new vector of `genetic::Genotype` - the `genetic::Children`.
-    fn crossover(&self, parents: &Parents<G>) -> Result<Children<G>, SimError>;
+    fn crossover(&self, parents: Parents<G>) -> Result<Children<G>, SimError>;
 }
 
 /// A `MutationOp` defines a function of how a `genetic::Genotype` mutates. It
@@ -75,7 +75,7 @@ pub trait MutationOp<G>: GeneticOperator
     where G: Genotype
 {
     /// Mutates the given 'Genotype' and returns it as a new 'Genotype'.
-    fn mutate(&self, genome: &G) -> Result<G, SimError>;
+    fn mutate(&self, genome: G) -> Result<G, SimError>;
 }
 
 /// A `ReinsertionOp` defines a function that combines the offspring with the
