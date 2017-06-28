@@ -13,7 +13,6 @@ use chrono::{Duration, Local};
 use genetic::{Fitness, Genotype};
 use simulation::State;
 use termination::{StopFlag, Termination};
-use std::marker::PhantomData;
 
 
 /// The `FitnessLimit` condition stops the simulation after a solution with
@@ -54,31 +53,22 @@ impl<G, F> Termination<G, F> for FitnessLimit<F>
 /// The `GenerationLimit` condition stops the simulation after a maximum
 /// number of generations has been processed.
 #[derive(Clone)]
-pub struct GenerationLimit<G, F>
-    where G: Genotype, F: Fitness
-{
+pub struct GenerationLimit {
     /// Maximum number of generations to process.
     max_generations: u64,
-    // phantom types
-    _g: PhantomData<G>,
-    _f: PhantomData<F>,
 }
 
-impl<G, F> GenerationLimit<G, F>
-    where G: Genotype, F: Fitness
-{
+impl GenerationLimit {
     /// Create a new instance of `GenerationLimit` with the specified limit
     /// of generations.
     pub fn new(max_generations: u64) -> Self {
         GenerationLimit {
             max_generations: max_generations,
-            _g: PhantomData,
-            _f: PhantomData,
         }
     }
 }
 
-impl<G, F> Termination<G, F> for GenerationLimit<G, F>
+impl<G, F> Termination<G, F> for GenerationLimit
     where G: Genotype, F: Fitness
 {
     fn evaluate(&mut self, state: &State<G, F>) -> StopFlag {
@@ -95,31 +85,22 @@ impl<G, F> Termination<G, F> for GenerationLimit<G, F>
 /// limit has been reached, i.e. the simulation is already running for the
 /// specified amount of time.
 #[derive(Clone)]
-pub struct TimeLimit<G, F>
-    where G: Genotype, F: Fitness
-{
+pub struct TimeLimit {
     /// Maximum time the simulation should run
     max_time: Duration,
-    // phantom types
-    _g: PhantomData<G>,
-    _f: PhantomData<F>,
 }
 
-impl<G, F> TimeLimit<G, F>
-    where G: Genotype, F: Fitness
-{
+impl TimeLimit {
     /// Create a new instance of `TimeLimit` with the specified amount
     /// of time.
     pub fn new(max_time: Duration) -> Self {
         TimeLimit {
             max_time: max_time,
-            _g: PhantomData,
-            _f: PhantomData,
         }
     }
 }
 
-impl<G, F> Termination<G, F> for TimeLimit<G, F>
+impl<G, F> Termination<G, F> for TimeLimit
     where G: Genotype, F: Fitness
 {
     fn evaluate(&mut self, state: &State<G, F>) -> StopFlag {
