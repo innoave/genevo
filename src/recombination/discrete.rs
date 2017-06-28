@@ -12,7 +12,7 @@ use operator::{CrossoverOp, GeneticOperator};
 use simulation::SimError;
 use fixedbitset::FixedBitSet;
 use random::random_n_cut_points;
-use rand::{Rng, thread_rng};
+use rand::Rng;
 use std::fmt::Debug;
 
 
@@ -39,8 +39,9 @@ impl GeneticOperator for UniformCrossover {
 
 impl CrossoverOp<FixedBitSet> for UniformCrossover {
 
-    fn crossover(&self, parents: Parents<FixedBitSet>) -> Result<Children<FixedBitSet>, SimError> {
-        let mut rng = thread_rng();
+    fn crossover<R>(&self, parents: Parents<FixedBitSet>, rng: &mut R)
+        -> Result<Children<FixedBitSet>, SimError>
+        where R: Rng + Sized {
         let genome_length = parents[0].len();
         let parents_size = parents.len();
         // breed one child for each parent in parents
@@ -85,8 +86,9 @@ impl GeneticOperator for DiscreteCrossover {
 impl<V> CrossoverOp<Vec<V>> for DiscreteCrossover
     where V: Clone + Debug + PartialEq
 {
-    fn crossover(&self, parents: Parents<Vec<V>>) -> Result<Children<Vec<V>>, SimError> {
-        let mut rng = thread_rng();
+    fn crossover<R>(&self, parents: Parents<Vec<V>>, rng: &mut R)
+        -> Result<Children<Vec<V>>, SimError>
+        where R: Rng + Sized {
         let genome_length = parents[0].len();
         let parents_size = parents.len();
         // breed one child for each parent in parents
@@ -137,15 +139,16 @@ impl GeneticOperator for MultiPointCrossover {
 impl<V> CrossoverOp<Vec<V>> for MultiPointCrossover
     where V: Clone + Debug + PartialEq
 {
-    fn crossover(&self, parents: Parents<Vec<V>>) -> Result<Children<Vec<V>>, SimError> {
-        let mut rng = thread_rng();
+    fn crossover<R>(&self, parents: Parents<Vec<V>>, rng: &mut R)
+        -> Result<Children<Vec<V>>, SimError>
+        where R: Rng + Sized {
         let genome_length = parents[0].len();
         let parents_size = parents.len();
         // breed one child for each parent in parents
         let mut offspring: Vec<Vec<V>> = Vec::with_capacity(parents_size);
         while parents_size > offspring.len() {
             let mut genome = Vec::with_capacity(genome_length);
-            let mut cutpoints = random_n_cut_points(&mut rng, self.num_points, genome_length);
+            let mut cutpoints = random_n_cut_points(rng, self.num_points, genome_length);
             cutpoints.push(genome_length);
             let mut start = 0;
             let mut end = cutpoints.remove(0);

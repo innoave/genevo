@@ -32,6 +32,7 @@ use operator::{CrossoverOp, MutationOp, ReinsertionOp, SelectionOp};
 use simulation::{BestSolution, Evaluated, EvaluatedPopulation, SimError, SimResult, Simulation,
                  SimulationBuilder, State};
 use termination::{StopFlag, Termination};
+use rand::{Rng, thread_rng};
 use std::marker::PhantomData;
 use std::mem;
 use std::rc::Rc;
@@ -327,23 +328,26 @@ impl<G, F, E, S, C, M, R, Q> Simulator<G, F, E, S, C, M, R, Q>
     fn create_new_population(&self, evaluated_population: &EvaluatedPopulation<G, F>)
         -> (Result<Vec<G>, SimError>, Duration) {
         let started_at = Local::now();
-        let new_population = self.selector.select_from(evaluated_population)
+        let mut rng = thread_rng();
+        let new_population = self.selector.select_from(evaluated_population, &mut rng)
             .and_then(|selection|
-                self.breed_offspring(selection))
+                self.breed_offspring(selection, &mut rng))
             .and_then(|mut offspring|
-                self.reinserter.combine(&mut offspring, evaluated_population));
+                self.reinserter.combine(&mut offspring, evaluated_population, &mut rng));
         (new_population, Local::now().signed_duration_since(started_at))
     }
 
     /// Lets the parents breed their offspring and mutate its children. And
     /// finally combines the offspring of all parents into one big offspring.
-    fn breed_offspring(&self, parents: Vec<Parents<G>>) -> Result<Offspring<G>, SimError> {
+    fn breed_offspring<Rg>(&self, parents: Vec<Parents<G>>, rng: &mut Rg)
+        -> Result<Offspring<G>, SimError>
+        where Rg: Rng + Sized {
         let mut offspring: Offspring<G> = Vec::new();
         for parents in parents {
-            match self.breeder.crossover(parents) {
+            match self.breeder.crossover(parents, rng) {
                 Ok(children) => {
                     for child in children {
-                        match self.mutator.mutate(child) {
+                        match self.mutator.mutate(child, rng) {
                             Ok(mutated) => {
                                 offspring.push(mutated);
                             },

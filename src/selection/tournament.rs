@@ -6,7 +6,7 @@
 use genetic::{Fitness, Genotype, Parents};
 use operator::{GeneticOperator, SelectionOp, SingleObjective, MultiObjective};
 use random::{random_index, random_probability};
-use rand::thread_rng;
+use rand::Rng;
 use simulation::{EvaluatedPopulation, SimError};
 
 
@@ -149,8 +149,9 @@ impl GeneticOperator for TournamentSelector {
 impl<G, F> SelectionOp<G, F> for TournamentSelector
     where G: Genotype, F: Fitness
 {
-    fn select_from(&self, evaluated: &EvaluatedPopulation<G, F>) -> Result<Vec<Parents<G>>, SimError> {
-        let mut rng = thread_rng();
+    fn select_from<R>(&self, evaluated: &EvaluatedPopulation<G, F>, rng: &mut R)
+        -> Result<Vec<Parents<G>>, SimError>
+        where R: Rng + Sized {
         let individuals = evaluated.individuals();
         let fitness_values = evaluated.fitness_values();
 
@@ -168,7 +169,7 @@ impl<G, F> SelectionOp<G, F> for TournamentSelector
             let mut tournament = Vec::with_capacity(self.tournament_size);
             let mut count_participants = 0;
             while count_participants < self.tournament_size {
-                let random = random_index(&mut rng, mating_pool.len());
+                let random = random_index(rng, mating_pool.len());
                 let participant = mating_pool[random];
                 tournament.push(participant);
                 count_participants += 1;
@@ -181,7 +182,7 @@ impl<G, F> SelectionOp<G, F> for TournamentSelector
             // pick candidates with probability
             let mut prob = self.probability; let mut prob_redux = 1.;
             while prob > 0. {
-                if random_probability(&mut rng) <= prob {
+                if random_probability(rng) <= prob {
                     let picked = tournament.remove(0);
                     if self.remove_selected_individuals {
                         match mating_pool.iter().position(|x| *x == picked) {

@@ -2,7 +2,7 @@
 use operator::{GeneticOperator, MutationOp};
 use simulation::SimError;
 use random::random_index;
-use rand::{Rng, thread_rng};
+use rand::Rng;
 use std::fmt::Debug;
 
 
@@ -38,15 +38,16 @@ impl<V> GeneticOperator for ScalarVectorMutation<V>
 
 impl<V> MutationOp<Vec<V>> for ScalarVectorMutation<V>
     where V: Clone + Debug + PartialEq + PartialOrd + BreederMutation {
-    fn mutate(&self, genome: Vec<V>) -> Result<Vec<V>, SimError> {
-        let mut rng = thread_rng();
+    fn mutate<R>(&self, genome: Vec<V>, rng: &mut R)
+        -> Result<Vec<V>, SimError>
+        where R: Rng + Sized {
         Ok(BreederMutation::mutate_genome(genome,
                                           self.mutation_rate,
                                           self.mutation_range.clone(),
                                           self.mutation_precision,
                                           self.min_value.clone(),
                                           self.max_value.clone(),
-                                          &mut rng))
+                                          rng))
     }
 }
 

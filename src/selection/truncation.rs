@@ -8,6 +8,7 @@
 use genetic::{Fitness, Genotype, Parents};
 use operator::{GeneticOperator, SelectionOp, SingleObjective, MultiObjective};
 use simulation::{EvaluatedPopulation, SimError};
+use rand::Rng;
 
 
 /// The `MaximizeSelector` selects the best performing `genetic::Genotype`s
@@ -78,7 +79,9 @@ impl GeneticOperator for MaximizeSelector {
 impl<G, F> SelectionOp<G, F> for MaximizeSelector
     where G: Genotype, F: Fitness
 {
-    fn select_from(&self, evaluated: &EvaluatedPopulation<G, F>) -> Result<Vec<Parents<G>>, SimError> {
+    fn select_from<R>(&self, evaluated: &EvaluatedPopulation<G, F>, rng: &mut R)
+        -> Result<Vec<Parents<G>>, SimError>
+        where R: Rng + Sized {
         let individuals = evaluated.individuals();
         let fitness_values = evaluated.fitness_values();
 

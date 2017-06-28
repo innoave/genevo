@@ -11,7 +11,7 @@ use genetic::{Children, Parents};
 use operator::{CrossoverOp, GeneticOperator};
 use simulation::SimError;
 use random::random_cut_points;
-use rand::thread_rng;
+use rand::Rng;
 use std::collections::HashMap;
 
 
@@ -36,8 +36,10 @@ impl GeneticOperator for OrderOneCrossover {
 }
 
 impl CrossoverOp<Vec<usize>> for OrderOneCrossover {
-    fn crossover(&self, parents: Parents<Vec<usize>>) -> Result<Children<Vec<usize>>, SimError> {
-        multi_parents_cyclic_crossover(&parents, order_one_crossover)
+    fn crossover<R>(&self, parents: Parents<Vec<usize>>, rng: &mut R)
+        -> Result<Children<Vec<usize>>, SimError>
+        where R: Rng + Sized {
+        multi_parents_cyclic_crossover(&parents, order_one_crossover, rng)
     }
 }
 
@@ -63,23 +65,24 @@ impl GeneticOperator for PartiallyMappedCrossover {
 }
 
 impl CrossoverOp<Vec<usize>> for PartiallyMappedCrossover {
-    fn crossover(&self, parents: Parents<Vec<usize>>) -> Result<Children<Vec<usize>>, SimError> {
-        multi_parents_cyclic_crossover(&parents, partial_mapped_crossover)
+    fn crossover<R>(&self, parents: Parents<Vec<usize>>, rng: &mut R)
+        -> Result<Children<Vec<usize>>, SimError>
+        where R: Rng + Sized {
+        multi_parents_cyclic_crossover(&parents, partial_mapped_crossover, rng)
     }
 }
 
 
-fn multi_parents_cyclic_crossover<'a, FN>(parents: &'a Parents<Vec<usize>>, crossover: FN)
+fn multi_parents_cyclic_crossover<'a, FN, R>(parents: &'a Parents<Vec<usize>>, crossover: FN, rng: &mut R)
     -> Result<Children<Vec<usize>>, SimError>
-    where FN: Fn(&'a [usize], &'a [usize], usize, usize) -> Vec<usize> {
-    let mut rng = thread_rng();
+    where FN: Fn(&'a [usize], &'a [usize], usize, usize) -> Vec<usize>, R: Rng + Sized {
     let parents_size = parents.len();
     let genome_length = parents[0].len();
     // breed one child for each parent in parents
     let mut offspring: Vec<Vec<usize>> = Vec::with_capacity(parents_size);
     let mut p1_index = 0; let mut p2_index = 1;
     while p1_index < parents_size {
-        let (cutpoint1, cutpoint2) = random_cut_points(&mut rng, genome_length);
+        let (cutpoint1, cutpoint2) = random_cut_points(rng, genome_length);
         let genome = crossover(&parents[p1_index], &parents[p2_index], cutpoint1, cutpoint2);
         offspring.push(genome);
         p1_index += 1; p2_index += 1;

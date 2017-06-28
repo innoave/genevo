@@ -17,7 +17,7 @@
 use genetic::{Fitness, Genotype, Parents, AsScalar};
 use operator::{GeneticOperator, SelectionOp, SingleObjective};
 use random::{WeightedDistribution, random_probability};
-use rand::thread_rng;
+use rand::Rng;
 use simulation::{EvaluatedPopulation, SimError};
 
 
@@ -84,16 +84,17 @@ impl GeneticOperator for RouletteWheelSelector {
 impl<G, F> SelectionOp<G, F> for RouletteWheelSelector
     where G: Genotype, F: Fitness + AsScalar
 {
-    fn select_from(&self, evaluated: &EvaluatedPopulation<G, F>) -> Result<Vec<Parents<G>>, SimError> {
+    fn select_from<R>(&self, evaluated: &EvaluatedPopulation<G, F>, rng: &mut R)
+        -> Result<Vec<Parents<G>>, SimError>
+        where R: Rng + Sized {
         let individuals = evaluated.individuals();
         let num_parents_to_select = (individuals.len() as f64 * self.selection_ratio + 0.5).floor() as usize;
         let mut parents = Vec::with_capacity(num_parents_to_select);
         let weighted_distribution = WeightedDistribution::from_scalar_values(evaluated.fitness_values());
-        let mut rng = thread_rng();
         for _ in 0..num_parents_to_select {
             let mut tuple = Vec::with_capacity(self.num_individuals_per_parents);
             for _ in 0..self.num_individuals_per_parents {
-                let random = random_probability(&mut rng) * weighted_distribution.sum();
+                let random = random_probability(rng) * weighted_distribution.sum();
                 let selected = weighted_distribution.select(random);
                 tuple.push(individuals[selected].clone());
             }
@@ -166,14 +167,15 @@ impl GeneticOperator for UniversalSamplingSelector {
 impl<G, F> SelectionOp<G, F> for UniversalSamplingSelector
     where G: Genotype, F: Fitness + AsScalar
 {
-    fn select_from(&self, evaluated: &EvaluatedPopulation<G, F>) -> Result<Vec<Parents<G>>, SimError> {
+    fn select_from<R>(&self, evaluated: &EvaluatedPopulation<G, F>, rng: &mut R)
+        -> Result<Vec<Parents<G>>, SimError>
+        where R: Rng + Sized {
         let individuals = evaluated.individuals();
         let num_parents_to_select = (individuals.len() as f64 * self.selection_ratio + 0.5).floor() as usize;
         let mut parents = Vec::with_capacity(num_parents_to_select);
         let weighted_distribution = WeightedDistribution::from_scalar_values(evaluated.fitness_values());
         let distance = weighted_distribution.sum() / (num_parents_to_select * self.num_individuals_per_parents) as f64;
-        let mut rng = thread_rng();
-        let mut pointer = random_probability(&mut rng) * weighted_distribution.sum();
+        let mut pointer = random_probability(rng) * weighted_distribution.sum();
         for _ in 0..num_parents_to_select {
             let mut tuple = Vec::with_capacity(self.num_individuals_per_parents);
             for _ in 0..self.num_individuals_per_parents {

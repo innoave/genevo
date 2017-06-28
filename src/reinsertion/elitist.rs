@@ -6,6 +6,7 @@ use genetic::{Fitness, FitnessEvaluation, Genotype, Offspring};
 use operator::{GeneticOperator, MultiObjective, ReinsertionOp, SingleObjective};
 use simulation::{EvaluatedPopulation, SimError};
 use std::marker::PhantomData;
+use rand::Rng;
 
 
 /// The `ElitistReinserter` combines the best individuals from the offspring.
@@ -99,8 +100,9 @@ impl<G, F, E> MultiObjective for ElitistReinserter<G, F, E>
 impl<G, F, E> ReinsertionOp<G, F> for ElitistReinserter<G, F, E>
     where G: Genotype, F: Fitness, E: FitnessEvaluation<G, F>
 {
-    fn combine(&self, offspring: &mut Offspring<G>, evaluated: &EvaluatedPopulation<G, F>)
-               -> Result<Vec<G>, SimError> {
+    fn combine<R>(&self, offspring: &mut Offspring<G>, evaluated: &EvaluatedPopulation<G, F>, rng: &mut R)
+        -> Result<Vec<G>, SimError>
+        where R: Rng + Sized {
         let old_individuals = evaluated.individuals();
         let old_fitness_values = evaluated.fitness_values();
         // holds indices to the individuals and fitness_values slices

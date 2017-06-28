@@ -9,6 +9,7 @@
 
 use genetic::{Children, Fitness, Genotype, Offspring, Parents};
 use simulation::{EvaluatedPopulation, SimError};
+use rand::Rng;
 
 
 /// Marker trait for genetic operators and functions that are used for
@@ -45,8 +46,9 @@ pub trait SelectionOp<G, F>: GeneticOperator
 {
     /// Selects individuals from the given population according to the
     /// implemented selection strategy.
-    fn select_from(&self, population: &EvaluatedPopulation<G, F>)
-        -> Result<Vec<Parents<G>>, SimError>;
+    fn select_from<R>(&self, population: &EvaluatedPopulation<G, F>, rng: &mut R)
+        -> Result<Vec<Parents<G>>, SimError>
+        where R: Rng;
 }
 
 /// A `CrossoverOp` defines a function of how to crossover two
@@ -59,7 +61,9 @@ pub trait CrossoverOp<G>: GeneticOperator
 {
     /// Performs the crossover of the `genetic::Parents` and returns the result
     /// as a new vector of `genetic::Genotype` - the `genetic::Children`.
-    fn crossover(&self, parents: Parents<G>) -> Result<Children<G>, SimError>;
+    fn crossover<R>(&self, parents: Parents<G>, rng: &mut R)
+        -> Result<Children<G>, SimError>
+        where R: Rng;
 }
 
 /// A `MutationOp` defines a function of how a `genetic::Genotype` mutates. It
@@ -75,7 +79,9 @@ pub trait MutationOp<G>: GeneticOperator
     where G: Genotype
 {
     /// Mutates the given 'Genotype' and returns it as a new 'Genotype'.
-    fn mutate(&self, genome: G) -> Result<G, SimError>;
+    fn mutate<R>(&self, genome: G, rng: &mut R)
+        -> Result<G, SimError>
+        where R: Rng;
 }
 
 /// A `ReinsertionOp` defines a function that combines the offspring with the
@@ -108,6 +114,7 @@ pub trait ReinsertionOp<G, F>: GeneticOperator
     /// population. If by the end of this function all `genetic::Genotype`s in
     /// offspring have been moved to the resulting population the offspring
     /// vector should be left empty.
-    fn combine(&self, offspring: &mut Offspring<G>, population: &EvaluatedPopulation<G, F>)
-        -> Result<Vec<G>, SimError>;
+    fn combine<R>(&self, offspring: &mut Offspring<G>, population: &EvaluatedPopulation<G, F>, rng: &mut R)
+        -> Result<Vec<G>, SimError>
+        where R: Rng;
 }

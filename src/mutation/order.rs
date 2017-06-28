@@ -4,7 +4,7 @@
 use operator::{GeneticOperator, MutationOp};
 use simulation::SimError;
 use random::random_cut_points;
-use rand::{Rng, thread_rng};
+use rand::Rng;
 use std::fmt::Debug;
 
 
@@ -38,13 +38,14 @@ impl GeneticOperator for OrderInsertMutation {
 impl<V> MutationOp<Vec<V>> for OrderInsertMutation
     where V: Clone + Debug + PartialEq {
 
-    fn mutate(&self, genome: Vec<V>) -> Result<Vec<V>, SimError> {
-        let mut rng = thread_rng();
+    fn mutate<R>(&self, genome: Vec<V>, rng: &mut R)
+        -> Result<Vec<V>, SimError>
+        where R: Rng + Sized {
         let genome_length = genome.len();
         let num_mutations = ((genome_length as f64 * self.mutation_rate) + rng.next_f64()).floor() as usize;
         let mut mutated = genome;
         for _ in 0..num_mutations {
-            let (locus1, locus2) = random_cut_points(&mut rng, genome_length);
+            let (locus1, locus2) = random_cut_points(rng, genome_length);
             let value2 = mutated.remove(locus2);
             mutated.insert(locus1 + 1, value2);
         }
@@ -82,13 +83,14 @@ impl GeneticOperator for OrderSwapMutation {
 impl<V> MutationOp<Vec<V>> for OrderSwapMutation
     where V: Clone + Debug + PartialEq {
 
-    fn mutate(&self, genome: Vec<V>) -> Result<Vec<V>, SimError> {
-        let mut rng = thread_rng();
+    fn mutate<R>(&self, genome: Vec<V>, rng: &mut R)
+        -> Result<Vec<V>, SimError>
+        where R: Rng + Sized {
         let genome_length = genome.len();
         let num_mutations = ((genome_length as f64 * self.mutation_rate) + rng.next_f64()).floor() as usize;
         let mut mutated = genome;
         for _ in 0..num_mutations {
-            let (locus1, locus2) = random_cut_points(&mut rng, genome_length);
+            let (locus1, locus2) = random_cut_points(rng, genome_length);
             mutated.swap(locus1, locus2);
         }
         Ok(mutated)
