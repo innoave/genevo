@@ -2,7 +2,8 @@
 //! simulation when a certain limit is reached.
 //!
 //! Provided limiters are:
-//!
+//! * `FitnessLimit` - stops the simulation after a solution with a certain
+//!   fitness has been found.
 //! * `GenerationLimit` - stops the simulation after a maximum number of
 //!   generations has been processed.
 //! * `TimeLimit` - stops the simulation after a the specified time limit
@@ -13,6 +14,42 @@ use genetic::{Fitness, Genotype};
 use simulation::State;
 use termination::{StopFlag, Termination};
 use std::marker::PhantomData;
+
+
+/// The `FitnessLimit` condition stops the simulation after a solution with
+/// a certain fitness has been found.
+#[derive(Clone)]
+pub struct FitnessLimit<F>
+    where F: Fitness
+{
+    /// The fitness value that shall be reached to stop simulation.
+    fitness_target: F,
+}
+
+impl<F> FitnessLimit<F>
+    where F: Fitness
+{
+    /// Create a new instance of `FitnessLimit` with the specified limit
+    /// of generations.
+    pub fn new(fitness_target: F) -> Self {
+        FitnessLimit {
+            fitness_target: fitness_target,
+        }
+    }
+}
+
+impl<G, F> Termination<G, F> for FitnessLimit<F>
+    where G: Genotype, F: Fitness
+{
+    fn evaluate(&mut self, state: &State<G, F>) -> StopFlag {
+        if state.highest_fitness >= self.fitness_target {
+            StopFlag::StopNow(format!("Simulation stopped after a solution with a fitness of {:?} \
+                has been found.", &state.highest_fitness))
+        } else {
+            StopFlag::Continue
+        }
+    }
+}
 
 /// The `GenerationLimit` condition stops the simulation after a maximum
 /// number of generations has been processed.
@@ -46,7 +83,7 @@ impl<G, F> Termination<G, F> for GenerationLimit<G, F>
 {
     fn evaluate(&mut self, state: &State<G, F>) -> StopFlag {
         if state.generation >= self.max_generations {
-            StopFlag::StopNow(format!("Simulation stopped after the limit of {} generation have \
+            StopFlag::StopNow(format!("Simulation stopped after the limit of {} generations have \
                 been processed.", &state.generation))
         } else {
             StopFlag::Continue

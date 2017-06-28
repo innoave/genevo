@@ -2,7 +2,7 @@
 //! of various mutation schemes for binary encoded, value encoded, permutation
 //! encoded and tree encoded `genetic::Genotype`s.
 
-pub mod discrete;
+pub mod value;
 
 pub mod order;
 

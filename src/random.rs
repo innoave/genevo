@@ -38,6 +38,47 @@ pub fn random_cut_points_from_range<R>(rng: &mut R, min: usize, max: usize) -> (
     }
 }
 
+pub fn random_n_cut_points<R>(rng: &mut R, n: usize, length: usize) -> Vec<usize>
+    where R: Rng + Sized {
+    assert!(n > 0);
+    assert!(length >= 2 * n);
+    let mut cutpoints = Vec::with_capacity(n);
+    match n {
+        1 => {
+            cutpoints.push(random_index(rng, length));
+        },
+        2 => {
+            let (cp1, cp2) = random_cut_points(rng, length);
+            cutpoints.push(cp1);
+            cutpoints.push(cp2);
+        },
+        _ => {
+            let slice_len = length / n;
+            let mut start = 0;
+            let mut end = slice_len;
+            let mut count = 1;
+            loop {
+                let cutpoint = random_index_from_range(rng, start, end);
+                if cutpoint == 0 || cutpoint == length {
+                    continue;
+                }
+                cutpoints.push(cutpoint);
+                count += 1;
+                if count > n {
+                    break;
+                }
+                start = cutpoint;
+                if count == n {
+                    end = length;
+                } else {
+                    end += slice_len;
+                }
+            }
+        },
+    }
+    cutpoints
+}
+
 pub fn random_probability<R>(rng: &mut R) -> f64
     where R: Rng + Sized {
     rng.next_f64()

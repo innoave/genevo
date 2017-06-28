@@ -34,8 +34,9 @@ use simulation::{EvaluatedPopulation, SimError};
 /// as well as multi-objective fitness values.
 #[derive(Clone)]
 pub struct TournamentSelector {
-    /// The number of parents to select.
-    num_parents_to_select: usize,
+    /// The fraction of number of parents to select in relation to the
+    /// number of individuals in the population.
+    selection_ratio: f64,
     /// The number of individuals per parents.
     num_individuals_per_parents: usize,
     /// The number of participants on each tournament.
@@ -50,14 +51,14 @@ pub struct TournamentSelector {
 
 impl TournamentSelector {
     /// Constructs a new instance of the `TournamentSelector`.
-    pub fn new(num_parents_to_select: usize,
+    pub fn new(selection_ratio: f64,
                num_individuals_per_parents: usize,
                tournament_size: usize,
                probability: f64,
                remove_selected_individuals: bool
     ) -> Self {
         TournamentSelector {
-            num_parents_to_select: num_parents_to_select,
+            selection_ratio: selection_ratio,
             num_individuals_per_parents: num_individuals_per_parents,
             tournament_size: tournament_size,
             probability: probability,
@@ -65,16 +66,22 @@ impl TournamentSelector {
         }
     }
 
-    /// Returns the number of parents that are selected on every call of the
-    /// `selection` function.
-    pub fn num_parents_to_select(&self) -> usize {
-        self.num_parents_to_select
+    /// Returns the selection ratio.
+    ///
+    /// The selection ratio is the fraction of number of parents that are
+    /// selected on every call of the `select_from` function and the number
+    /// of individuals in the population.
+    pub fn selection_ratio(&self) -> f64 {
+        self.selection_ratio
     }
 
-    /// Sets the number of parents that are selected on every call of the
-    /// `selection` function to a new value.
-    pub fn set_num_parents_to_select(&mut self, value: usize) {
-        self.num_parents_to_select = value;
+    /// Sets the selection ratio to a new value.
+    ///
+    /// The selection ratio is the fraction of number of parents that are
+    /// selected on every call of the `select_from` function and the number
+    /// of individuals in the population.
+    pub fn set_selection_ratio(&mut self, value: f64) {
+        self.selection_ratio = value;
     }
 
     /// Returns the number of individuals per parents use by this selector.
@@ -150,7 +157,8 @@ impl<G, F> SelectionOp<G, F> for TournamentSelector
         // mating pool holds indices to the individuals and fitness_values slices
         let mut mating_pool: Vec<usize> = (0..fitness_values.len()).collect();
 
-        let target_num_candidates = self.num_parents_to_select * self.num_individuals_per_parents;
+        let num_parents_to_select = (individuals.len() as f64 * self.selection_ratio + 0.5).floor() as usize;
+        let target_num_candidates = num_parents_to_select * self.num_individuals_per_parents;
 
         // select candidates for parents
         let mut picked_candidates = Vec::with_capacity(target_num_candidates);
@@ -191,7 +199,7 @@ impl<G, F> SelectionOp<G, F> for TournamentSelector
             }
         }
         // convert selected candidate indices to parents of individuals
-        let mut selected: Vec<Parents<G>> = Vec::with_capacity(self.num_parents_to_select);
+        let mut selected: Vec<Parents<G>> = Vec::with_capacity(num_parents_to_select);
         while !picked_candidates.is_empty() {
             let mut tuple = Vec::with_capacity(self.num_individuals_per_parents);
             for _ in 0..self.num_individuals_per_parents {

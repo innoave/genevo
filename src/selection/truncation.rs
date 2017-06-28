@@ -20,7 +20,7 @@ pub struct MaximizeSelector {
     /// The truncation threshold is the ratio between the number of parents
     /// to be selected and the size of the population:
     /// threshold = number of parents / size of population
-    truncation_threshold: f64,
+    selection_ratio: f64,
     /// The number of individuals per parents.
     num_individuals_per_parents: usize,
     // phantom types
@@ -28,29 +28,29 @@ pub struct MaximizeSelector {
 
 impl MaximizeSelector {
     /// Constructs a new instance of the `MaximizeSelector`.
-    pub fn new(truncation_threshold: f64, num_individuals_per_parents: usize) -> Self {
+    pub fn new(selection_ratio: f64, num_individuals_per_parents: usize) -> Self {
         MaximizeSelector {
-            truncation_threshold: truncation_threshold,
+            selection_ratio: selection_ratio,
             num_individuals_per_parents: num_individuals_per_parents,
         }
     }
 
-    /// Returns the truncation threshold used by this `MaximizeSelector`.
+    /// Returns the selection ratio.
     ///
-    /// The truncation threshold is the ratio between the number of parents
-    /// to be selected and the size of the population:
-    /// threshold = number of parents / size of population
-    pub fn truncation_threshold(&self) -> f64 {
-        self.truncation_threshold
+    /// The selection ratio is the fraction of number of parents that are
+    /// selected on every call of the `selection` function and the number
+    /// of individuals in the population.
+    pub fn selection_ratio(&self) -> f64 {
+        self.selection_ratio
     }
 
-    /// Sets the truncation threshold to the given value.
+    /// Sets the selection ratio to a new value.
     ///
-    /// The truncation threshold is the ratio between the number of parents
-    /// to be selected and the size of the population:
-    /// threshold = number of parents / size of population
-    pub fn set_truncation_threshold(&mut self, value: f64) {
-        self.truncation_threshold = value;
+    /// The selection ratio is the fraction of number of parents that are
+    /// selected on every call of the `selection` function and the number
+    /// of individuals in the population.
+    pub fn set_selection_ratio(&mut self, value: f64) {
+        self.selection_ratio = value;
     }
 
     /// Returns the number of individuals per parents use by this selector.
@@ -88,7 +88,7 @@ impl<G, F> SelectionOp<G, F> for MaximizeSelector
         mating_pool.sort_by(|x, y| fitness_values[*y].cmp(&fitness_values[*x]));
         let mating_pool = mating_pool;
 
-        let num_parents_to_select = (individuals.len() as f64 * self.truncation_threshold).floor() as usize;
+        let num_parents_to_select = (individuals.len() as f64 * self.selection_ratio + 0.5).floor() as usize;
         let pool_size = mating_pool.len();
         let mut selected: Vec<Parents<G>> = Vec::with_capacity(num_parents_to_select);
 

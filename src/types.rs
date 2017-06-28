@@ -17,7 +17,7 @@
 //! * `usize`
 
 use chrono::Duration;
-use genetic::{Fitness, ToScalar};
+use genetic::{Fitness, AsScalar};
 
 macro_rules! implement_fitness_for_signed_integer {
     ( $($t:ty),* ) => {
@@ -33,9 +33,9 @@ macro_rules! implement_fitness_for_signed_integer {
                 }
             }
 
-            impl ToScalar for $t {
+            impl AsScalar for $t {
                 #[inline]
-                fn to_scalar(&self) -> f64 {
+                fn as_scalar(&self) -> f64 {
                     *self as f64
                 }
             }
@@ -63,9 +63,9 @@ macro_rules! implement_fitness_for_unsigned_integer {
                 }
             }
 
-            impl ToScalar for $t {
+            impl AsScalar for $t {
                 #[inline]
-                fn to_scalar(&self) -> f64 {
+                fn as_scalar(&self) -> f64 {
                     *self as f64
                 }
             }

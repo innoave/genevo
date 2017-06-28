@@ -86,8 +86,10 @@ impl<G, F> ReinsertionOp<G, F> for UniformReinserter
             }
         } else {
             // insert all individuals from offspring
-            for i in 0..offspring.len() {
+            let mut i = 0;
+            while i < offspring.len() {
                 new_population.push(offspring.remove(i));
+                i += 1;
             }
         }
         // finally fill up new population with individuals from old population

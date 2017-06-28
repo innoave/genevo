@@ -371,12 +371,12 @@ impl<G, F, E, S, C, M, R, Q> Simulator<G, F, E, S, C, M, R, Q>
                          ) -> State<G, F> {
         let curr_generation = self.generation;
         let curr_p = mem::replace(&mut self.population, Rc::new(next_population));
-        let curr_p = Rc::try_unwrap(curr_p).expect("Can not unwrap Rc(Vec<G>)");
+//        let curr_p = Rc::try_unwrap(curr_p).expect("Can not unwrap Rc(Vec<G>)");
         self.generation += 1;
         State {
             started_at: self.started_at.clone(),
             generation: curr_generation,
-            population: curr_p,
+            population: curr_p.to_vec(),
             fitness_values: score_board.fitness_values,
             duration: loop_time,
             processing_time: processing_time,

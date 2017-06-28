@@ -124,7 +124,7 @@ pub type Offspring<G> = Vec<G>;
 /// For multi-objective `Fitness` values either `operator::GeneticOperator`s
 /// suitable for multi-objective optimization are used or the implementation
 /// of the multi-objective `Fitness` value additionally implements the
-/// `ToScalar` trait. Using single-objective optimization for multi-objective
+/// `AsScalar` trait. Using single-objective optimization for multi-objective
 /// problems has some drawbacks though.
 pub trait Fitness: PartialEq + Eq + Ord + Clone + Debug + Sized {
     /// Returns the zero value of this `Fitness` value.
@@ -139,15 +139,15 @@ pub trait Fitness: PartialEq + Eq + Ord + Clone + Debug + Sized {
 /// In order to be able to use `operator::GeneticOperator`s designed for
 /// single-objective optimization to be used for multi-objective `Fitness`
 /// values the struct implementing the `Fitness` trait must also implement
-/// this `ToScalar` trait.
+/// this `AsScalar` trait.
 ///
 /// The implementation will use a scalarization method to convert a
 /// multi-objective `Fitness` value into a scalar representation. A well-known
 /// method is calculating the weighted sum: F = Sum(W * f).
-pub trait ToScalar {
+pub trait AsScalar {
 
     /// Returns a float value that represents this type in scalar form.
-    fn to_scalar(&self) -> f64;
+    fn as_scalar(&self) -> f64;
 
 }
 

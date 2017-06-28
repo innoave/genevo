@@ -14,7 +14,7 @@
 //! * `RouletteWheelSelector` - no bias - does not guarantee minimal spread.
 //! * `UniversalSamplingSelector` - no bias - minimal spread.
 
-use genetic::{Fitness, Genotype, Parents, ToScalar};
+use genetic::{Fitness, Genotype, Parents, AsScalar};
 use math::WeightedDistribution;
 use operator::{GeneticOperator, SelectionOp, SingleObjective};
 use random::random_probability;
@@ -29,31 +29,38 @@ use simulation::{EvaluatedPopulation, SimError};
 /// Characteristics: no bias, does not guarantee minimal spread.
 #[derive(Clone)]
 pub struct RouletteWheelSelector {
-    /// The number of parents to select.
-    num_parents_to_select: usize,
+    /// The fraction of number of parents to select in relation to the
+    /// number of individuals in the population.
+    selection_ratio: f64,
     /// The number of individuals per parents.
     num_individuals_per_parents: usize,
 }
 
 impl RouletteWheelSelector {
     /// Constructs a new instance of `RouletteWheelSelector`.
-    pub fn new(num_parents_to_select: usize, num_individuals_per_parents: usize) -> Self {
+    pub fn new(selection_ratio: f64, num_individuals_per_parents: usize) -> Self {
         RouletteWheelSelector {
-            num_parents_to_select: num_parents_to_select,
+            selection_ratio: selection_ratio,
             num_individuals_per_parents: num_individuals_per_parents,
         }
     }
 
-    /// Returns the number of parents that are selected on every call of the
-    /// `selection` function.
-    pub fn num_parents_to_select(&self) -> usize {
-        self.num_parents_to_select
+    /// Returns the selection ratio.
+    ///
+    /// The selection ratio is the fraction of number of parents that are
+    /// selected on every call of the `select_from` function and the number
+    /// of individuals in the population.
+    pub fn selection_ratio(&self) -> f64 {
+        self.selection_ratio
     }
 
-    /// Sets the number of parents that are selected on every call of the
-    /// `selection` function to a new value.
-    pub fn set_num_parents_to_select(&mut self, value: usize) {
-        self.num_parents_to_select = value;
+    /// Sets the selection ratio to a new value.
+    ///
+    /// The selection ratio is the fraction of number of parents that are
+    /// selected on every call of the `select_from` function and the number
+    /// of individuals in the population.
+    pub fn set_selection_ratio(&mut self, value: f64) {
+        self.selection_ratio = value;
     }
 
     /// Returns the number of individuals per parents use by this selector.
@@ -76,18 +83,20 @@ impl GeneticOperator for RouletteWheelSelector {
 }
 
 impl<G, F> SelectionOp<G, F> for RouletteWheelSelector
-    where G: Genotype, F: Fitness + ToScalar
+    where G: Genotype, F: Fitness + AsScalar
 {
     fn select_from(&self, evaluated: &EvaluatedPopulation<G, F>) -> Result<Vec<Parents<G>>, SimError> {
-        let mut parents = Vec::with_capacity(self.num_parents_to_select);
+        let individuals = evaluated.individuals();
+        let num_parents_to_select = (individuals.len() as f64 * self.selection_ratio + 0.5).floor() as usize;
+        let mut parents = Vec::with_capacity(num_parents_to_select);
         let weighted_distribution = WeightedDistribution::from_scalar_values(evaluated.fitness_values());
         let mut rng = thread_rng();
-        for _ in 0..self.num_parents_to_select {
+        for _ in 0..num_parents_to_select {
             let mut tuple = Vec::with_capacity(self.num_individuals_per_parents);
             for _ in 0..self.num_individuals_per_parents {
                 let random = random_probability(&mut rng) * weighted_distribution.sum();
                 let selected = weighted_distribution.select(random);
-                tuple.push(evaluated.individuals()[selected].clone());
+                tuple.push(individuals[selected].clone());
             }
             parents.push(tuple);
         }
@@ -102,31 +111,38 @@ impl<G, F> SelectionOp<G, F> for RouletteWheelSelector
 /// Characteristics: no bias, minimal spread.
 #[derive(Clone)]
 pub struct UniversalSamplingSelector {
-    /// The number of parents to select.
-    num_parents_to_select: usize,
+    /// The fraction of number of parents to select in relation to the
+    /// number of individuals in the population.
+    selection_ratio: f64,
     /// The number of individuals per parents.
     num_individuals_per_parents: usize,
 }
 
 impl UniversalSamplingSelector {
     /// Constructs a new instance of `UniversalSamplingSelector`.
-    pub fn new(num_parents_to_select: usize, num_individuals_per_parents: usize) -> Self {
+    pub fn new(selection_ratio: f64, num_individuals_per_parents: usize) -> Self {
         UniversalSamplingSelector {
-            num_parents_to_select: num_parents_to_select,
+            selection_ratio: selection_ratio,
             num_individuals_per_parents: num_individuals_per_parents,
         }
     }
 
-    /// Returns the number of parents that are selected on every call of the
-    /// `selection` function.
-    pub fn num_parents_to_select(&self) -> usize {
-        self.num_parents_to_select
+    /// Returns the selection ratio.
+    ///
+    /// The selection ratio is the fraction of number of parents that are
+    /// selected on every call of the `select_from` function and the number
+    /// of individuals in the population.
+    pub fn selection_ratio(&self) -> f64 {
+        self.selection_ratio
     }
 
-    /// Sets the number of parents that are selected on every call of the
-    /// `selection` function to a new value.
-    pub fn set_num_parents_to_select(&mut self, value: usize) {
-        self.num_parents_to_select = value;
+    /// Sets the selection ratio to a new value.
+    ///
+    /// The selection ratio is the fraction of number of parents that are
+    /// selected on every call of the `select_from` function and the number
+    /// of individuals in the population.
+    pub fn set_selection_ratio(&mut self, value: f64) {
+        self.selection_ratio = value;
     }
 
     /// Returns the number of individuals per parents use by this selector.
@@ -149,19 +165,21 @@ impl GeneticOperator for UniversalSamplingSelector {
 }
 
 impl<G, F> SelectionOp<G, F> for UniversalSamplingSelector
-    where G: Genotype, F: Fitness + ToScalar
+    where G: Genotype, F: Fitness + AsScalar
 {
     fn select_from(&self, evaluated: &EvaluatedPopulation<G, F>) -> Result<Vec<Parents<G>>, SimError> {
-        let mut parents = Vec::with_capacity(self.num_parents_to_select);
+        let individuals = evaluated.individuals();
+        let num_parents_to_select = (individuals.len() as f64 * self.selection_ratio + 0.5).floor() as usize;
+        let mut parents = Vec::with_capacity(num_parents_to_select);
         let weighted_distribution = WeightedDistribution::from_scalar_values(evaluated.fitness_values());
-        let distance = weighted_distribution.sum() / (self.num_parents_to_select * self.num_individuals_per_parents) as f64;
+        let distance = weighted_distribution.sum() / (num_parents_to_select * self.num_individuals_per_parents) as f64;
         let mut rng = thread_rng();
         let mut pointer = random_probability(&mut rng) * weighted_distribution.sum();
-        for _ in 0..self.num_parents_to_select {
+        for _ in 0..num_parents_to_select {
             let mut tuple = Vec::with_capacity(self.num_individuals_per_parents);
             for _ in 0..self.num_individuals_per_parents {
                 let selected = weighted_distribution.select(pointer);
-                tuple.push(evaluated.individuals()[selected].clone());
+                tuple.push(individuals[selected].clone());
                 pointer += distance;
             }
             parents.push(tuple);

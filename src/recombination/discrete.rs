@@ -11,6 +11,7 @@ use genetic::{Children, Parents};
 use operator::{CrossoverOp, GeneticOperator};
 use simulation::SimError;
 use fixedbitset::FixedBitSet;
+use random::random_n_cut_points;
 use rand::{Rng, thread_rng};
 use std::fmt::Debug;
 
@@ -98,6 +99,73 @@ impl<V> CrossoverOp<Vec<V>> for DiscreteCrossover
                 let random = rng.gen_range(0, parents_size);
                 let value = parents[random][locus].clone();
                 genome.push(value);
+            }
+            offspring.push(genome);
+        }
+        Ok(offspring)
+    }
+}
+
+
+#[derive(Clone)]
+pub struct MultiPointCrossover {
+    num_points: usize,
+}
+
+impl MultiPointCrossover {
+    pub fn new(num_points: usize) -> Self {
+        MultiPointCrossover {
+            num_points: num_points,
+        }
+    }
+
+    pub fn num_points(&self) -> usize {
+        self.num_points
+    }
+
+    pub fn set_num_points(&mut self, value: usize) {
+        self.num_points = value;
+    }
+}
+
+impl GeneticOperator for MultiPointCrossover {
+    fn name() -> String {
+        "Multi-Point-Crossover".to_string()
+    }
+}
+
+impl<V> CrossoverOp<Vec<V>> for MultiPointCrossover
+    where V: Clone + Debug + PartialEq
+{
+    fn crossover(&self, parents: &Parents<Vec<V>>) -> Result<Children<Vec<V>>, SimError> {
+        let mut rng = thread_rng();
+        let genome_length = parents[0].len();
+        let parents_size = parents.len();
+        // breed one child for each parent in parents
+        let mut offspring: Vec<Vec<V>> = Vec::with_capacity(parents_size);
+        while parents_size > offspring.len() {
+            let mut genome = Vec::with_capacity(genome_length);
+            let mut cutpoints = random_n_cut_points(&mut rng, self.num_points, genome_length);
+            cutpoints.push(genome_length);
+            let mut start = 0;
+            let mut end = cutpoints.remove(0);
+            let mut p_index = parents_size;
+            loop {
+                loop {
+                    let index = rng.gen_range(0, parents_size);
+                    if index != p_index {
+                        p_index = index;
+                        break;
+                    }
+                };
+                for i in start..end {
+                    genome.push(parents[p_index][i].clone())
+                }
+                if cutpoints.is_empty() {
+                    break;
+                }
+                start = end;
+                end = cutpoints.remove(0);
             }
             offspring.push(genome);
         }
