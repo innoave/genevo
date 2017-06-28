@@ -19,9 +19,9 @@ const POPULATION_SIZE: usize = 200;
 const GENERATION_LIMIT: u64 = 2000;
 const NUM_INDIVIDUALS_PER_PARENTS: usize = 4;
 const SELECTION_RATIO: f64 = 1.0;
-const NUM_CUT_POINTS: usize = 16;
-const MUTATION_RATE: f64 = 0.01;
-const REINSERTION_RATIO: f64 = 0.9;
+const NUM_CROSSOVER_POINTS: usize = 6;
+const MUTATION_RATE: f64 = 0.05;
+const REINSERTION_RATIO: f64 = 0.7;
 
 
 /// The phenotype
@@ -95,7 +95,7 @@ fn main() {
     let mut monkeys_sim = ga::Simulator::builder(
         FitnessCalc {},
         MaximizeSelector::new(SELECTION_RATIO, NUM_INDIVIDUALS_PER_PARENTS),
-        MultiPointCrossover::new(NUM_CUT_POINTS),
+        MultiPointCrossover::new(NUM_CROSSOVER_POINTS),
         ScalarVectorMutation::new(MUTATION_RATE, 16u8, 4u8, 32u8, 126u8),
         ElitistReinserter::new(FitnessCalc{}, true, REINSERTION_RATIO),
         or(FitnessLimit::new(FitnessCalc{}.highest_possible_fitness()),
