@@ -68,7 +68,7 @@ pub fn random_n_cut_points<R>(rng: &mut R, n: usize, length: usize) -> Vec<usize
                 if count > n {
                     break;
                 }
-                start = cutpoint;
+                start = cutpoint + 1;
                 if count == n {
                     end = length;
                 } else {
@@ -147,20 +147,9 @@ fn weighted_select(pointer: f64, weights: &[f64]) -> usize {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use hamcrest::prelude::*;
     use quickcheck::TestResult;
-    use rand::thread_rng;
-
-    #[test]
-    #[should_panic(expected = "assertion failed: max >= min + 4")]
-    fn random_cut_points_from_range_0_to_3() {
-        random_cut_points_from_range(&mut thread_rng(), 0, 3);
-    }
-
-    #[test]
-    #[should_panic(expected = "assertion failed: max >= min + 4")]
-    fn random_cut_points_from_range_4_to_4() {
-        random_cut_points_from_range(&mut thread_rng(), 4, 4);
-    }
+    use rand::{SeedableRng, StdRng, thread_rng};
 
     quickcheck! {
 
@@ -216,6 +205,49 @@ mod tests {
             }
         }
 
+        fn in_random_n_cut_points_cutpoints_are_ordered_ascending(
+            n: usize, length: usize) -> TestResult {
+            if n == 0 { return TestResult::discard() }
+            if length < 2 * n { return TestResult::discard() }
+
+            let cutpoints = random_n_cut_points(&mut thread_rng(), n, length);
+
+            for i in 0..cutpoints.len() - 1 {
+                if cutpoints[i] == cutpoints[i + 1] {
+                    return TestResult::error(format!("cut points: {}:{}, {}:{} are identical",
+                                                     i, cutpoints[i], i + 1, cutpoints[i + 1]));
+                }
+                if cutpoints[i] > cutpoints[i + 1] {
+                    return TestResult::error(format!("cut points: {}:{}, {}:{} are not in ascending order",
+                                                     i, cutpoints[i], i + 1, cutpoints[i + 1]));
+                }
+            }
+            TestResult::passed()
+        }
+    }
+
+    #[test]
+    #[should_panic(expected = "assertion failed: max >= min + 4")]
+    fn random_cut_points_from_range_0_to_3() {
+        random_cut_points_from_range(&mut thread_rng(), 0, 3);
+    }
+
+    #[test]
+    #[should_panic(expected = "assertion failed: max >= min + 4")]
+    fn random_cut_points_from_range_4_to_4() {
+        random_cut_points_from_range(&mut thread_rng(), 4, 4);
+    }
+
+    #[test]
+    #[should_panic(expected = "assertion failed: n > 0")]
+    fn random_n_cut_points_0_4() {
+        random_n_cut_points(&mut thread_rng(), 0, 4);
+    }
+
+    #[test]
+    #[should_panic(expected = "assertion failed: length >= 2 * n")]
+    fn random_n_cut_points_3_4() {
+        random_n_cut_points(&mut thread_rng(), 3, 4);
     }
 
     #[test]
