@@ -2,7 +2,7 @@ extern crate genevo;
 extern crate rand;
 
 use genevo::genetic::{FitnessEvaluation, PopulationGenerator};
-use genevo::mutation::value::ScalarVectorMutation;
+use genevo::mutation::value::RandomValueMutator;
 use genevo::recombination::discrete::MultiPointCrossover;
 use genevo::reinsertion::elitist::ElitistReinserter;
 use genevo::selection::truncation::MaximizeSelector;
@@ -17,7 +17,7 @@ use rand::{Rng, thread_rng};
 const TARGET_TEXT: &str = "See how a genius creates a legend";
 const POPULATION_SIZE: usize = 200;
 const GENERATION_LIMIT: u64 = 2000;
-const NUM_INDIVIDUALS_PER_PARENTS: usize = 4;
+const NUM_INDIVIDUALS_PER_PARENTS: usize = 2;
 const SELECTION_RATIO: f64 = 1.0;
 const NUM_CROSSOVER_POINTS: usize = 6;
 const MUTATION_RATE: f64 = 0.05;
@@ -51,16 +51,11 @@ impl FitnessEvaluation<TextGenome, usize> for FitnessCalc {
         for (c, t) in genome.iter().zip(TARGET_TEXT.chars()) {
             let c = *c as char;
             if c == t {
-                score += 100;
-            } else {
-                let target = TARGET_TEXT.chars().filter(|l| c == *l).collect::<Vec<_>>().len();
-                let source = genome.iter().filter(|&l| c == *l as char).collect::<Vec<_>>().len();
-                if source == target {
-                    score += 1;
-                }
+                score += 1;
             }
         }
-        score
+        let fraction = score as f32 / TARGET_TEXT.len() as f32;
+        (fraction * fraction * 100. + 0.5).floor() as usize
     }
 
     fn average(&self, fitness_values: &[usize]) -> usize {
@@ -68,7 +63,7 @@ impl FitnessEvaluation<TextGenome, usize> for FitnessCalc {
     }
 
     fn highest_possible_fitness(&self) -> usize {
-        TARGET_TEXT.len() * 100
+        100
     }
 
     fn lowest_possible_fitness(&self) -> usize {
@@ -96,7 +91,7 @@ fn main() {
         FitnessCalc {},
         MaximizeSelector::new(SELECTION_RATIO, NUM_INDIVIDUALS_PER_PARENTS),
         MultiPointCrossover::new(NUM_CROSSOVER_POINTS),
-        ScalarVectorMutation::new(MUTATION_RATE, 16u8, 4u8, 32u8, 126u8),
+        RandomValueMutator::new(MUTATION_RATE, 32u8, 126u8),
         ElitistReinserter::new(FitnessCalc{}, true, REINSERTION_RATIO),
         or(FitnessLimit::new(FitnessCalc{}.highest_possible_fitness()),
            GenerationLimit::new(GENERATION_LIMIT))

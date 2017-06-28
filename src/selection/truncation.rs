@@ -79,6 +79,7 @@ impl GeneticOperator for MaximizeSelector {
 impl<G, F> SelectionOp<G, F> for MaximizeSelector
     where G: Genotype, F: Fitness
 {
+    #[allow(unused_variables)]
     fn select_from<R>(&self, evaluated: &EvaluatedPopulation<G, F>, rng: &mut R)
         -> Result<Vec<Parents<G>>, SimError>
         where R: Rng + Sized {

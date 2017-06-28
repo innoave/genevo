@@ -9,13 +9,13 @@ use std::fmt::Debug;
 
 
 #[derive(Clone)]
-pub struct OrderInsertMutation {
+pub struct InsertOrderMutator {
     mutation_rate: f64,
 }
 
-impl OrderInsertMutation {
+impl InsertOrderMutator {
     pub fn new(mutation_rate: f64) -> Self {
-        OrderInsertMutation {
+        InsertOrderMutator {
             mutation_rate: mutation_rate,
         }
     }
@@ -29,13 +29,13 @@ impl OrderInsertMutation {
     }
 }
 
-impl GeneticOperator for OrderInsertMutation {
+impl GeneticOperator for InsertOrderMutator {
     fn name() -> String {
         "Order-Insert-Mutation".to_string()
     }
 }
 
-impl<V> MutationOp<Vec<V>> for OrderInsertMutation
+impl<V> MutationOp<Vec<V>> for InsertOrderMutator
     where V: Clone + Debug + PartialEq {
 
     fn mutate<R>(&self, genome: Vec<V>, rng: &mut R)
@@ -54,13 +54,13 @@ impl<V> MutationOp<Vec<V>> for OrderInsertMutation
 }
 
 #[derive(Clone)]
-pub struct OrderSwapMutation {
+pub struct SwapOrderMutator {
     mutation_rate: f64,
 }
 
-impl OrderSwapMutation {
+impl SwapOrderMutator {
     pub fn new(mutation_rate: f64) -> Self {
-        OrderSwapMutation {
+        SwapOrderMutator {
             mutation_rate: mutation_rate,
         }
     }
@@ -74,13 +74,13 @@ impl OrderSwapMutation {
     }
 }
 
-impl GeneticOperator for OrderSwapMutation {
+impl GeneticOperator for SwapOrderMutator {
     fn name() -> String {
         "Order-Swap-Mutation".to_string()
     }
 }
 
-impl<V> MutationOp<Vec<V>> for OrderSwapMutation
+impl<V> MutationOp<Vec<V>> for SwapOrderMutator
     where V: Clone + Debug + PartialEq {
 
     fn mutate<R>(&self, genome: Vec<V>, rng: &mut R)
