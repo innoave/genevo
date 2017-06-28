@@ -112,7 +112,7 @@ impl<G, F, E> ReinsertionOp<G, F> for ElitistReinserter<G, F, E>
         let mut new_population: Vec<G> = Vec::with_capacity(population_size);
 
         // How many individuals should we take from the offspring?
-        let num_offspring = (population_size as f64 / self.replace_ratio).ceil() as usize;
+        let num_offspring = (population_size as f64 * self.replace_ratio + 0.5).floor() as usize;
 
         if self.offspring_has_precedence {
             // first pick individuals from offspring
@@ -130,8 +130,8 @@ impl<G, F, E> ReinsertionOp<G, F> for ElitistReinserter<G, F, E>
                 }
             } else {
                 // insert all individuals from offspring
-                for i in 0..offspring.len() {
-                    new_population.push(offspring.remove(i));
+                while num_offspring > new_population.len() && !offspring.is_empty() {
+                    new_population.push(offspring.remove(0));
                 }
             }
             //

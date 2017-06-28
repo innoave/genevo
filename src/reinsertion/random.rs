@@ -75,7 +75,7 @@ impl<G, F> ReinsertionOp<G, F> for UniformReinserter
         let mut new_population = Vec::with_capacity(population_size);
 
         // How many individuals should we take from the offspring?
-        let num_offspring = (population_size as f64 / self.replace_ratio).ceil() as usize;
+        let num_offspring = (population_size as f64 * self.replace_ratio + 0.5).floor() as usize;
 
         // first pick individuals from offspring
         if num_offspring < offspring.len() {

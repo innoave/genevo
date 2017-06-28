@@ -65,7 +65,7 @@ pub trait BreederMutation
             let index = random_index(rng, genome_length);
             let sign = *rng.choose(&[-1, 1]).unwrap();
             let adjustment = if *rng.choose(&[true, false]).unwrap() {
-                1. / (2i64 << precision) as f64
+                1. / (1i64 << precision) as f64
             } else {
                 1.
             };
