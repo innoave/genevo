@@ -1,9 +1,12 @@
+//! The `monkeys` example explores the idea of the
+//! [infinite monkey theorem](https://en.wikipedia.org/wiki/Infinite_monkey_theorem).
+
 extern crate genevo;
 extern crate rand;
 
 use genevo::genetic::{FitnessEvaluation, PopulationGenerator};
 use genevo::mutation::value::RandomValueMutator;
-use genevo::recombination::discrete::MultiPointCrossover;
+use genevo::recombination::discrete::MultiPointCrossbreeder;
 use genevo::reinsertion::elitist::ElitistReinserter;
 use genevo::selection::truncation::MaximizeSelector;
 use genevo::simulation::{Simulation, SimulationBuilder, SimResult};
@@ -30,11 +33,12 @@ type Text = String;
 /// The genotype
 type TextGenome = Vec<u8>;
 
-trait AsText {
+/// How do the genes of the genotype show up in the phenotype
+trait AsPhenotype {
     fn as_text(&self) -> Text;
 }
 
-impl AsText for TextGenome {
+impl AsPhenotype for TextGenome {
     fn as_text(&self) -> Text {
         format!("{}", self.iter().fold(String::new(), |s, c| s + &(*c as char).to_string()))
     }
@@ -90,7 +94,7 @@ fn main() {
     let mut monkeys_sim = ga::Simulator::builder(
         FitnessCalc {},
         MaximizeSelector::new(SELECTION_RATIO, NUM_INDIVIDUALS_PER_PARENTS),
-        MultiPointCrossover::new(NUM_CROSSOVER_POINTS),
+        MultiPointCrossbreeder::new(NUM_CROSSOVER_POINTS),
         RandomValueMutator::new(MUTATION_RATE, 32u8, 126u8),
         ElitistReinserter::new(FitnessCalc{}, true, REINSERTION_RATIO),
         or(FitnessLimit::new(FitnessCalc{}.highest_possible_fitness()),

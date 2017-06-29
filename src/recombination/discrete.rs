@@ -7,7 +7,7 @@
 //! * `UniformCrossover` for `fixedbitset::FixedBitSet`
 //! * `DiscreteCrossover` for `Vec` of any type.
 
-use genetic::{Children, Parents};
+use genetic::{Children, Genotype, Parents};
 use operator::{CrossoverOp, GeneticOperator};
 use simulation::SimError;
 use fixedbitset::FixedBitSet;
@@ -16,35 +16,35 @@ use rand::Rng;
 use std::fmt::Debug;
 
 
-/// The `UniformCrossover` operator combines binary encoded `genetic::Genotype`s
+/// The `UniformCrossBreeder` operator combines binary encoded `genetic::Genotype`s
 /// by walking through the bits of the parents one by one and randomly selecting
-/// the bit of one parent that is copied to the resulting child.
+/// the bit of one partner that is copied to the resulting child.
 ///
 /// This crossover operator always creates as many child individuals as there
 /// are individuals in the given `genetic::Parents` parameter.
 #[derive(Clone)]
-pub struct UniformCrossover {}
+pub struct UniformCrossBreeder {}
 
-impl UniformCrossover {
+impl UniformCrossBreeder {
     pub fn new() -> Self {
-        UniformCrossover {}
+        UniformCrossBreeder {}
     }
 }
 
-impl GeneticOperator for UniformCrossover {
+impl GeneticOperator for UniformCrossBreeder {
     fn name() -> String {
         "Uniform-Crossover".to_string()
     }
 }
 
-impl CrossoverOp<FixedBitSet> for UniformCrossover {
+impl CrossoverOp<FixedBitSet> for UniformCrossBreeder {
 
     fn crossover<R>(&self, parents: Parents<FixedBitSet>, rng: &mut R)
         -> Result<Children<FixedBitSet>, SimError>
         where R: Rng + Sized {
         let genome_length = parents[0].len();
         let parents_size = parents.len();
-        // breed one child for each parent in parents
+        // breed one child for each partner in parents
         let mut offspring: Vec<FixedBitSet> = Vec::with_capacity(parents_size);
         while parents_size > offspring.len() {
             let mut genome = FixedBitSet::with_capacity(genome_length);
@@ -62,28 +62,28 @@ impl CrossoverOp<FixedBitSet> for UniformCrossover {
 }
 
 
-/// The `DiscreteCrossover` operator combines value encoded 'genetic::Genotype`s
+/// The `DiscreteCrossBreeder` operator combines value encoded `genetic::Genotype`s
 /// by looking at the values of the parents one by one and randomly selecting
-/// a value of one parent that is copied to the resulting child.
+/// a value of one partner that is copied to the resulting child.
 ///
 /// This crossover operator always creates as many child individuals as there
 /// are individuals in the given `genetic::Parents` parameter.
 #[derive(Clone)]
-pub struct DiscreteCrossover {}
+pub struct DiscreteCrossBreeder {}
 
-impl DiscreteCrossover {
+impl DiscreteCrossBreeder {
     pub fn new() -> Self {
-        DiscreteCrossover {}
+        DiscreteCrossBreeder {}
     }
 }
 
-impl GeneticOperator for DiscreteCrossover {
+impl GeneticOperator for DiscreteCrossBreeder {
     fn name() -> String {
         "Discrete-Crossover".to_string()
     }
 }
 
-impl<V> CrossoverOp<Vec<V>> for DiscreteCrossover
+impl<V> CrossoverOp<Vec<V>> for DiscreteCrossBreeder
     where V: Clone + Debug + PartialEq
 {
     fn crossover<R>(&self, parents: Parents<Vec<V>>, rng: &mut R)
@@ -91,7 +91,7 @@ impl<V> CrossoverOp<Vec<V>> for DiscreteCrossover
         where R: Rng + Sized {
         let genome_length = parents[0].len();
         let parents_size = parents.len();
-        // breed one child for each parent in parents
+        // breed one child for each partner in parents
         let mut offspring: Vec<Vec<V>> = Vec::with_capacity(parents_size);
         while parents_size > offspring.len() {
             let mut genome = Vec::with_capacity(genome_length);
@@ -109,46 +109,74 @@ impl<V> CrossoverOp<Vec<V>> for DiscreteCrossover
 }
 
 
+/// The `MultiPointCrossBreeder` operator combines binary or value encoded
+/// `genetic:Genotype`s by splitting the vector of values into 2 or several
+/// slices and combining the slices from randomly picked parents into the new
+/// `genetic:Genotype`.
+///
+/// This crossover operator always creates as many child individuals as there
+/// are individuals in the given `genetic::Parents` parameter.
 #[derive(Clone)]
-pub struct MultiPointCrossover {
-    num_points: usize,
+pub struct MultiPointCrossBreeder {
+    /// The number of cut points used by this operator.
+    num_cut_points: usize,
 }
 
-impl MultiPointCrossover {
-    pub fn new(num_points: usize) -> Self {
-        MultiPointCrossover {
-            num_points: num_points,
+impl MultiPointCrossBreeder {
+    pub fn new(num_cut_points: usize) -> Self {
+        MultiPointCrossBreeder {
+            num_cut_points: num_cut_points,
         }
     }
 
-    pub fn num_points(&self) -> usize {
-        self.num_points
+    /// Returns the number of cut points used by this operator.
+    pub fn num_cut_points(&self) -> usize {
+        self.num_cut_points
     }
 
-    pub fn set_num_points(&mut self, value: usize) {
-        self.num_points = value;
+    /// Sets the number of cut points used by this operator to the given value.
+    pub fn set_num_cut_points(&mut self, value: usize) {
+        self.num_cut_points = value;
     }
 }
 
-impl GeneticOperator for MultiPointCrossover {
+impl GeneticOperator for MultiPointCrossBreeder {
     fn name() -> String {
-        "Multi-Point-Crossover".to_string()
+        "Multi-Point-Cross-Breeder".to_string()
     }
 }
 
-impl<V> CrossoverOp<Vec<V>> for MultiPointCrossover
-    where V: Clone + Debug + PartialEq
+impl<G> CrossoverOp<G> for MultiPointCrossBreeder
+    where G: Genotype + MultiPointCrossover
 {
-    fn crossover<R>(&self, parents: Parents<Vec<V>>, rng: &mut R)
-        -> Result<Children<Vec<V>>, SimError>
-        where R: Rng + Sized {
+    fn crossover<R>(&self, parents: Parents<G>, rng: &mut R)
+        -> Result<Children<G>, SimError>
+        where R: Rng {
+        Ok(MultiPointCrossover::crossover(parents, self.num_cut_points, rng))
+    }
+}
+
+pub trait MultiPointCrossover: Genotype {
+    type Dna;
+
+    fn crossover<R>(parents: Parents<Self>, num_cut_points: usize, rng: &mut R) -> Children<Self>
+        where R: Rng;
+
+}
+
+impl<V> MultiPointCrossover for Vec<V>
+    where V: Clone + Debug + PartialEq {
+    type Dna = V;
+
+    fn crossover<R>(parents: Parents<Self>, num_cut_points: usize, rng: &mut R) -> Children<Self>
+        where R: Rng {
         let genome_length = parents[0].len();
         let parents_size = parents.len();
-        // breed one child for each parent in parents
+        // breed one child for each partner in parents
         let mut offspring: Vec<Vec<V>> = Vec::with_capacity(parents_size);
         while parents_size > offspring.len() {
             let mut genome = Vec::with_capacity(genome_length);
-            let mut cutpoints = random_n_cut_points(rng, self.num_points, genome_length);
+            let mut cutpoints = random_n_cut_points(rng, num_cut_points, genome_length);
             cutpoints.push(genome_length);
             let mut start = 0;
             let mut end = cutpoints.remove(0);
@@ -161,8 +189,9 @@ impl<V> CrossoverOp<Vec<V>> for MultiPointCrossover
                         break;
                     }
                 };
+                let partner = &parents[p_index];
                 for i in start..end {
-                    genome.push(parents[p_index][i].clone())
+                    genome.push(partner[i].clone())
                 }
                 if cutpoints.is_empty() {
                     break;
@@ -172,6 +201,46 @@ impl<V> CrossoverOp<Vec<V>> for MultiPointCrossover
             }
             offspring.push(genome);
         }
-        Ok(offspring)
+        offspring
+    }
+}
+
+impl MultiPointCrossover for FixedBitSet {
+    type Dna = bool;
+
+    fn crossover<R>(parents: Parents<FixedBitSet>, num_cut_points: usize, rng: &mut R)
+        -> Children<FixedBitSet> where R: Rng {
+        let genome_length = parents[0].len();
+        let parents_size = parents.len();
+        // breed one child for each partner in parents
+        let mut offspring: Vec<FixedBitSet> = Vec::with_capacity(parents_size);
+        while parents_size > offspring.len() {
+            let mut genome = FixedBitSet::with_capacity(genome_length);
+            let mut cutpoints = random_n_cut_points(rng, num_cut_points, genome_length);
+            cutpoints.push(genome_length);
+            let mut start = 0;
+            let mut end = cutpoints.remove(0);
+            let mut p_index = parents_size;
+            loop {
+                loop {
+                    let index = rng.gen_range(0, parents_size);
+                    if index != p_index {
+                        p_index = index;
+                        break;
+                    }
+                }
+                let partner = &parents[p_index];
+                for bit in start..end {
+                    genome.set(bit, partner[bit])
+                }
+                if cutpoints.is_empty() {
+                    break;
+                }
+                start = end;
+                end = cutpoints.remove(0);
+            }
+            offspring.push(genome);
+        }
+        offspring
     }
 }

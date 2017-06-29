@@ -78,7 +78,7 @@ fn multi_parents_cyclic_crossover<'a, FN, R>(parents: &'a Parents<Vec<usize>>, c
     where FN: Fn(&'a [usize], &'a [usize], usize, usize) -> Vec<usize>, R: Rng + Sized {
     let parents_size = parents.len();
     let genome_length = parents[0].len();
-    // breed one child for each parent in parents
+    // breed one child for each partner in parents
     let mut offspring: Vec<Vec<usize>> = Vec::with_capacity(parents_size);
     let mut p1_index = 0; let mut p2_index = 1;
     while p1_index < parents_size {
