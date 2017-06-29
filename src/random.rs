@@ -140,7 +140,7 @@ fn weighted_select(pointer: f64, weights: &[f64]) -> usize {
         }
     }
     // when rounding errors occur, we return the last item's index
-    return weights.len() - 1;
+    weights.len() - 1
 }
 
 

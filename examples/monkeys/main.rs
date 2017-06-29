@@ -6,7 +6,7 @@ extern crate rand;
 
 use genevo::genetic::{FitnessEvaluation, PopulationGenerator};
 use genevo::mutation::value::RandomValueMutator;
-use genevo::recombination::discrete::MultiPointCrossbreeder;
+use genevo::recombination::discrete::MultiPointCrossBreeder;
 use genevo::reinsertion::elitist::ElitistReinserter;
 use genevo::selection::truncation::MaximizeSelector;
 use genevo::simulation::{Simulation, SimulationBuilder, SimResult};
@@ -94,7 +94,7 @@ fn main() {
     let mut monkeys_sim = ga::Simulator::builder(
         FitnessCalc {},
         MaximizeSelector::new(SELECTION_RATIO, NUM_INDIVIDUALS_PER_PARENTS),
-        MultiPointCrossbreeder::new(NUM_CROSSOVER_POINTS),
+        MultiPointCrossBreeder::new(NUM_CROSSOVER_POINTS),
         RandomValueMutator::new(MUTATION_RATE, 32u8, 126u8),
         ElitistReinserter::new(FitnessCalc{}, true, REINSERTION_RATIO),
         or(FitnessLimit::new(FitnessCalc{}.highest_possible_fitness()),
