@@ -100,7 +100,6 @@ impl<G, F, E> MultiObjective for ElitistReinserter<G, F, E>
 impl<G, F, E> ReinsertionOp<G, F> for ElitistReinserter<G, F, E>
     where G: Genotype, F: Fitness, E: FitnessEvaluation<G, F>
 {
-    #[allow(unused_variables)]
     fn combine<R>(&self, offspring: &mut Offspring<G>, evaluated: &EvaluatedPopulation<G, F>, rng: &mut R)
         -> Result<Vec<G>, SimError>
         where R: Rng + Sized {
@@ -121,15 +120,17 @@ impl<G, F, E> ReinsertionOp<G, F> for ElitistReinserter<G, F, E>
             // first pick individuals from offspring
             if num_offspring < offspring.len() {
                 // evaluate fitness of the offspring individuals
-                let offspring_fitness: Vec<F> = offspring.iter().map(|child|
-                    self.fitness_evaluator.fitness_of(child)).collect();
-                // holds indices to the individuals and fitness values of offspring
-                let mut offspring_indices: Vec<usize> = (0..offspring_fitness.len()).collect();
-                // sort offspring indices from best performing to worst performing
-                offspring_indices.sort_by(|x, y| offspring_fitness[*y].cmp(&offspring_fitness[*x]));
+                let mut offspring_fitness: Vec<(G, F)> = Vec::with_capacity(offspring.len());
+                while !offspring.is_empty() {
+                    let child = offspring.pop().unwrap();
+                    let fitness = self.fitness_evaluator.fitness_of(&child);
+                    offspring_fitness.push((child, fitness));
+                }
+                // sort offspring from worst to best performing performing
+                offspring_fitness.sort_by(|x, y| x.1.cmp(&y.1));
                 // pick only the best individuals from the offspring
-                while num_offspring > new_population.len() {
-                    new_population.push(offspring.remove(0));
+                for _ in 0..num_offspring {
+                    new_population.push(offspring_fitness.pop().unwrap().0);
                 }
             } else {
                 // insert all individuals from offspring
@@ -148,20 +149,22 @@ impl<G, F, E> ReinsertionOp<G, F> for ElitistReinserter<G, F, E>
             }
         } else {
             // evaluate fitness of the offspring individuals
-            let offspring_fitness: Vec<F> = offspring.iter().map(|child|
-                self.fitness_evaluator.fitness_of(child)).collect();
-            // holds indices to the individuals and fitness values of offspring
-            let mut offspring_indices: Vec<usize> = (0..offspring_fitness.len()).collect();
-            // sort offspring indices from best performing to worst performing
-            offspring_indices.sort_by(|x, y| offspring_fitness[*y].cmp(&offspring_fitness[*x]));
+            let mut offspring_fitness: Vec<(G, F)> = Vec::with_capacity(offspring.len());
+            while !offspring.is_empty() {
+                let child = offspring.pop().unwrap();
+                let fitness = self.fitness_evaluator.fitness_of(&child);
+                offspring_fitness.push((child, fitness));
+            }
+            // sort offspring from worst to best performing performing
+            offspring_fitness.sort_by(|x, y| x.1.cmp(&y.1));
             for _ in 0..population_size {
                 // compare fitness of best offspring with best fitness of old population
                 let index_old = old_population_indices[0];
-                if !offspring_indices.is_empty()
-                    && offspring_fitness[offspring_indices[0]] > old_fitness_values[index_old] {
+                if !offspring_fitness.is_empty()
+                    && offspring_fitness[offspring_fitness.len() - 1].1 > old_fitness_values[index_old] {
                     // insert best from offspring
-                    new_population.push(offspring.remove(old_population_indices[0]));
-                    offspring_indices.remove(0);
+                    let (offspring, _) = offspring_fitness.pop().unwrap();
+                    new_population.push(offspring);
                 } else {
                     // insert best from old population
                     new_population.push(old_individuals[index_old].clone());

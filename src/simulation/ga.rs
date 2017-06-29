@@ -280,7 +280,7 @@ impl<G, F, E, S, C, M, R, Q> Simulator<G, F, E, S, C, M, R, Q>
     /// records the highest and lowest values.
     fn evaluate_fitness<'a>(&self, population: Rc<Vec<G>>) -> (EvaluatedPopulation<G, F>, Duration) {
         let started_at = Local::now();
-        let mut fitness = Vec::new();
+        let mut fitness = Vec::with_capacity(population.len());
         let mut highest = self.evaluator.lowest_possible_fitness();
         let mut lowest = self.evaluator.highest_possible_fitness();
         for genome in population.iter() {
