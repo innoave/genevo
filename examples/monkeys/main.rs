@@ -1,4 +1,4 @@
-//! The `monkeys` example explores the idea of the
+//! The `monkeys` example explores the idea of the Shakespeare's monkeys or the
 //! [infinite monkey theorem](https://en.wikipedia.org/wiki/Infinite_monkey_theorem).
 
 extern crate genevo;
@@ -16,14 +16,37 @@ use genevo::termination::limiter::{FitnessLimit, GenerationLimit};
 use genevo::types::Display;
 use rand::{Rng, thread_rng};
 
-const TARGET_TEXT: &str = "See how a genius creates a legend";
-const POPULATION_SIZE: usize = 200;
-const GENERATION_LIMIT: u64 = 2000;
-const NUM_INDIVIDUALS_PER_PARENTS: usize = 2;
-const SELECTION_RATIO: f64 = 1.0;
-const NUM_CROSSOVER_POINTS: usize = 6;
-const MUTATION_RATE: f64 = 0.05;
-const REINSERTION_RATIO: f64 = 0.7;
+//const TARGET_TEXT: &str = "See how a genius creates a legend";
+const TARGET_TEXT: &str = "Be not afraid of greatness! Some are great, some achieve greatness, \
+                           and some have greatness thrust upon 'em.";
+//const TARGET_TEXT: &str = "All the world's a stage, and all the men and women merely players: \
+//                           they have their exits and their entrances; and one man in his time \
+//                           plays many parts, his acts being seven ages.";
+
+#[derive(Debug)]
+struct Parameter {
+    population_size: usize,
+    generation_limit: u64,
+    num_individuals_per_parents: usize,
+    selection_ratio: f64,
+    num_crossover_points: usize,
+    mutation_rate: f64,
+    reinsertion_ratio: f64,
+}
+
+impl Default for Parameter {
+    fn default() -> Self {
+        Parameter {
+            population_size: (100. * (TARGET_TEXT.len() as f64).ln()) as usize,
+            generation_limit: (2000. * (TARGET_TEXT.len() as f64).log(10.)) as u64,
+            num_individuals_per_parents: 2,
+            selection_ratio: 1.0,
+            num_crossover_points: TARGET_TEXT.len() / 6,
+            mutation_rate: 0.05 / (TARGET_TEXT.len() as f64).log(10.),
+            reinsertion_ratio: 0.7,
+        }
+    }
+}
 
 /// The phenotype
 type Text = String;
@@ -57,7 +80,7 @@ impl FitnessEvaluation<TextGenome, usize> for FitnessCalc {
             }
         }
         let fraction = score as f32 / TARGET_TEXT.len() as f32;
-        (fraction * fraction * 100. + 0.5).floor() as usize
+        (fraction * fraction * 100_00. + 0.5).floor() as usize
     }
 
     fn average(&self, fitness_values: &[usize]) -> usize {
@@ -65,7 +88,7 @@ impl FitnessEvaluation<TextGenome, usize> for FitnessCalc {
     }
 
     fn highest_possible_fitness(&self) -> usize {
-        100
+        100_00
     }
 
     fn lowest_possible_fitness(&self) -> usize {
@@ -87,19 +110,23 @@ impl PopulationGenerator<TextGenome> for Monkey {
 
 fn main() {
 
+    let params = Parameter::default();
+
     let mut rng = thread_rng();
 
-    let initial_population = Monkey{}.generate_population(POPULATION_SIZE, &mut rng);
+    let initial_population = Monkey{}.generate_population(params.population_size, &mut rng);
 
     let mut monkeys_sim = ga::Simulator::builder(
         FitnessCalc {},
-        MaximizeSelector::new(SELECTION_RATIO, NUM_INDIVIDUALS_PER_PARENTS),
-        MultiPointCrossBreeder::new(NUM_CROSSOVER_POINTS),
-        RandomValueMutator::new(MUTATION_RATE, 32u8, 126u8),
-        ElitistReinserter::new(FitnessCalc{}, true, REINSERTION_RATIO),
+        MaximizeSelector::new(params.selection_ratio, params.num_individuals_per_parents),
+        MultiPointCrossBreeder::new(params.num_crossover_points),
+        RandomValueMutator::new(params.mutation_rate, 32, 126),
+        ElitistReinserter::new(FitnessCalc{}, true, params.reinsertion_ratio),
         or(FitnessLimit::new(FitnessCalc{}.highest_possible_fitness()),
-           GenerationLimit::new(GENERATION_LIMIT))
+           GenerationLimit::new(params.generation_limit))
     ).initialize(initial_population);
+
+    println!("Starting Shakespeare's Monkeys with: {:?}", params);
 
     loop {
         let result = monkeys_sim.step();

@@ -20,8 +20,8 @@
 
 extern crate fixedbitset;
 extern crate chrono;
-extern crate jobsteal;
 extern crate rand;
+extern crate rayon;
 
 
 pub mod genetic;

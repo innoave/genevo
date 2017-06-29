@@ -23,9 +23,9 @@ path = "src/lib.rs"
 [dependencies]
 fixedbitset = "*"
 chrono = "*"
-jobsteal = "*"
 log = "*"
 rand = "*"
+rayon = "*"
 
 [dev-dependencies]
 quickcheck = "*"

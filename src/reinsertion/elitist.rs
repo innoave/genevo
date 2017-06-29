@@ -134,9 +134,8 @@ impl<G, F, E> ReinsertionOp<G, F> for ElitistReinserter<G, F, E>
                 }
             } else {
                 // insert all individuals from offspring
-                while num_offspring > new_population.len() && !offspring.is_empty() {
-                    new_population.push(offspring.remove(0));
-                }
+                offspring.truncate(num_offspring);
+                new_population.append(offspring);
             }
             //
             // finally fill up new population with individuals from old population
