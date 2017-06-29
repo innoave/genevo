@@ -35,3 +35,7 @@ hamcrest = "*"
 [[example]]
 name = "monkeys"
 path = "examples/monkeys/main.rs"
+
+[[example]]
+name = "queens"
+path = "examples/queens/main.rs"

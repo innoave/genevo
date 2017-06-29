@@ -3,6 +3,7 @@
 //! or search problem. The types are named after terms as they are found in
 //! genetic biology.
 
+use rand::Rng;
 use std::fmt::Debug;
 
 /// A `Phenotype` is a candidate solution of the optimization or search problem.
@@ -80,9 +81,10 @@ pub trait PopulationGenerator<G>
     where G: Genotype
 {
     /// Generates a new `Population` containing the given number of individuals.
-    fn generate_population(&self, size: usize) -> Population<G> {
+    fn generate_population<R>(&self, size: usize, rng: &mut R) -> Population<G>
+        where R: Rng + Sized {
         let individuals = (0..size).map(|_| {
-            self.generate_genotype()
+            self.generate_genotype(rng)
         }).collect::<Vec<G>>();
         Population::new(individuals)
     }
@@ -90,7 +92,7 @@ pub trait PopulationGenerator<G>
     /// Generates a new `Genotype`.
     ///
     /// An implementation typically generates a randomly created `Genotype`.
-    fn generate_genotype(&self) -> G;
+    fn generate_genotype<R>(&self, rng: &mut R) -> G where R: Rng + Sized;
 }
 
 /// The `Parents` type defines a tuple of individuals that are needed for

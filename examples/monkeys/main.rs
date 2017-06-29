@@ -15,7 +15,6 @@ use genevo::termination::or;
 use genevo::termination::limiter::{FitnessLimit, GenerationLimit};
 use genevo::types::Display;
 use rand::{Rng, thread_rng};
-//use std::fmt::{Debug, Display, Formatter, Result};
 
 const TARGET_TEXT: &str = "See how a genius creates a legend";
 const POPULATION_SIZE: usize = 200;
@@ -25,7 +24,6 @@ const SELECTION_RATIO: f64 = 1.0;
 const NUM_CROSSOVER_POINTS: usize = 6;
 const MUTATION_RATE: f64 = 0.05;
 const REINSERTION_RATIO: f64 = 0.7;
-
 
 /// The phenotype
 type Text = String;
@@ -79,8 +77,8 @@ impl FitnessEvaluation<TextGenome, usize> for FitnessCalc {
 struct Monkey {}
 
 impl PopulationGenerator<TextGenome> for Monkey {
-    fn generate_genotype(&self) -> TextGenome {
-        let mut rng = thread_rng();
+    fn generate_genotype<R>(&self, rng: &mut R) -> TextGenome
+        where R: Rng + Sized {
         (0..TARGET_TEXT.len()).map(|_|
             rng.gen_range(32u8, 126u8)
         ).collect()
@@ -89,7 +87,9 @@ impl PopulationGenerator<TextGenome> for Monkey {
 
 fn main() {
 
-    let initial_population = Monkey{}.generate_population(POPULATION_SIZE);
+    let mut rng = thread_rng();
+
+    let initial_population = Monkey{}.generate_population(POPULATION_SIZE, &mut rng);
 
     let mut monkeys_sim = ga::Simulator::builder(
         FitnessCalc {},
