@@ -22,8 +22,8 @@ const NUM_COLS: i16 = NUMBER_OF_QUEENS;
 const POPULATION_SIZE: usize = 200;
 const GENERATION_LIMIT: u64 = 2000;
 const NUM_INDIVIDUALS_PER_PARENTS: usize = 3;
-const SELECTION_RATIO: f64 = 1.0;
-const MUTATION_RATE: f64 = 0.15;
+const SELECTION_RATIO: f64 = 0.7;
+const MUTATION_RATE: f64 = 0.05;
 const REINSERTION_RATIO: f64 = 0.7;
 
 /// The phenotype

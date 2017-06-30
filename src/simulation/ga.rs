@@ -31,8 +31,10 @@ use genetic::{Fitness, FitnessEvaluation, Genotype, Offspring, Parents, Populati
 use operator::{CrossoverOp, MutationOp, ReinsertionOp, SelectionOp};
 use simulation::{BestSolution, Evaluated, EvaluatedPopulation, SimError, SimResult, Simulation,
                  SimulationBuilder, State};
+use statistic::{TimedResult, timed};
 use termination::{StopFlag, Termination};
 use rand::{Rng, thread_rng};
+use rayon;
 use std::marker::PhantomData;
 use std::mem;
 use std::rc::Rc;
@@ -73,8 +75,8 @@ pub struct SimulatorBuilder<G, F, E, S, C, M, R, Q>
 impl<G, F, E, S, C, M, R, Q> SimulationBuilder<Simulator<G, F, E, S, C, M, R, Q>, G, F, E, S, C, M, R, Q>
     for SimulatorBuilder<G, F, E, S, C, M, R, Q>
     where G: Genotype + Send + Sync, F: Fitness + Send + Sync,
-          E: FitnessEvaluation<G, F>, S: SelectionOp<G, F>, Q: Termination<G, F>,
-          C: CrossoverOp<G>, M: MutationOp<G>, R: ReinsertionOp<G, F>
+          E: FitnessEvaluation<G, F> + Sync, S: SelectionOp<G, F>, Q: Termination<G, F>,
+          C: CrossoverOp<G> + Sync, M: MutationOp<G> + Sync, R: ReinsertionOp<G, F>
 {
     fn initialize(&mut self, population: Population<G>) -> Simulator<G, F, E, S, C, M, R, Q> {
         Simulator {
@@ -120,8 +122,8 @@ pub struct Simulator<G, F, E, S, C, M, R, Q>
 impl<G, F, E, S, C, M, R, Q> Simulation<G, F, E, S, C, M, R, Q>
     for Simulator<G, F, E, S, C, M, R, Q>
     where G: Genotype + Send + Sync, F: Fitness + Send + Sync,
-          E: FitnessEvaluation<G, F>, S: SelectionOp<G, F>, Q: Termination<G, F>,
-          C: CrossoverOp<G>, M: MutationOp<G>, R: ReinsertionOp<G, F>
+          E: FitnessEvaluation<G, F> + Sync, S: SelectionOp<G, F>, Q: Termination<G, F>,
+          C: CrossoverOp<G> + Sync, M: MutationOp<G> + Sync, R: ReinsertionOp<G, F>
 {
     type Builder = SimulatorBuilder<G, F, E, S, C, M, R, Q>;
 
@@ -251,16 +253,17 @@ impl<G, F, E, S, C, M, R, Q> Simulation<G, F, E, S, C, M, R, Q>
 }
 
 impl<G, F, E, S, C, M, R, Q> Simulator<G, F, E, S, C, M, R, Q>
-    where G: Genotype, F: Fitness,
-          E: FitnessEvaluation<G, F>, S: SelectionOp<G, F>, Q: Termination<G, F>,
-          C: CrossoverOp<G>, M: MutationOp<G>, R: ReinsertionOp<G, F>
+    where G: Genotype + Send + Sync, F: Fitness + Send + Sync,
+          E: FitnessEvaluation<G, F> + Sync, S: SelectionOp<G, F>, Q: Termination<G, F>,
+          C: CrossoverOp<G> + Sync, M: MutationOp<G> + Sync, R: ReinsertionOp<G, F>
 {
     /// Processes stages 2-4 of the genetic algorithm
     fn process_one_generation(&mut self) -> Result<State<G, F>, SimError> {
         let loop_started_at = Local::now();
 
         // Stage 2: The fitness check:
-        let (score_board, eval_proc_time1) = self.evaluate_fitness(self.population.clone());
+//        let (score_board, eval_proc_time1) = self.evaluate_fitness(self.population.clone());
+        let (score_board, eval_proc_time1) = evaluate_fitness(self.population.clone(), self.evaluator.as_ref());
         let (best_solution, eval_proc_time2) = self.determine_best_solution(&score_board);
 
         // Stage 3: The making of a new population:
@@ -331,7 +334,8 @@ impl<G, F, E, S, C, M, R, Q> Simulator<G, F, E, S, C, M, R, Q>
         let mut rng = thread_rng();
         let new_population = self.selector.select_from(evaluated_population, &mut rng)
             .and_then(|selection|
-                self.breed_offspring(selection, &mut rng))
+//                self.breed_offspring(selection, &mut rng))
+                par_breed_offspring(selection, self.breeder.as_ref(), self.mutator.as_ref()))
             .and_then(|mut offspring|
                 self.reinserter.combine(&mut offspring, evaluated_population, &mut rng));
         (new_population, Local::now().signed_duration_since(started_at))
@@ -389,5 +393,112 @@ impl<G, F, E, S, C, M, R, Q> Simulator<G, F, E, S, C, M, R, Q>
             lowest_fitness: score_board.lowest_fitness,
             best_solution: best_solution,
         }
+    }
+}
+
+fn evaluate_fitness<G, F, E>(population: Rc<Vec<G>>, evaluator: &E)
+    -> (EvaluatedPopulation<G, F>, Duration)
+    where G: Genotype + Sync, F: Fitness + Send + Sync, E: FitnessEvaluation<G, F> + Sync {
+    let timed = par_evaluate_fitness(&population, evaluator);
+    let average = evaluator.average(&timed.result.0);
+    (EvaluatedPopulation {
+        individuals: population,
+        fitness_values: timed.result.0,
+        highest_fitness: timed.result.1,
+        lowest_fitness: timed.result.2,
+        average_fitness: average,
+    }, timed.time.duration())
+}
+
+/// Calculates the `genetic::Fitness` value of each `genetic::Genotype` and
+/// records the highest and lowest values.
+fn par_evaluate_fitness<G, F, E>(population: &[G], evaluator: &E)
+    -> TimedResult<(Vec<F>, F, F)>
+    where G: Genotype + Sync, F: Fitness + Send + Sync, E: FitnessEvaluation<G, F> + Sync {
+    if population.len() < 60 {
+        timed(|| {
+            let mut fitness = Vec::with_capacity(population.len());
+            let mut highest = evaluator.lowest_possible_fitness();
+            let mut lowest = evaluator.highest_possible_fitness();
+            for genome in population.iter() {
+                let score = evaluator.fitness_of(&genome);
+                if score > highest {
+                    highest = score.clone();
+                }
+                if score < lowest {
+                    lowest = score.clone();
+                }
+                fitness.push(score);
+            }
+            (fitness, highest, lowest)
+        }).run()
+    } else {
+        let mid_point = population.len() / 2;
+        let (l_slice, r_slice) = population.split_at(mid_point);
+        let (mut left, mut right) = rayon::join(|| par_evaluate_fitness(l_slice, evaluator),
+                                                || par_evaluate_fitness(r_slice, evaluator));
+        let mut fitness = Vec::with_capacity(population.len());
+        fitness.append(&mut left.result.0);
+        fitness.append(&mut right.result.0);
+        let highest = if left.result.1 >= right.result.1 {
+            left.result.1
+        } else {
+            right.result.1
+        };
+        let lowest = if left.result.2 <= right.result.2 {
+            left.result.2
+        } else {
+            right.result.2
+        };
+        TimedResult {
+            result: (fitness, highest, lowest),
+            time: left.time + right.time,
+        }
+    }
+}
+
+/// Lets the parents breed their offspring and mutate its children. And
+/// finally combines the offspring of all parents into one big offspring.
+fn par_breed_offspring<G, C, M>(parents: Vec<Parents<G>>, breeder: &C, mutator: &M)
+    -> Result<Offspring<G>, SimError>
+    where G: Genotype + Send, C: CrossoverOp<G> + Sync, M: MutationOp<G> + Sync {
+    if parents.len() < 60 {
+        let mut rng = thread_rng();
+        let mut offspring: Offspring<G> = Vec::with_capacity(parents.len() * parents[0].len());
+        for parents in parents {
+            match breeder.crossover(parents, &mut rng) {
+                Ok(children) => {
+                    for child in children {
+                        match mutator.mutate(child, &mut rng) {
+                            Ok(mutated) => {
+                                offspring.push(mutated);
+                            },
+                            Err(error) =>
+                                return Err(error),
+                        }
+                    }
+                },
+                Err(error) =>
+                    return Err(error),
+            }
+        }
+        Ok(offspring)
+    } else {
+        let mut offspring: Offspring<G> = Vec::with_capacity(parents.len() * parents[0].len());
+        let mid_point = parents.len() / 2;
+        let mut parents = parents;
+        let r_slice = parents.drain(mid_point..).collect();
+        let l_slice = parents;
+        let (left, right) = rayon::join(|| par_breed_offspring(l_slice, breeder, mutator),
+                                        || par_breed_offspring(r_slice, breeder, mutator));
+        match left {
+            Ok(mut children) => offspring.append(&mut children),
+            Err(error) => return Err(error),
+        }
+        match right {
+            Ok(mut children) => offspring.append(&mut children),
+            Err(error) => return Err(error),
+        }
+        Ok(offspring)
     }
 }

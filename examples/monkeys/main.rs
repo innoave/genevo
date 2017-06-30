@@ -38,11 +38,11 @@ impl Default for Parameter {
     fn default() -> Self {
         Parameter {
             population_size: (100. * (TARGET_TEXT.len() as f64).ln()) as usize,
-            generation_limit: (2000. * (TARGET_TEXT.len() as f64).log(10.)) as u64,
+            generation_limit: (500. * (TARGET_TEXT.len() as f64).ln()) as u64,
             num_individuals_per_parents: 2,
-            selection_ratio: 1.0,
+            selection_ratio: 0.7,
             num_crossover_points: TARGET_TEXT.len() / 6,
-            mutation_rate: 0.05 / (TARGET_TEXT.len() as f64).log(10.),
+            mutation_rate: 0.05 / (TARGET_TEXT.len() as f64).ln(),
             reinsertion_ratio: 0.7,
         }
     }

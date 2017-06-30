@@ -44,4 +44,6 @@ pub mod termination;
 
 pub mod random;
 
+pub mod statistic;
+
 pub mod types;

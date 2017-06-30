@@ -100,6 +100,7 @@ impl<G, F, E> MultiObjective for ElitistReinserter<G, F, E>
 impl<G, F, E> ReinsertionOp<G, F> for ElitistReinserter<G, F, E>
     where G: Genotype, F: Fitness, E: FitnessEvaluation<G, F>
 {
+    #[allow(unused_variables)]
     fn combine<R>(&self, offspring: &mut Offspring<G>, evaluated: &EvaluatedPopulation<G, F>, rng: &mut R)
         -> Result<Vec<G>, SimError>
         where R: Rng + Sized {
