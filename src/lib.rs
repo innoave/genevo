@@ -23,8 +23,13 @@ extern crate chrono;
 extern crate rand;
 extern crate rayon;
 
+pub mod prelude;
 
 pub mod genetic;
+
+pub mod algorithm;
+
+pub mod population;
 
 pub mod encoding;
 
