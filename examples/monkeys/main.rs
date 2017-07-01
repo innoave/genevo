@@ -4,7 +4,7 @@
 extern crate genevo;
 extern crate rand;
 
-use genevo::genetic::{FitnessEvaluation, PopulationGenerator};
+use genevo::genetic::{FitnessFunction, PopulationGenerator};
 use genevo::mutation::value::RandomValueMutator;
 use genevo::recombination::discrete::MultiPointCrossBreeder;
 use genevo::reinsertion::elitist::ElitistReinserter;
@@ -69,7 +69,7 @@ impl AsPhenotype for TextGenome {
 #[derive(Clone)]
 struct FitnessCalc {}
 
-impl FitnessEvaluation<TextGenome, usize> for FitnessCalc {
+impl FitnessFunction<TextGenome, usize> for FitnessCalc {
 
     fn fitness_of(&self, genome: &TextGenome) -> usize {
         let mut score = 0;

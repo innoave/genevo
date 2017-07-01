@@ -4,7 +4,7 @@
 extern crate genevo;
 extern crate rand;
 
-use genevo::genetic::{FitnessEvaluation, PopulationGenerator};
+use genevo::genetic::{FitnessFunction, PopulationGenerator};
 use genevo::mutation::value::{BreederValueMutation, BreederValueMutator, RandomValueMutation};
 use genevo::recombination::discrete::DiscreteCrossBreeder;
 use genevo::reinsertion::elitist::ElitistReinserter;
@@ -72,7 +72,7 @@ fn count_collisions(positions: &Positions) -> i16 {
 #[derive(Clone)]
 struct FitnessCalc {}
 
-impl FitnessEvaluation<Positions, usize> for FitnessCalc {
+impl FitnessFunction<Positions, usize> for FitnessCalc {
 
     fn fitness_of(&self, positions: &Positions) -> usize {
         let collisions = count_collisions(positions);

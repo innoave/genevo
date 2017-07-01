@@ -27,7 +27,7 @@
 //! `SimulatorBuilder` implements the `simulation::SimulationBuilder` trait.
 
 use chrono::{DateTime, Duration, Local};
-use genetic::{Fitness, FitnessEvaluation, Genotype, Offspring, Parents, Population};
+use genetic::{Fitness, FitnessFunction, Genotype, Offspring, Parents, Population};
 use operator::{CrossoverOp, MutationOp, ReinsertionOp, SelectionOp};
 use simulation::{BestSolution, Evaluated, EvaluatedPopulation, SimError, SimResult, Simulation,
                  SimulationBuilder, State};
@@ -59,7 +59,7 @@ enum RunMode {
 /// the genetic algorithm.
 pub struct SimulatorBuilder<G, F, E, S, C, M, R, Q>
     where G: Genotype, F: Fitness,
-          E: FitnessEvaluation<G, F>, S: SelectionOp<G, F>, Q: Termination<G, F>,
+          E: FitnessFunction<G, F>, S: SelectionOp<G, F>, Q: Termination<G, F>,
           C: CrossoverOp<G>, M: MutationOp<G>
 {
     evaluator: Box<E>,
@@ -75,7 +75,7 @@ pub struct SimulatorBuilder<G, F, E, S, C, M, R, Q>
 impl<G, F, E, S, C, M, R, Q> SimulationBuilder<Simulator<G, F, E, S, C, M, R, Q>, G, F, E, S, C, M, R, Q>
     for SimulatorBuilder<G, F, E, S, C, M, R, Q>
     where G: Genotype + Send + Sync, F: Fitness + Send + Sync,
-          E: FitnessEvaluation<G, F> + Sync, S: SelectionOp<G, F>, Q: Termination<G, F>,
+          E: FitnessFunction<G, F> + Sync, S: SelectionOp<G, F>, Q: Termination<G, F>,
           C: CrossoverOp<G> + Sync, M: MutationOp<G> + Sync, R: ReinsertionOp<G, F>
 {
     fn initialize(&mut self, population: Population<G>) -> Simulator<G, F, E, S, C, M, R, Q> {
@@ -100,7 +100,7 @@ impl<G, F, E, S, C, M, R, Q> SimulationBuilder<Simulator<G, F, E, S, C, M, R, Q>
 
 pub struct Simulator<G, F, E, S, C, M, R, Q>
     where G: Genotype, F: Fitness,
-          E: FitnessEvaluation<G, F>, S: SelectionOp<G, F>, Q: Termination<G, F>,
+          E: FitnessFunction<G, F>, S: SelectionOp<G, F>, Q: Termination<G, F>,
           C: CrossoverOp<G>, M: MutationOp<G>, R: ReinsertionOp<G, F>
 {
     evaluator: Box<E>,
@@ -122,7 +122,7 @@ pub struct Simulator<G, F, E, S, C, M, R, Q>
 impl<G, F, E, S, C, M, R, Q> Simulation<G, F, E, S, C, M, R, Q>
     for Simulator<G, F, E, S, C, M, R, Q>
     where G: Genotype + Send + Sync, F: Fitness + Send + Sync,
-          E: FitnessEvaluation<G, F> + Sync, S: SelectionOp<G, F>, Q: Termination<G, F>,
+          E: FitnessFunction<G, F> + Sync, S: SelectionOp<G, F>, Q: Termination<G, F>,
           C: CrossoverOp<G> + Sync, M: MutationOp<G> + Sync, R: ReinsertionOp<G, F>
 {
     type Builder = SimulatorBuilder<G, F, E, S, C, M, R, Q>;
@@ -250,7 +250,7 @@ impl<G, F, E, S, C, M, R, Q> Simulation<G, F, E, S, C, M, R, Q>
 
 impl<G, F, E, S, C, M, R, Q> Simulator<G, F, E, S, C, M, R, Q>
     where G: Genotype + Send + Sync, F: Fitness + Send + Sync,
-          E: FitnessEvaluation<G, F> + Sync, S: SelectionOp<G, F>, Q: Termination<G, F>,
+          E: FitnessFunction<G, F> + Sync, S: SelectionOp<G, F>, Q: Termination<G, F>,
           C: CrossoverOp<G> + Sync, M: MutationOp<G> + Sync, R: ReinsertionOp<G, F>
 {
     /// Processes stages 2-4 of the genetic algorithm
@@ -394,7 +394,7 @@ impl<G, F, E, S, C, M, R, Q> Simulator<G, F, E, S, C, M, R, Q>
 
 fn evaluate_fitness<G, F, E>(population: Rc<Vec<G>>, evaluator: &E)
     -> (EvaluatedPopulation<G, F>, Duration)
-    where G: Genotype + Sync, F: Fitness + Send + Sync, E: FitnessEvaluation<G, F> + Sync {
+    where G: Genotype + Sync, F: Fitness + Send + Sync, E: FitnessFunction<G, F> + Sync {
     let timed = par_evaluate_fitness(&population, evaluator);
     let average = evaluator.average(&timed.result.0);
     (EvaluatedPopulation {
@@ -410,7 +410,7 @@ fn evaluate_fitness<G, F, E>(population: Rc<Vec<G>>, evaluator: &E)
 /// records the highest and lowest values.
 fn par_evaluate_fitness<G, F, E>(population: &[G], evaluator: &E)
     -> TimedResult<(Vec<F>, F, F)>
-    where G: Genotype + Sync, F: Fitness + Send + Sync, E: FitnessEvaluation<G, F> + Sync {
+    where G: Genotype + Sync, F: Fitness + Send + Sync, E: FitnessFunction<G, F> + Sync {
     if population.len() < 60 {
         timed(|| {
             let mut fitness = Vec::with_capacity(population.len());

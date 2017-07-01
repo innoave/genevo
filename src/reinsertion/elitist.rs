@@ -2,7 +2,7 @@
 //! individuals from the offspring and the old population by choosing the best
 //! individuals from both.
 
-use genetic::{Fitness, FitnessEvaluation, Genotype, Offspring};
+use genetic::{Fitness, FitnessFunction, Genotype, Offspring};
 use operator::{GeneticOperator, MultiObjective, ReinsertionOp, SingleObjective};
 use simulation::{EvaluatedPopulation, SimError};
 use std::marker::PhantomData;
@@ -27,9 +27,9 @@ use rand::Rng;
 /// the population then the individuals are chosen uniformly at random.
 #[derive(Clone)]
 pub struct ElitistReinserter<G, F, E>
-    where G: Genotype, F: Fitness, E: FitnessEvaluation<G, F>
+    where G: Genotype, F: Fitness, E: FitnessFunction<G, F>
 {
-    /// The `FitnessEvaluation` to be used to calculate fitness values of
+    /// The `FitnessFunction` to be used to calculate fitness values of
     /// individuals of the offspring.
     fitness_evaluator: Box<E>,
     /// `offspring_has_precedence` defines whether individuals from offspring
@@ -45,7 +45,7 @@ pub struct ElitistReinserter<G, F, E>
 }
 
 impl<G, F, E> ElitistReinserter<G, F, E>
-    where G: Genotype, F: Fitness, E: FitnessEvaluation<G, F>
+    where G: Genotype, F: Fitness, E: FitnessFunction<G, F>
 {
     /// Constructs a new instance of the `ElitistReinserter`.
     pub fn new(fitness_evaluator: E, offspring_has_precedence: bool, replace_ratio: f64) -> Self {
@@ -83,7 +83,7 @@ impl<G, F, E> ElitistReinserter<G, F, E>
 }
 
 impl<G, F, E> GeneticOperator for ElitistReinserter<G, F, E>
-    where G: Genotype, F: Fitness, E: FitnessEvaluation<G, F>
+    where G: Genotype, F: Fitness, E: FitnessFunction<G, F>
 {
     fn name() -> String {
         "Uniform-Reinserter".to_string()
@@ -92,13 +92,13 @@ impl<G, F, E> GeneticOperator for ElitistReinserter<G, F, E>
 
 /// Can be used for single-objective optimization
 impl<G, F, E> SingleObjective for ElitistReinserter<G, F, E>
-    where G: Genotype, F: Fitness, E: FitnessEvaluation<G, F> {}
+    where G: Genotype, F: Fitness, E: FitnessFunction<G, F> {}
 /// Can be used for multi-objective optimization
 impl<G, F, E> MultiObjective for ElitistReinserter<G, F, E>
-    where G: Genotype, F: Fitness, E: FitnessEvaluation<G, F> {}
+    where G: Genotype, F: Fitness, E: FitnessFunction<G, F> {}
 
 impl<G, F, E> ReinsertionOp<G, F> for ElitistReinserter<G, F, E>
-    where G: Genotype, F: Fitness, E: FitnessEvaluation<G, F>
+    where G: Genotype, F: Fitness, E: FitnessFunction<G, F>
 {
     #[allow(unused_variables)]
     fn combine<R>(&self, offspring: &mut Offspring<G>, evaluated: &EvaluatedPopulation<G, F>, rng: &mut R)

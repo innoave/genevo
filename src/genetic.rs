@@ -36,7 +36,9 @@ pub trait Phenotype<G>: Clone + Debug
 /// In order to achieve an efficient execution of the genetic algorithm these
 /// properties should be stored in a compact form such as strings or vectors
 /// of primitive types.
-pub trait Genotype: Clone + Debug + PartialEq {}
+pub trait Genotype: Clone + Debug + PartialEq + Send + Sync {
+    type Dna: Clone;
+}
 
 /// The `Locus` is a position within a `Genotype`.
 pub type Locus = usize;
@@ -155,7 +157,7 @@ pub trait AsScalar {
 
 /// Defines the evaluation function to calculate the `Fitness` value of a
 /// `Genotype` based on its properties.
-pub trait FitnessEvaluation<G, F>: Clone
+pub trait FitnessFunction<G, F>: Clone
     where G: Genotype, F: Fitness
 {
     /// Calculates the `Fitness` value of the given `Genotype`.

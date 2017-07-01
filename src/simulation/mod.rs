@@ -2,7 +2,7 @@
 pub mod ga;
 
 use chrono::{DateTime, Duration, Local};
-use genetic::{Fitness, FitnessEvaluation, Genotype, Population};
+use genetic::{Fitness, FitnessFunction, Genotype, Population};
 use operator::{CrossoverOp, MutationOp, ReinsertionOp, SelectionOp};
 use termination::{StopReason, Termination};
 use std::rc::Rc;
@@ -11,7 +11,7 @@ use std::rc::Rc;
 /// A `Simulation` is the execution of a genetic algorithm.
 pub trait Simulation<G, F, E, S, C, M, R, Q>
     where G: Genotype, F: Fitness,
-          E: FitnessEvaluation<G, F>, S: SelectionOp<G, F>, Q: Termination<G, F>,
+          E: FitnessFunction<G, F>, S: SelectionOp<G, F>, Q: Termination<G, F>,
           C: CrossoverOp<G>, M: MutationOp<G>, R: ReinsertionOp<G, F>, Self: Sized
 {
     /// A `SimulationBuilder` that can build this `Simulation`.
@@ -43,7 +43,7 @@ pub trait Simulation<G, F, E, S, C, M, R, Q>
 pub trait SimulationBuilder<Sim, G, F, E, S, C, M, R, Q>
     where Sim: Simulation<G, F, E, S, C, M, R, Q>,
           G: Genotype, F: Fitness,
-          E: FitnessEvaluation<G, F>, S: SelectionOp<G, F>, Q: Termination<G, F>,
+          E: FitnessFunction<G, F>, S: SelectionOp<G, F>, Q: Termination<G, F>,
           C: CrossoverOp<G>, M: MutationOp<G>, R: ReinsertionOp<G, F>
 {
     /// Finally initializes the `Simulation` with the given `Population`

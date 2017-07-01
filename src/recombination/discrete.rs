@@ -12,7 +12,7 @@ use operator::{CrossoverOp, GeneticOperator};
 use simulation::SimError;
 use fixedbitset::FixedBitSet;
 use random::random_n_cut_points;
-use rand::Rng;
+use rand::{Rand, Rng};
 use std::fmt::Debug;
 
 
@@ -84,7 +84,7 @@ impl GeneticOperator for DiscreteCrossBreeder {
 }
 
 impl<V> CrossoverOp<Vec<V>> for DiscreteCrossBreeder
-    where V: Clone + Debug + PartialEq
+    where V: Clone + Debug + PartialEq + Rand + Send + Sync
 {
     fn crossover<R>(&self, parents: Parents<Vec<V>>, rng: &mut R)
         -> Result<Children<Vec<V>>, SimError>
@@ -165,7 +165,7 @@ pub trait MultiPointCrossover: Genotype {
 }
 
 impl<V> MultiPointCrossover for Vec<V>
-    where V: Clone + Debug + PartialEq {
+    where V: Clone + Debug + PartialEq + Rand + Send + Sync {
     type Dna = V;
 
     fn crossover<R>(parents: Parents<Self>, num_cut_points: usize, rng: &mut R) -> Children<Self>

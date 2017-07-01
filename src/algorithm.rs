@@ -1,64 +1,11 @@
-
+use genetic::{Fitness, FitnessFunction, Genotype};
+use operator::{CrossoverOp, MutationOp, ReinsertionOp, SelectionOp};
+use termination::Termination;
 use fixedbitset::FixedBitSet;
+use rand::Rand;
 use std::fmt::Debug;
 use std::marker::PhantomData;
 
-pub trait Phenotype<T> {
-    fn as_() -> T;
-}
-
-pub trait Genotype: Clone + Debug + Send + Sync {
-    type Dna;
-}
-
-impl Genotype for FixedBitSet {
-    type Dna = bool;
-}
-
-impl<V> Genotype for Vec<V> where V: Clone + Debug + Send + Sync {
-    type Dna = V;
-}
-
-pub trait Fitness {
-
-}
-
-pub trait FitnessFunction<G, F> {
-
-    fn evaluate(genome: G) -> F;
-
-}
-
-pub struct EvaluatedGenotype<G, F>
-    where G: Genotype, F: Fitness {
-    genome: G,
-    fitness: F,
-}
-
-pub trait SelectionOp<G, F>
-    where G: Genotype, F: Fitness {
-
-}
-
-pub trait CrossoverOp<G>
-    where G: Genotype {
-
-}
-
-pub trait MutationOp<G>
-    where G: Genotype {
-
-}
-
-pub trait ReinsertionOp<G, F>
-    where G: Genotype, F: Fitness {
-
-}
-
-pub trait Termination<G, F>
-    where G: Genotype, F: Fitness {
-
-}
 
 pub trait Algorithm {
 
@@ -109,7 +56,7 @@ impl<G, F, E, S, C, M, R, T> GeneticAlgorithm<G, F, E, S, C, M, R, T>
     }
 }
 
-pub fn genetic_algorithm<G, F, E, S, C, M, R, T>() -> FitnessFunctionBuilder<G, F>
+pub fn genetic_algorithm<G, F, E, S, C, M, R, T>() -> EmptyGeneticAlgorithmBuilder<G, F>
     where G: Genotype, F: Fitness, E: FitnessFunction<G, F>, S: SelectionOp<G, F>,
           C: CrossoverOp<G>, M: MutationOp<G>, R: ReinsertionOp<G, F>, T: Termination<G, F> {
     GeneticAlgorithmBuilder::<G, F, E, S, C, M, R, T>::new()
@@ -132,8 +79,8 @@ impl<G, F, E, S, C, M, R, T> GeneticAlgorithmBuilder<G, F, E, S, C, M, R, T>
     where G: Genotype, F: Fitness, E: FitnessFunction<G, F>, S: SelectionOp<G, F>,
           C: CrossoverOp<G>, M: MutationOp<G>, R: ReinsertionOp<G, F>, T: Termination<G, F> {
 
-    pub fn new() -> FitnessFunctionBuilder<G, F> {
-        FitnessFunctionBuilder {
+    pub fn new() -> EmptyGeneticAlgorithmBuilder<G, F> {
+        EmptyGeneticAlgorithmBuilder {
             _g: PhantomData,
             _f: PhantomData,
         }
@@ -153,19 +100,19 @@ impl<G, F, E, S, C, M, R, T> GeneticAlgorithmBuilder<G, F, E, S, C, M, R, T>
     }
 }
 
-pub struct FitnessFunctionBuilder<G, F>
+pub struct EmptyGeneticAlgorithmBuilder<G, F>
     where G: Genotype, F: Fitness {
     // phantom data to prevent direct initialization by the user of the lib
     _g: PhantomData<G>,
     _f: PhantomData<F>
 }
 
-impl<G, F> FitnessFunctionBuilder<G, F>
+impl<G, F> EmptyGeneticAlgorithmBuilder<G, F>
     where G: Genotype, F: Fitness {
 
-    pub fn with_evaluation<E>(self, fitness_function: E) -> SelectionOpBuilder<G, F, E>
+    pub fn with_evaluation<E>(self, fitness_function: E) -> GaWithEvBuilder<G, F, E>
         where E: FitnessFunction<G, F> {
-        SelectionOpBuilder {
+        GaWithEvBuilder {
             _g: self._g,
             _f: self._f,
             evaluator: fitness_function,
@@ -173,19 +120,19 @@ impl<G, F> FitnessFunctionBuilder<G, F>
     }
 }
 
-pub struct SelectionOpBuilder<G, F, E>
+pub struct GaWithEvBuilder<G, F, E>
     where G: Genotype, F: Fitness, E: FitnessFunction<G, F> {
     _g: PhantomData<G>,
     _f: PhantomData<F>,
     evaluator: E,
 }
 
-impl<G, F, E> SelectionOpBuilder<G, F, E>
+impl<G, F, E> GaWithEvBuilder<G, F, E>
     where G: Genotype, F: Fitness, E: FitnessFunction<G, F> {
 
-    pub fn with_selection<S>(self, selection_op: S) -> CrossoverOpBuilder<G, F, E, S>
+    pub fn with_selection<S>(self, selection_op: S) -> GeneticAlgorithmWithEvalAndSeleBuilder<G, F, E, S>
         where S: SelectionOp<G, F> {
-        CrossoverOpBuilder {
+        GeneticAlgorithmWithEvalAndSeleBuilder {
             _g: self._g,
             _f: self._f,
             evaluator: self.evaluator,
@@ -194,7 +141,7 @@ impl<G, F, E> SelectionOpBuilder<G, F, E>
     }
 }
 
-pub struct CrossoverOpBuilder<G, F, E, S>
+pub struct GeneticAlgorithmWithEvalAndSeleBuilder<G, F, E, S>
     where G: Genotype, F: Fitness, E: FitnessFunction<G, F>, S: SelectionOp<G, F> {
     _g: PhantomData<G>,
     _f: PhantomData<F>,
@@ -202,12 +149,12 @@ pub struct CrossoverOpBuilder<G, F, E, S>
     selector: S,
 }
 
-impl<G, F, E, S> CrossoverOpBuilder<G, F, E, S>
+impl<G, F, E, S> GeneticAlgorithmWithEvalAndSeleBuilder<G, F, E, S>
     where G: Genotype, F: Fitness, E: FitnessFunction<G, F>, S: SelectionOp<G, F> {
 
-    pub fn with_crossover<C>(self, crossover_op: C) -> MutationOpBuilder<G, F, E, S, C>
+    pub fn with_crossover<C>(self, crossover_op: C) -> GeneticAlgorithmWithEvalSeleAndBreeBuilder<G, F, E, S, C>
         where C: CrossoverOp<G> {
-        MutationOpBuilder {
+        GeneticAlgorithmWithEvalSeleAndBreeBuilder {
             _g: self._g,
             _f: self._f,
             evaluator: self.evaluator,
@@ -217,7 +164,7 @@ impl<G, F, E, S> CrossoverOpBuilder<G, F, E, S>
     }
 }
 
-pub struct MutationOpBuilder<G, F, E, S, C>
+pub struct GeneticAlgorithmWithEvalSeleAndBreeBuilder<G, F, E, S, C>
     where G: Genotype, F: Fitness, E: FitnessFunction<G, F>, S: SelectionOp<G, F>,
           C: CrossoverOp<G> {
     _g: PhantomData<G>,
@@ -227,13 +174,13 @@ pub struct MutationOpBuilder<G, F, E, S, C>
     breeder: C,
 }
 
-impl<G, F, E, S, C> MutationOpBuilder<G, F, E, S, C>
+impl<G, F, E, S, C> GeneticAlgorithmWithEvalSeleAndBreeBuilder<G, F, E, S, C>
     where G: Genotype, F: Fitness, E: FitnessFunction<G, F>, S: SelectionOp<G, F>,
           C: CrossoverOp<G> {
 
-    pub fn with_mutation<M>(self, mutation_op: M) -> ReinsertionOpBuilder<G, F, E, S, C, M>
+    pub fn with_mutation<M>(self, mutation_op: M) -> GeneticAlgorithmWithEvalSeleBreeAndMutaBuilder<G, F, E, S, C, M>
         where M: MutationOp<G> {
-        ReinsertionOpBuilder {
+        GeneticAlgorithmWithEvalSeleBreeAndMutaBuilder {
             _g: self._g,
             _f: self._f,
             evaluator: self.evaluator,
@@ -244,7 +191,7 @@ impl<G, F, E, S, C> MutationOpBuilder<G, F, E, S, C>
     }
 }
 
-pub struct ReinsertionOpBuilder<G, F, E, S, C, M>
+pub struct GeneticAlgorithmWithEvalSeleBreeAndMutaBuilder<G, F, E, S, C, M>
     where G: Genotype, F: Fitness, E: FitnessFunction<G, F>, S: SelectionOp<G, F>,
           C: CrossoverOp<G>, M: MutationOp<G> {
     _g: PhantomData<G>,
@@ -255,13 +202,13 @@ pub struct ReinsertionOpBuilder<G, F, E, S, C, M>
     mutator: M,
 }
 
-impl<G, F, E, S, C, M> ReinsertionOpBuilder<G, F, E, S, C, M>
+impl<G, F, E, S, C, M> GeneticAlgorithmWithEvalSeleBreeAndMutaBuilder<G, F, E, S, C, M>
     where G: Genotype, F: Fitness, E: FitnessFunction<G, F>, S: SelectionOp<G, F>,
           C: CrossoverOp<G>, M: MutationOp<G> {
 
-    pub fn with_reinsertion<R>(self, reinsertion_op: R) -> TerminationBuilder<G, F, E, S, C, M, R>
+    pub fn with_reinsertion<R>(self, reinsertion_op: R) -> GeneticAlgorithmWithEvalSeleBreeMutaAndReinBuilder<G, F, E, S, C, M, R>
         where R: ReinsertionOp<G, F> {
-        TerminationBuilder {
+        GeneticAlgorithmWithEvalSeleBreeMutaAndReinBuilder {
             _g: self._g,
             _f: self._f,
             evaluator: self.evaluator,
@@ -273,7 +220,7 @@ impl<G, F, E, S, C, M> ReinsertionOpBuilder<G, F, E, S, C, M>
     }
 }
 
-pub struct TerminationBuilder<G, F, E, S, C, M, R>
+pub struct GeneticAlgorithmWithEvalSeleBreeMutaAndReinBuilder<G, F, E, S, C, M, R>
     where G: Genotype, F: Fitness, E: FitnessFunction<G, F>, S: SelectionOp<G, F>,
           C: CrossoverOp<G>, M: MutationOp<G>, R: ReinsertionOp<G, F> {
     _g: PhantomData<G>,
@@ -285,7 +232,7 @@ pub struct TerminationBuilder<G, F, E, S, C, M, R>
     reinserter: R,
 }
 
-impl<G, F, E, S, C, M, R> TerminationBuilder<G, F, E, S, C, M, R>
+impl<G, F, E, S, C, M, R> GeneticAlgorithmWithEvalSeleBreeMutaAndReinBuilder<G, F, E, S, C, M, R>
     where G: Genotype, F: Fitness, E: FitnessFunction<G, F>, S: SelectionOp<G, F>,
           C: CrossoverOp<G>, M: MutationOp<G>, R: ReinsertionOp<G, F> {
 

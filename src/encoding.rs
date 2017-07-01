@@ -21,8 +21,9 @@
 //! appropriate encoding trait. If an application is defining its own crossover
 //! and mutation operators then using these marker traits is optional.
 
-use fixedbitset::FixedBitSet;
 use genetic::Genotype;
+use fixedbitset::FixedBitSet;
+use rand::Rand;
 use std::fmt::Debug;
 
 
@@ -39,14 +40,18 @@ pub trait PermutationEncoded {}
 pub trait TreeEncoded: Genotype {}
 
 /// Implementation of genotype using `fixedbistset::FixedBitSet`.
-impl Genotype for FixedBitSet {}
+impl Genotype for FixedBitSet {
+    type Dna=bool;
+}
 
 /// Implementation of binary encoded `genetic::Genotype`
 /// using `fixedbistset::FixedBitSet`.
 impl BinaryEncoded for FixedBitSet {}
 
 /// Implementation of a genotype using `Vec`.
-impl<V> Genotype for Vec<V> where V: Clone + Debug + PartialEq {}
+impl<V> Genotype for Vec<V> where V: Clone + Debug + PartialEq + Rand + Send + Sync {
+    type Dna = V;
+}
 
 /// Implementation of a value encoded `genetic::Genotype`.
 /// using `Vec`.

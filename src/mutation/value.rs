@@ -4,7 +4,7 @@ use operator::{GeneticOperator, MutationOp};
 use simulation::SimError;
 use fixedbitset::FixedBitSet;
 use random::random_index;
-use rand::Rng;
+use rand::{Rand, Rng};
 use std::fmt::Debug;
 
 
@@ -12,13 +12,14 @@ use std::fmt::Debug;
 pub struct RandomValueMutator<G>
     where G: Genotype + RandomGenomeMutation {
     mutation_rate: f64,
-    min_value: G::Dna,
-    max_value: G::Dna,
+    min_value: <G as Genotype>::Dna,
+    max_value: <G as Genotype>::Dna,
 }
 
 impl<G> RandomValueMutator<G>
     where G: Genotype + RandomGenomeMutation {
-    pub fn new(mutation_rate: f64, min_value: G::Dna, max_value: G::Dna) -> Self {
+    pub fn new(mutation_rate: f64, min_value: <G as Genotype>::Dna,
+               max_value: <G as Genotype>::Dna) -> Self {
         RandomValueMutator {
             mutation_rate: mutation_rate,
             min_value: min_value,
@@ -49,8 +50,8 @@ impl<G> MutationOp<G> for RandomValueMutator<G>
 pub trait RandomGenomeMutation: Genotype {
     type Dna: Clone;
 
-    fn mutate_genome<R>(genome: Self, mutation_rate: f64, min_value: &Self::Dna,
-                        max_value: &Self::Dna, rng: &mut R) -> Self where R: Rng;
+    fn mutate_genome<R>(genome: Self, mutation_rate: f64, min_value: &<Self as Genotype>::Dna,
+                        max_value: &<Self as Genotype>::Dna, rng: &mut R) -> Self where R: Rng;
 
 }
 
@@ -58,8 +59,8 @@ impl RandomGenomeMutation for FixedBitSet {
     type Dna = bool;
 
     #[allow(unused_variables)]
-    fn mutate_genome<R>(genome: Self, mutation_rate: f64, min_value: &Self::Dna,
-                        max_value: &Self::Dna, rng: &mut R) -> Self where R: Rng {
+    fn mutate_genome<R>(genome: Self, mutation_rate: f64, min_value: &<Self as Genotype>::Dna,
+                        max_value: &<Self as Genotype>::Dna, rng: &mut R) -> Self where R: Rng {
         let genome_length = genome.len();
         let num_mutations = ((genome_length as f64 * mutation_rate) + rng.next_f64()).floor() as usize;
         let mut mutated = genome;
@@ -73,7 +74,7 @@ impl RandomGenomeMutation for FixedBitSet {
 }
 
 impl<V> RandomGenomeMutation for Vec<V>
-    where V: Clone + Debug + PartialEq + RandomValueMutation {
+    where V: Clone + Debug + PartialEq + Rand + Send + Sync + RandomValueMutation {
     type Dna = V;
 
     fn mutate_genome<R>(genome: Self, mutation_rate: f64, min_value: &V,
@@ -118,16 +119,16 @@ impl_random_value_mutation!(u8, u16, u32, u64, usize, i8, i16, i32, i64, isize, 
 pub struct BreederValueMutator<G>
     where G: Genotype + BreederGenomeMutation {
     mutation_rate: f64,
-    mutation_range: G::Dna,
+    mutation_range: <G as Genotype>::Dna,
     mutation_precision: u8,
-    min_value: G::Dna,
-    max_value: G::Dna,
+    min_value: <G as Genotype>::Dna,
+    max_value: <G as Genotype>::Dna,
 }
 
 impl<G> BreederValueMutator<G>
     where G: Genotype + BreederGenomeMutation {
-    pub fn new(mutation_rate: f64, mutation_range: G::Dna, mutation_precision: u8,
-               min_value: G::Dna, max_value: G::Dna) -> Self {
+    pub fn new(mutation_rate: f64, mutation_range: <G as Genotype>::Dna, mutation_precision: u8,
+               min_value: <G as Genotype>::Dna, max_value: <G as Genotype>::Dna) -> Self {
         BreederValueMutator {
             mutation_rate: mutation_rate,
             mutation_range: mutation_range,
@@ -162,17 +163,20 @@ impl<G> MutationOp<G> for BreederValueMutator<G>
 pub trait BreederGenomeMutation: Genotype {
     type Dna: Clone;
 
-    fn mutate_genome<R>(genome: Self, mutation_rate: f64, range: &Self::Dna, precision: u8,
-                        min_value: &Self::Dna, max_value: &Self::Dna, rng: &mut R) -> Self
+    fn mutate_genome<R>(genome: Self, mutation_rate: f64, range: &<Self as Genotype>::Dna,
+                        precision: u8, min_value: &<Self as Genotype>::Dna,
+                        max_value: &<Self as Genotype>::Dna, rng: &mut R) -> Self
         where R: Rng + Sized;
 }
 
 impl<V> BreederGenomeMutation for Vec<V>
-    where V: Clone + Debug + PartialEq + PartialOrd + BreederValueMutation + RandomValueMutation {
+    where V: Clone + Debug + PartialEq + PartialOrd + Rand + Send + Sync
+             + BreederValueMutation + RandomValueMutation {
     type Dna = V;
 
-    fn mutate_genome<R>(genome: Vec<V>, mutation_rate: f64, range: &Self::Dna, precision: u8,
-                        min_value: &Self::Dna, max_value: &Self::Dna, rng: &mut R) -> Vec<V>
+    fn mutate_genome<R>(genome: Vec<V>, mutation_rate: f64, range: &<Self as Genotype>::Dna,
+                        precision: u8, min_value: &<Self as Genotype>::Dna,
+                        max_value: &<Self as Genotype>::Dna, rng: &mut R) -> Vec<V>
         where R: Rng + Sized {
         let genome_length = genome.len();
         let num_mutations = ((genome_length as f64 * mutation_rate) + rng.next_f64()).floor() as usize;
