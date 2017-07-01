@@ -8,7 +8,7 @@ use genevo::genetic::{FitnessEvaluation, PopulationGenerator};
 use genevo::mutation::value::{BreederValueMutation, BreederValueMutator, RandomValueMutation};
 use genevo::recombination::discrete::DiscreteCrossBreeder;
 use genevo::reinsertion::elitist::ElitistReinserter;
-use genevo::selection::proportional::RouletteWheelSelector;
+use genevo::selection::proportionate::RouletteWheelSelector;
 use genevo::simulation::{Simulation, SimulationBuilder, SimResult};
 use genevo::simulation::ga;
 use genevo::termination::or;

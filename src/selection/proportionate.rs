@@ -1,4 +1,4 @@
-//! The `proportional` module provides `operator::SelectionOp`s that implement
+//! The `proportionate` module provides `operator::SelectionOp`s that implement
 //! stochastic fitness proportionate selection strategies. Individuals are
 //! randomly selected. Individuals with a higher `genetic::Fitness` value are
 //! having a higher probability to be selected.

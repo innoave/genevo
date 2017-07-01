@@ -38,6 +38,10 @@ types for modelling the domain of genetic algorithms.
 
 ## Research
 
+[[JFGA]]Jeremy Fisher: Genetic Algorithms
+
+[JFGA]: https://www.youtube.com/watch?v=7J-DfS52bnI&t=302s
+
 [[OBI98]] Marek Obitko: Genetic Algorithms Tutorial
 
 [OBI98]: http://www.obitko.com/tutorials/genetic-algorithms/
@@ -70,4 +74,4 @@ types for modelling the domain of genetic algorithms.
 [GA]: https://en.wikipedia.org/wiki/Genetic_algorithm
 [Rust]: https://www.rust-lang.org/
 
-Copyright &copy; 2017, Innoave.com
+Copyright &copy; 2017, Innoave.com and contributors

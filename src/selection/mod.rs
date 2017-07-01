@@ -5,10 +5,10 @@
 //! named after the utilized selection method:
 //! * `truncation`
 //! * `ranking`
-//! * `proportional`
+//! * `proportionate`
 //! * `tournament`
 
-pub mod proportional;
+pub mod proportionate;
 
 pub mod ranking;
 
