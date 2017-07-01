@@ -61,7 +61,7 @@ trait AsPhenotype {
 
 impl AsPhenotype for TextGenome {
     fn as_text(&self) -> Text {
-        format!("{}", self.iter().fold(String::new(), |s, c| s + &(*c as char).to_string()))
+        String::from_utf8(self.to_vec()).unwrap()
     }
 }
 

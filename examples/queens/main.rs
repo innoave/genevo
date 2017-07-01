@@ -53,18 +53,15 @@ impl AsPhenotype for Positions {
 
 fn count_collisions(positions: &Positions) -> i16 {
     let mut count = 0;
-    for i in 0..positions.len() {
-        for j in 0..positions.len() {
-            if i != j {
-                let i_pos = &positions[i];
-                let j_pos = &positions[j];
-                if i_pos.x == j_pos.x
+    for (i, i_pos) in positions.iter().enumerate() {
+        for (j, j_pos) in positions.iter().enumerate() {
+            if i != j
+                && (i_pos.x == j_pos.x
                     || i_pos.y == j_pos.y
                     || i_pos.x + i_pos.y == j_pos.x + j_pos.y
                     || i_pos.x - i_pos.y == j_pos.x - j_pos.y
-                {
-                        count += 1;
-                }
+                ) {
+                count += 1;
             }
         }
     }

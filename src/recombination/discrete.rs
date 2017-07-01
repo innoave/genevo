@@ -190,8 +190,8 @@ impl<V> MultiPointCrossover for Vec<V>
                     }
                 };
                 let partner = &parents[p_index];
-                for i in start..end {
-                    genome.push(partner[i].clone())
+                for partner in partner.iter().take(end).skip(start) {
+                    genome.push(partner.clone())
                 }
                 if cutpoints.is_empty() {
                     break;

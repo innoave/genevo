@@ -93,13 +93,11 @@ impl Display for Duration {
             } else {
                 sign + &fmt_duration_sub_seconds(&duration_nanos, false)
             }
+        } else if duration_nanos == 0 {
+            sign + &fmt_duration_seconds(&duration_secs, false)
         } else {
-            if duration_nanos == 0 {
-                sign + &fmt_duration_seconds(&duration_secs, false)
-            } else {
-                sign + &fmt_duration_seconds(&duration_secs, true)
-                    + " " + &fmt_duration_sub_seconds(&duration_nanos, true)
-            }
+            sign + &fmt_duration_seconds(&duration_secs, true)
+                + " " + &fmt_duration_sub_seconds(&duration_nanos, true)
         }
     }
 
@@ -208,12 +206,10 @@ fn fmt_duration_sub_seconds(duration_nanos: &i64, always_print_millis: bool) -> 
             } else {
                 format!("{},000ns", micros)
             }
+        } else if micros == 0 {
+            format!("{}ns", nanos)
         } else {
-            if micros == 0 {
-                format!("{}ns", nanos)
-            } else {
-                format!("{},{:03}ns", micros, nanos)
-            }
+            format!("{},{:03}ns", micros, nanos)
         }
     } else {
         if nanos == 0 {
@@ -222,12 +218,10 @@ fn fmt_duration_sub_seconds(duration_nanos: &i64, always_print_millis: bool) -> 
             } else {
                 format!("{}ms {},000ns", millis, micros)
             }
+        } else if micros == 0 {
+            format!("{}ms {}ns", millis, nanos)
         } else {
-            if micros == 0 {
-                format!("{}ms {}ns", millis, nanos)
-            } else {
-                format!("{}ms {},{:03}ns", millis, micros, nanos)
-            }
+            format!("{}ms {},{:03}ns", millis, micros, nanos)
         }
     }
 }

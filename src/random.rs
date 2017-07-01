@@ -123,9 +123,10 @@ fn calc_weights_and_sum<'a, T>(values: &'a [T]) -> (Vec<f64>, f64)
     where T: 'a + AsScalar {
     let mut weights = Vec::with_capacity(values.len());
     let mut weight_sum: f64 = 0.;
-    for i in 0..values.len() {
-        weights.push(values[i].as_scalar());
-        weight_sum += values[i].as_scalar();
+    for value in values.iter() {
+        let scalar = value.as_scalar();
+        weight_sum += scalar;
+        weights.push(scalar);
     }
     (weights, weight_sum)
 }
@@ -133,8 +134,8 @@ fn calc_weights_and_sum<'a, T>(values: &'a [T]) -> (Vec<f64>, f64)
 /// Selects one index proportional to their weights.
 fn weighted_select(pointer: f64, weights: &[f64]) -> usize {
     let mut delta = pointer;
-    for i in 0..weights.len() {
-        delta -= weights[i];
+    for (i, weight) in weights.iter().enumerate() {
+        delta -= *weight;
         if delta <= 0. {
             return i;
         }

@@ -101,7 +101,7 @@ impl<G, F> SelectionOp<G, F> for MaximizeSelector
             let mut tuple = Vec::with_capacity(self.num_individuals_per_parents);
             for _ in 0..self.num_individuals_per_parents {
                 // index into mating pool
-                index_m = index_m % pool_size;
+                index_m %= pool_size;
                 // index into individuals slice
                 let index_i = mating_pool[index_m];
                 tuple.push(individuals[index_i].clone());

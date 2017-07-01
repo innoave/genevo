@@ -44,7 +44,7 @@ impl<T1, T2, G, F> Termination<G, F> for And<T1, T2, G, F>
 {
     fn evaluate(&mut self, state: &State<G, F>) -> StopFlag {
         let mut reasons = Vec::with_capacity(2);
-        match self.condition1.evaluate(state.clone()) {
+        match self.condition1.evaluate(state) {
             StopFlag::StopNow(reason) => reasons.push(reason),
             StopFlag::Continue => (),
         }
@@ -53,8 +53,7 @@ impl<T1, T2, G, F> Termination<G, F> for And<T1, T2, G, F>
             StopFlag::Continue => (),
         }
         match reasons.len() {
-            0 => StopFlag::Continue,
-            1 => StopFlag::Continue,
+            0 | 1 => StopFlag::Continue,
             _ => StopFlag::StopNow(reasons.join(" and ")) //TODO how combine the two `StopReason`s preserving combinator semantics?
         }
     }
@@ -100,7 +99,7 @@ impl<T1, T2, G, F> Termination<G, F> for Or<T1, T2, G, F>
 {
     fn evaluate(&mut self, state: &State<G, F>) -> StopFlag {
         let mut reasons = Vec::with_capacity(2);
-        match self.condition1.evaluate(state.clone()) {
+        match self.condition1.evaluate(state) {
             StopFlag::StopNow(reason) => reasons.push(reason),
             StopFlag::Continue => (),
         }

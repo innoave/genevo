@@ -142,10 +142,9 @@ impl<G, F, E> ReinsertionOp<G, F> for ElitistReinserter<G, F, E>
             // finally fill up new population with individuals from old population
             //
             let num_old_population = population_size - new_population.len();
-            for i in 0..num_old_population {
+            for index_old in old_population_indices.iter().take(num_old_population) {
                 // pick only the best individuals from old population
-                let index_old = old_population_indices[i];
-                new_population.push(old_individuals[index_old].clone());
+                new_population.push(old_individuals[*index_old].clone());
             }
         } else {
             // evaluate fitness of the offspring individuals

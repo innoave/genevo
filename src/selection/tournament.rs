@@ -15,7 +15,7 @@ use simulation::{EvaluatedPopulation, SimError};
 /// performing individuals from each tournament.
 ///
 /// The number of participants in each tournament is configurable by the
-/// 'tournament_size` field. A tournament size of 1 is called 1-way tournament
+/// `tournament_size` field. A tournament size of 1 is called 1-way tournament
 /// and is equivalent to random selection.
 ///
 /// The final selection is picked from the best performing participants in each
@@ -185,11 +185,8 @@ impl<G, F> SelectionOp<G, F> for TournamentSelector
                 if random_probability(rng) <= prob {
                     let picked = tournament.remove(0);
                     if self.remove_selected_individuals {
-                        match mating_pool.iter().position(|x| *x == picked) {
-                            Some(position) => {
-                                mating_pool.remove(position);
-                            },
-                            _ => (),
+                        if let Some(position) = mating_pool.iter().position(|x| *x == picked) {
+                            mating_pool.remove(position);
                         }
                     }
                     picked_candidates.push(picked);

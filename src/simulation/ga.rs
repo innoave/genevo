@@ -217,11 +217,7 @@ impl<G, F, E, S, C, M, R, Q> Simulation<G, F, E, S, C, M, R, Q>
 
     fn stop(&mut self) -> Result<bool, SimError> {
         match self.run_mode {
-            RunMode::Loop => {
-                self.finished = true;
-                Ok(true)
-            },
-            RunMode::Step => {
+            RunMode::Loop | RunMode::Step => {
                 self.finished = true;
                 Ok(true)
             },
@@ -382,7 +378,7 @@ impl<G, F, E, S, C, M, R, Q> Simulator<G, F, E, S, C, M, R, Q>
 //        let curr_p = Rc::try_unwrap(curr_p).expect("Can not unwrap Rc(Vec<G>)");
         self.generation += 1;
         State {
-            started_at: self.started_at.clone(),
+            started_at: self.started_at,
             generation: curr_generation,
             population: curr_p.to_vec(),
             fitness_values: score_board.fitness_values,

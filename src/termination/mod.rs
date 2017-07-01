@@ -31,7 +31,7 @@ use simulation::State;
 /// The `StopFlag` is the result of the `Termination` function. It tells
 /// the simulation whether it shall stop or if it can continue.
 ///
-/// If the StopFlag indicates that the simulation must stop, also the reason
+/// If the `StopFlag` indicates that the simulation must stop, also the reason
 /// (`StopReason`) must be specified.
 pub enum StopFlag {
     /// Flag for 'Stop the simulation now'.

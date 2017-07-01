@@ -141,16 +141,14 @@ fn partial_mapped_crossover(parent1: &[usize], parent2: &[usize],
     let mut result: HashMap<usize, usize> = HashMap::with_capacity(genome_length);
     // mapping of value to index
     let mut inverse: HashMap<usize, usize> = HashMap::with_capacity(genome_length);
-    for i in 0..genome_length {
-        let v2 = parent2[i];
-        result.insert(i, v2);
-        inverse.insert(v2, i);
+    for (i, v2) in parent2.iter().enumerate() {
+        result.insert(i, *v2);
+        inverse.insert(*v2, i);
     }
-    for j in cutpoint1..cutpoint2 + 1 {
+    for (j, v1) in parent1.iter().enumerate().take(cutpoint2 + 1).skip(cutpoint1) {
         let orig = result[&j];
-        let v1 = parent1[j];
-        result.insert(j, v1);
-        let k = inverse[&v1];
+        result.insert(j, *v1);
+        let k = inverse[v1];
         result.insert(k, orig);
         inverse.insert(orig, k);
     }

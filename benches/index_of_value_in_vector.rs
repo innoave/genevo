@@ -40,7 +40,7 @@ fn fixture(member: usize, size: usize) -> Fixture {
 }
 
 #[bench]
-fn index_of_gene_in_vector__the_functional_way__200_member(b: &mut Bencher) {
+fn index_of_gene_in_vector_the_functional_way_200_member(b: &mut Bencher) {
     let fixture = fixture(200, 11);
     b.iter(|| {
         for i in 0..fixture.data.len() {
@@ -51,7 +51,7 @@ fn index_of_gene_in_vector__the_functional_way__200_member(b: &mut Bencher) {
 }
 
 #[bench]
-fn index_of_gene_in_vector__for_loop_over_index__200_member(b: &mut Bencher) {
+fn index_of_gene_in_vector_for_loop_over_index_200_member(b: &mut Bencher) {
     let fixture = fixture(200, 11);
     b.iter(|| {
         for i in 0..fixture.data.len() {
@@ -62,7 +62,7 @@ fn index_of_gene_in_vector__for_loop_over_index__200_member(b: &mut Bencher) {
 }
 
 #[bench]
-fn index_of_gene_in_vector__the_functional_way__20_member(b: &mut Bencher) {
+fn index_of_gene_in_vector_the_functional_way_20_member(b: &mut Bencher) {
     let fixture = fixture(20, 200);
     b.iter(|| {
         for i in 0..fixture.data.len() {
@@ -73,7 +73,7 @@ fn index_of_gene_in_vector__the_functional_way__20_member(b: &mut Bencher) {
 }
 
 #[bench]
-fn index_of_gene_in_vector__for_loop_over_index__20_member(b: &mut Bencher) {
+fn index_of_gene_in_vector_for_loop_over_index_20_member(b: &mut Bencher) {
     let fixture = fixture(20, 200);
     b.iter(|| {
         for i in 0..fixture.data.len() {
@@ -84,7 +84,7 @@ fn index_of_gene_in_vector__for_loop_over_index__20_member(b: &mut Bencher) {
 }
 
 #[bench]
-fn index_of_gene_in_vector__the_functional_way__2000_member(b: &mut Bencher) {
+fn index_of_gene_in_vector_the_functional_way_2000_member(b: &mut Bencher) {
     let fixture = fixture(2000, 11);
     b.iter(|| {
         for i in 0..fixture.data.len() {
@@ -95,7 +95,7 @@ fn index_of_gene_in_vector__the_functional_way__2000_member(b: &mut Bencher) {
 }
 
 #[bench]
-fn index_of_gene_in_vector__for_loop_over_index__2000_member(b: &mut Bencher) {
+fn index_of_gene_in_vector_for_loop_over_index_2000_member(b: &mut Bencher) {
     let fixture = fixture(2000, 11);
     b.iter(|| {
         for i in 0..fixture.data.len() {

@@ -186,7 +186,7 @@ impl<V> BreederGenomeMutation for Vec<V>
                 1.
             };
             let value_mut = BreederValueMutation::breeder_mutated(mutated[index].clone(),
-                                                                  &range, adjustment, sign);
+                                                                  range, adjustment, sign);
             if value_mut < *min_value {
                 mutated[index] = RandomValueMutation::random_mutated(value_mut, min_value,
                                                                      max_value, rng)
