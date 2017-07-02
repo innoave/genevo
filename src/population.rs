@@ -1,8 +1,8 @@
 
-use algorithm::*;
 use genetic::{Genotype};
 use fixedbitset::FixedBitSet;
-use rand::{Rand, Rng, thread_rng};
+use rand::{Rng, thread_rng};
+use rand::distributions::range::SampleRange;
 use rayon;
 use std::marker::PhantomData;
 use std::fmt::Debug;
@@ -30,31 +30,43 @@ impl<G> Population<G> where G: Genotype {
     }
 }
 
-pub trait PopulationBuilder {
+pub struct PopulationBuilder;
 
-    fn build_population(population_size: usize, length_of_genome: usize) -> Population<Self>
-        where Self: Genotype + Sized {
-        if population_size < 60 {
+impl PopulationBuilder {
+
+    pub fn build_population<B, G, TR, R>(genome_builder: &B, size: usize,
+                                      thread_rng: &TR) -> Population<G>
+        where B: GenomeBuilder<G>, G: Genotype, TR: Fn() -> R + Send + Sync, R: Rng + Sized
+    {
+        if size < 60 {
+            let mut rng = thread_rng();
             Population {
-                individuals: (0..population_size).map(|_|
-                    Self::build_individual(length_of_genome)
+                individuals: (0..size).map(|index|
+                    genome_builder.build_genome(index, &mut rng)
                 ).collect(),
             }
         } else {
-            let left_size = population_size / 2;
-            let right_size = population_size - left_size;
-            let (mut left_population, mut right_population) = rayon::join(
-                || Self::build_population(left_size, length_of_genome),
-                || Self::build_population(right_size, length_of_genome)
+            let left_size = size / 2;
+            let right_size = size - left_size;
+            let (left_population, right_population) = rayon::join(
+                || Self::build_population(genome_builder, left_size, thread_rng),
+                || Self::build_population(genome_builder, right_size, thread_rng)
             );
-            left_population.individuals.append(&mut right_population.individuals);
+            let mut right_individuals = right_population.individuals;
+            let mut individuals = left_population.individuals;
+            individuals.append(&mut right_individuals);
             Population {
-                individuals: left_population.individuals,
+                individuals: individuals,
             }
         }
     }
 
-    fn build_individual(genome_length: usize) -> Self;
+}
+
+pub trait GenomeBuilder<G>: Sync where G: Genotype {
+
+    fn build_genome<R>(&self, index: usize, rng: &mut R) -> G
+        where R: Rng + Sized;
 
 }
 
@@ -64,61 +76,112 @@ pub struct EmptyPopulationBuilder {
 }
 
 impl EmptyPopulationBuilder {
-    pub fn with_genome_length(self, genome_length: usize) -> PopulationWithGenomeLengthBuilder {
-        PopulationWithGenomeLengthBuilder {
-            genome_length: genome_length,
+    pub fn with_genome_builder<B, G>(self, genome_builder: B)
+        -> PopulationWithGenomeBuilderBuilder<B, G>
+        where B: GenomeBuilder<G>, G: Genotype
+    {
+        PopulationWithGenomeBuilderBuilder {
+            _g: PhantomData,
+            genome_builder: genome_builder,
         }
     }
 }
 
-pub struct PopulationWithGenomeLengthBuilder {
-    genome_length: usize,
+pub struct PopulationWithGenomeBuilderBuilder<B, G> where B: GenomeBuilder<G>, G: Genotype {
+    _g: PhantomData<G>,
+    genome_builder: B,
 }
 
-impl PopulationWithGenomeLengthBuilder {
-    pub fn of_size(self, population_size: usize) -> PopulationWithGenomeLengthAndSizeBuilder {
-        PopulationWithGenomeLengthAndSizeBuilder {
-            genome_length: self.genome_length,
+impl<B, G> PopulationWithGenomeBuilderBuilder<B, G> where B: GenomeBuilder<G>, G: Genotype {
+
+    pub fn of_size(self, population_size: usize) -> PopulationWithGenomeBuilderAndSizeBuilder<B, G> {
+        PopulationWithGenomeBuilderAndSizeBuilder {
+            _g: self._g,
+            genome_builder: self.genome_builder,
             population_size: population_size,
         }
     }
 }
 
-pub struct PopulationWithGenomeLengthAndSizeBuilder {
-    genome_length: usize,
+pub struct PopulationWithGenomeBuilderAndSizeBuilder<B, G> where B: GenomeBuilder<G>, G: Genotype {
+    _g: PhantomData<G>,
+    genome_builder: B,
     population_size: usize,
 }
 
-impl PopulationWithGenomeLengthAndSizeBuilder {
-    pub fn uniform_at_random<G>(self) -> Population<G> where G: Genotype + PopulationBuilder {
-        PopulationBuilder::build_population(self.population_size, self.genome_length)
+impl<B, G> PopulationWithGenomeBuilderAndSizeBuilder<B, G> where B: GenomeBuilder<G>, G: Genotype {
+
+    pub fn uniform_at_random(self) -> Population<G> {
+        PopulationBuilder::build_population(&self.genome_builder, self.population_size, &thread_rng)
+    }
+
+    pub fn using_number_generator<TR, R>(self, thread_rng: &TR) -> Population<G>
+        where TR: Fn() -> R + Send + Sync, R: Rng + Sized {
+        PopulationBuilder::build_population(&self.genome_builder, self.population_size, &thread_rng)
     }
 }
 
-pub fn random_population() -> EmptyPopulationBuilder {
+pub fn build_population() -> EmptyPopulationBuilder {
     EmptyPopulationBuilder {
         _empty: PhantomData
     }
 }
 
-impl PopulationBuilder for FixedBitSet {
-    fn build_individual(genome_length: usize) -> FixedBitSet {
-        let mut rng = thread_rng();
-        let mut genome = FixedBitSet::with_capacity(genome_length);
-        for bit in 0..genome_length {
+pub struct BinaryEncodedGenomeBuilder {
+    genome_length: usize
+}
+
+impl BinaryEncodedGenomeBuilder {
+
+    pub fn new(genome_length: usize) -> Self {
+        BinaryEncodedGenomeBuilder {
+            genome_length: genome_length,
+        }
+    }
+}
+
+impl GenomeBuilder<FixedBitSet> for BinaryEncodedGenomeBuilder {
+
+    fn build_genome<R>(&self, index: usize, rng: &mut R) -> FixedBitSet where R: Rng + Sized {
+        let mut genome = FixedBitSet::with_capacity(self.genome_length);
+        for bit in 0..self.genome_length {
             genome.set(bit, rng.gen());
         }
         genome
     }
 }
 
-impl<V> PopulationBuilder for Vec<V> where V: Clone + Debug + Send + Sync + Rand {
-    fn build_individual(genome_length: usize) -> Vec<V> {
-        let mut rng = thread_rng();
-        let mut genome = Vec::with_capacity(genome_length);
-        for _ in 0..genome_length {
-            genome.push(rng.gen());
+impl GenomeBuilder<Vec<bool>> for BinaryEncodedGenomeBuilder {
+
+    fn build_genome<R>(&self, index: usize, rng: &mut R) -> Vec<bool> where R: Rng + Sized {
+        (0..self.genome_length).map(|_|
+            rng.gen()
+        ).collect()
+    }
+}
+
+pub struct ValueEncodedGenomeBuilder<V> {
+    genome_length: usize,
+    min_value: V,
+    max_value: V,
+}
+
+impl<V> ValueEncodedGenomeBuilder<V> {
+    pub fn new(genome_length: usize, min_value: V, max_value: V) -> Self {
+        ValueEncodedGenomeBuilder {
+            genome_length: genome_length,
+            min_value: min_value,
+            max_value: max_value,
         }
-        genome
+    }
+}
+
+impl<V> GenomeBuilder<Vec<V>> for ValueEncodedGenomeBuilder<V>
+    where V: Clone + Debug + PartialEq + PartialOrd + SampleRange + Send + Sync {
+
+    fn build_genome<R>(&self, index: usize, rng: &mut R) -> Vec<V> where R: Rng + Sized {
+        (0..self.genome_length).map(|_|
+            rng.gen_range(self.min_value.clone(), self.max_value.clone())
+        ).collect()
     }
 }

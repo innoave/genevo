@@ -4,7 +4,7 @@ use operator::{GeneticOperator, MutationOp};
 use simulation::SimError;
 use fixedbitset::FixedBitSet;
 use random::random_index;
-use rand::{Rand, Rng};
+use rand::Rng;
 use std::fmt::Debug;
 
 
@@ -74,7 +74,7 @@ impl RandomGenomeMutation for FixedBitSet {
 }
 
 impl<V> RandomGenomeMutation for Vec<V>
-    where V: Clone + Debug + PartialEq + Rand + Send + Sync + RandomValueMutation {
+    where V: Clone + Debug + PartialEq + Send + Sync + RandomValueMutation {
     type Dna = V;
 
     fn mutate_genome<R>(genome: Self, mutation_rate: f64, min_value: &V,
@@ -170,7 +170,7 @@ pub trait BreederGenomeMutation: Genotype {
 }
 
 impl<V> BreederGenomeMutation for Vec<V>
-    where V: Clone + Debug + PartialEq + PartialOrd + Rand + Send + Sync
+    where V: Clone + Debug + PartialEq + PartialOrd + Send + Sync
              + BreederValueMutation + RandomValueMutation {
     type Dna = V;
 

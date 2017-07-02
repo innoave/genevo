@@ -33,7 +33,7 @@ use simulation::{BestSolution, Evaluated, EvaluatedPopulation, SimError, SimResu
                  SimulationBuilder, State};
 use statistic::{TimedResult, timed};
 use termination::{StopFlag, Termination};
-use rand::{Rng, thread_rng};
+use rand::thread_rng;
 use rayon;
 use std::marker::PhantomData;
 use std::mem;
@@ -275,34 +275,6 @@ impl<G, F, E, S, C, M, R, Q> Simulator<G, F, E, S, C, M, R, Q>
         })
     }
 
-    /// Calculates the `genetic::Fitness` value of each `genetic::Genotype` and
-    /// records the highest and lowest values.
-    fn evaluate_fitness<'a>(&self, population: Rc<Vec<G>>) -> (EvaluatedPopulation<G, F>, Duration) {
-        let started_at = Local::now();
-        let mut fitness = Vec::with_capacity(population.len());
-        let mut highest = self.evaluator.lowest_possible_fitness();
-        let mut lowest = self.evaluator.highest_possible_fitness();
-        for genome in population.iter() {
-            let score = self.evaluator.fitness_of(&genome);
-            if score > highest {
-                highest = score.clone();
-            }
-            if score < lowest {
-                lowest = score.clone();
-            }
-            fitness.push(score);
-        }
-        let average = self.evaluator.average(&fitness);
-        (EvaluatedPopulation {
-            individuals: population,
-            fitness_values: fitness,
-            highest_fitness: highest,
-            lowest_fitness: lowest,
-            average_fitness: average,
-        },
-        Local::now().signed_duration_since(started_at))
-    }
-
     /// Determines the best solution of the current population
     fn determine_best_solution(&self, score_board: &EvaluatedPopulation<G, F>)
         -> (BestSolution<G, F>, Duration) {
@@ -335,32 +307,6 @@ impl<G, F, E, S, C, M, R, Q> Simulator<G, F, E, S, C, M, R, Q>
             .and_then(|mut offspring|
                 self.reinserter.combine(&mut offspring, evaluated_population, &mut rng));
         (new_population, Local::now().signed_duration_since(started_at))
-    }
-
-    /// Lets the parents breed their offspring and mutate its children. And
-    /// finally combines the offspring of all parents into one big offspring.
-    fn breed_offspring<Rg>(&self, parents: Vec<Parents<G>>, rng: &mut Rg)
-        -> Result<Offspring<G>, SimError>
-        where Rg: Rng + Sized {
-        let mut offspring: Offspring<G> = Vec::new();
-        for parents in parents {
-            match self.breeder.crossover(parents, rng) {
-                Ok(children) => {
-                    for child in children {
-                        match self.mutator.mutate(child, rng) {
-                            Ok(mutated) => {
-                                offspring.push(mutated);
-                            },
-                            Err(error) =>
-                                return Err(error),
-                        }
-                    }
-                },
-                Err(error) =>
-                    return Err(error),
-            }
-        }
-        Ok(offspring)
     }
 
     /// Generates a `simulation::State` object about the last processed

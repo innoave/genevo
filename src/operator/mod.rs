@@ -7,6 +7,8 @@
 //! Their different implementations can be combined in a variety of ways to
 //! make up the actual simulation of a specific problem.
 
+pub mod prelude;
+
 use genetic::{Children, Fitness, Genotype, Offspring, Parents};
 use simulation::{EvaluatedPopulation, SimError};
 use rand::Rng;

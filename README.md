@@ -38,11 +38,11 @@ types for modelling the domain of genetic algorithms.
 
 ## Research
 
-[[JFGA]]Jeremy Fisher: Genetic Algorithms
+[[JFGA]]: Jeremy Fisher: Genetic Algorithms
 
 [JFGA]: https://www.youtube.com/watch?v=7J-DfS52bnI&t=302s
 
-[[OBI98]] Marek Obitko: Genetic Algorithms Tutorial
+[[OBI98]]: Marek Obitko: Genetic Algorithms Tutorial
 
 [OBI98]: http://www.obitko.com/tutorials/genetic-algorithms/
 
@@ -54,19 +54,19 @@ types for modelling the domain of genetic algorithms.
  
 [IGAYT]: https://www.youtube.com/playlist?list=PLea0WJq13cnARQILcbHUPINYLy1lOSmjH 
 
-[[CT9YT]] The Coding Train: 9: Genetic Algorithms - The Nature of Code
+[[CT9YT]]: The Coding Train: 9: Genetic Algorithms - The Nature of Code
 
 [CT9YT]: https://www.youtube.com/playlist?list=PLRqwX-V7Uu6bJM3VgzjNV5YxVxUwzALHV
 
-[[BT95]] Tobias Blickle, Lothar Thiele, 1995: A Comparison of Selection Schemes used in Genetic Algorithms.
+[[BT95]]: Tobias Blickle, Lothar Thiele, 1995: A Comparison of Selection Schemes used in Genetic Algorithms.
 
 [BT95]: http://www.tik.ee.ethz.ch/file/6c0e384dceb283cd4301339a895b72b8/TIK-Report11.pdf
 
-[[RRCGH]] StefanoD: Rust_Random_Choice Rust library.
+[[RRCGH]]: StefanoD: Rust_Random_Choice Rust library.
 
 [RRCGH]: https://github.com/StefanoD/Rust_Random_Choice
 
-[[TSP95]] TSPLIB95: library of sample instances for the TSP (and related problems)
+[[TSP95]]: TSPLIB95: library of sample instances for the TSP (and related problems)
 
 [TSP95]: http://comopt.ifi.uni-heidelberg.de/software/TSPLIB95/index.html
 

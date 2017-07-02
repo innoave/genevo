@@ -23,7 +23,6 @@
 
 use genetic::Genotype;
 use fixedbitset::FixedBitSet;
-use rand::Rand;
 use std::fmt::Debug;
 
 
@@ -49,7 +48,7 @@ impl Genotype for FixedBitSet {
 impl BinaryEncoded for FixedBitSet {}
 
 /// Implementation of a genotype using `Vec`.
-impl<V> Genotype for Vec<V> where V: Clone + Debug + PartialEq + Rand + Send + Sync {
+impl<V> Genotype for Vec<V> where V: Clone + Debug + PartialEq + Send + Sync {
     type Dna = V;
 }
 

@@ -4,7 +4,7 @@
 use operator::{GeneticOperator, MutationOp};
 use simulation::SimError;
 use random::random_cut_points;
-use rand::{Rand, Rng};
+use rand::Rng;
 use std::fmt::Debug;
 
 
@@ -36,7 +36,7 @@ impl GeneticOperator for InsertOrderMutator {
 }
 
 impl<V> MutationOp<Vec<V>> for InsertOrderMutator
-    where V: Clone + Debug + PartialEq + Rand + Send + Sync {
+    where V: Clone + Debug + PartialEq + Send + Sync {
 
     fn mutate<R>(&self, genome: Vec<V>, rng: &mut R)
         -> Result<Vec<V>, SimError>
@@ -81,7 +81,7 @@ impl GeneticOperator for SwapOrderMutator {
 }
 
 impl<V> MutationOp<Vec<V>> for SwapOrderMutator
-    where V: Clone + Debug + PartialEq + Rand + Send + Sync {
+    where V: Clone + Debug + PartialEq + Send + Sync {
 
     fn mutate<R>(&self, genome: Vec<V>, rng: &mut R)
         -> Result<Vec<V>, SimError>
