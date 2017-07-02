@@ -1,10 +1,9 @@
 
 use genetic::Genotype;
 use operator::{GeneticOperator, MutationOp};
+use random::{Rng, random_index};
 use simulation::SimError;
 use fixedbitset::FixedBitSet;
-use random::random_index;
-use rand::Rng;
 use std::fmt::Debug;
 
 
@@ -60,7 +59,8 @@ impl RandomGenomeMutation for FixedBitSet {
 
     #[allow(unused_variables)]
     fn mutate_genome<R>(genome: Self, mutation_rate: f64, min_value: &<Self as Genotype>::Dna,
-                        max_value: &<Self as Genotype>::Dna, rng: &mut R) -> Self where R: Rng {
+                        max_value: &<Self as Genotype>::Dna, rng: &mut R) -> Self where R: Rng
+    { #[warn(unused_variables)]
         let genome_length = genome.len();
         let num_mutations = ((genome_length as f64 * mutation_rate) + rng.next_f64()).floor() as usize;
         let mut mutated = genome;
@@ -104,7 +104,8 @@ macro_rules! impl_random_value_mutation {
             impl RandomValueMutation for $t {
                 #[inline] #[allow(unused_variables)]
                 fn random_mutated<R>(value: $t, min_value: &$t, max_value: &$t, rng: &mut R) -> $t
-                    where R: Rng {
+                    where R: Rng
+                { #[warn(unused_variables)]
                     rng.gen_range(*min_value, *max_value)
                 }
             }

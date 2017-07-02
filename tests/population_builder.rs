@@ -1,5 +1,4 @@
 #[cfg(test)] #[macro_use] extern crate hamcrest;
-#[cfg(test)] #[macro_use] extern crate quickcheck;
 
 use hamcrest::prelude::*;
 
@@ -8,19 +7,17 @@ extern crate fixedbitset;
 extern crate rand;
 
 use genevo::prelude::*;
-use genevo::operator::prelude::*;
 use genevo::population::{BinaryEncodedGenomeBuilder, ValueEncodedGenomeBuilder};
+use genevo::random::{Rng, SeedableRng, StdRng};
 use fixedbitset::FixedBitSet;
-use rand::{Rng, SeedableRng, StdRng};
 
 
 #[test]
 fn create_population_of_fixedbitset_uniform_at_random() {
-    let population: Population<FixedBitSet> =
-        build_population()
-            .with_genome_builder(BinaryEncodedGenomeBuilder::new(20))
-            .of_size(200)
-            .uniform_at_random();
+    let population: Population<FixedBitSet> = build_population()
+        .with_genome_builder(BinaryEncodedGenomeBuilder::new(20))
+        .of_size(200)
+        .uniform_at_random();
 
     println!("{:?}", population);
     assert_that!(population.size(), is(equal_to(200)));
@@ -28,11 +25,10 @@ fn create_population_of_fixedbitset_uniform_at_random() {
 
 #[test]
 fn create_population_of_vec_of_bool_uniform_at_random() {
-    let population: Population<Vec<bool>> =
-        build_population()
-            .with_genome_builder(BinaryEncodedGenomeBuilder::new(4))
-            .of_size(200)
-            .uniform_at_random();
+    let population: Population<Vec<bool>> = build_population()
+        .with_genome_builder(BinaryEncodedGenomeBuilder::new(4))
+        .of_size(200)
+        .uniform_at_random();
 
     println!("{:?}", population);
     assert_that!(population.size(), is(equal_to(200)));
@@ -40,11 +36,10 @@ fn create_population_of_vec_of_bool_uniform_at_random() {
 
 #[test]
 fn create_population_of_vec_of_f64_uniform_at_random() {
-    let population: Population<Vec<f64>> =
-        build_population()
-            .with_genome_builder(ValueEncodedGenomeBuilder::new(4, -2., 2.))
-            .of_size(200)
-            .uniform_at_random();
+    let population: Population<Vec<f64>> = build_population()
+        .with_genome_builder(ValueEncodedGenomeBuilder::new(4, -2., 2.))
+        .of_size(200)
+        .uniform_at_random();
 
     println!("{:?}", population);
     assert_that!(population.size(), is(equal_to(200)));
@@ -60,7 +55,10 @@ fn create_population_of_custom_genotype_uniform_at_random() {
 
     struct PositionsBuilder;
     impl GenomeBuilder<Vec<Pos>> for PositionsBuilder {
-        fn build_genome<R>(&self, index: usize, rng: &mut R) -> Vec<Pos> where R: Rng + Sized {
+        #[allow(unused_variables)]
+        fn build_genome<R>(&self, index: usize, rng: &mut R) -> Vec<Pos>
+            where R: Rng + Sized
+        { #[warn(unused_variables)]
             (0..8).map(|row|
                 Pos {
                     x: row,

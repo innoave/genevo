@@ -9,9 +9,8 @@
 
 use genetic::{Children, Parents};
 use operator::{CrossoverOp, GeneticOperator};
+use random::{Rng, random_cut_points};
 use simulation::SimError;
-use random::random_cut_points;
-use rand::Rng;
 use std::collections::HashMap;
 
 

@@ -9,10 +9,9 @@
 
 use genetic::{Children, Genotype, Parents};
 use operator::{CrossoverOp, GeneticOperator};
+use random::{Rng, random_n_cut_points};
 use simulation::SimError;
 use fixedbitset::FixedBitSet;
-use random::random_n_cut_points;
-use rand::Rng;
 use std::fmt::Debug;
 
 

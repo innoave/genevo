@@ -1,8 +1,7 @@
 
 use genetic::{Genotype};
+use random::{Rng, RngProvider, thread_rng, SampleRange};
 use fixedbitset::FixedBitSet;
-use rand::{Rng, thread_rng};
-use rand::distributions::range::SampleRange;
 use rayon;
 use std::marker::PhantomData;
 use std::fmt::Debug;
@@ -51,12 +50,12 @@ pub struct PopulationBuilder;
 
 impl PopulationBuilder {
 
-    fn build_population<B, G, TR, R>(genome_builder: &B, size: usize,
-                                      thread_rng: &TR) -> Population<G>
-        where B: GenomeBuilder<G>, G: Genotype, TR: Fn() -> R + Send + Sync, R: Rng + Sized
+    fn build_population<B, G, R>(genome_builder: &B, size: usize,
+                                      get_rng: &RngProvider<R>) -> Population<G>
+        where B: GenomeBuilder<G>, G: Genotype, R: Rng + Sized
     {
         if size < 60 {
-            let mut rng = thread_rng();
+            let mut rng = get_rng();
             Population {
                 individuals: (0..size).map(|index|
                     genome_builder.build_genome(index, &mut rng)
@@ -66,8 +65,8 @@ impl PopulationBuilder {
             let left_size = size / 2;
             let right_size = size - left_size;
             let (left_population, right_population) = rayon::join(
-                || Self::build_population(genome_builder, left_size, thread_rng),
-                || Self::build_population(genome_builder, right_size, thread_rng)
+                || Self::build_population(genome_builder, left_size, get_rng),
+                || Self::build_population(genome_builder, right_size, get_rng)
             );
             let mut right_individuals = right_population.individuals;
             let mut individuals = left_population.individuals;
@@ -104,13 +103,16 @@ impl EmptyPopulationBuilder {
     }
 }
 
-pub struct PopulationWithGenomeBuilderBuilder<B, G> where B: GenomeBuilder<G>, G: Genotype {
+pub struct PopulationWithGenomeBuilderBuilder<B, G>
+    where B: GenomeBuilder<G>, G: Genotype
+{
     _g: PhantomData<G>,
     genome_builder: B,
 }
 
-impl<B, G> PopulationWithGenomeBuilderBuilder<B, G> where B: GenomeBuilder<G>, G: Genotype {
-
+impl<B, G> PopulationWithGenomeBuilderBuilder<B, G>
+    where B: GenomeBuilder<G>, G: Genotype
+{
     pub fn of_size(self, population_size: usize) -> PopulationWithGenomeBuilderAndSizeBuilder<B, G> {
         PopulationWithGenomeBuilderAndSizeBuilder {
             _g: self._g,
@@ -120,21 +122,25 @@ impl<B, G> PopulationWithGenomeBuilderBuilder<B, G> where B: GenomeBuilder<G>, G
     }
 }
 
-pub struct PopulationWithGenomeBuilderAndSizeBuilder<B, G> where B: GenomeBuilder<G>, G: Genotype {
+pub struct PopulationWithGenomeBuilderAndSizeBuilder<B, G>
+    where B: GenomeBuilder<G>, G: Genotype
+{
     _g: PhantomData<G>,
     genome_builder: B,
     population_size: usize,
 }
 
-impl<B, G> PopulationWithGenomeBuilderAndSizeBuilder<B, G> where B: GenomeBuilder<G>, G: Genotype {
-
+impl<B, G> PopulationWithGenomeBuilderAndSizeBuilder<B, G>
+    where B: GenomeBuilder<G>, G: Genotype
+{
     pub fn uniform_at_random(self) -> Population<G> {
         PopulationBuilder::build_population(&self.genome_builder, self.population_size, &thread_rng)
     }
 
-    pub fn using_number_generator<TR, R>(self, thread_rng: &TR) -> Population<G>
-        where TR: Fn() -> R + Send + Sync, R: Rng + Sized {
-        PopulationBuilder::build_population(&self.genome_builder, self.population_size, &thread_rng)
+    pub fn using_number_generator<R>(self, get_rng: &RngProvider<R>) -> Population<G>
+        where R: Rng + Sized
+    {
+        PopulationBuilder::build_population(&self.genome_builder, self.population_size, get_rng)
     }
 }
 
@@ -159,7 +165,10 @@ impl BinaryEncodedGenomeBuilder {
 
 impl GenomeBuilder<FixedBitSet> for BinaryEncodedGenomeBuilder {
 
-    fn build_genome<R>(&self, index: usize, rng: &mut R) -> FixedBitSet where R: Rng + Sized {
+    #[allow(unused_variables)]
+    fn build_genome<R>(&self, index: usize, rng: &mut R) -> FixedBitSet
+        where R: Rng + Sized
+    { #[warn(unused_variables)]
         let mut genome = FixedBitSet::with_capacity(self.genome_length);
         for bit in 0..self.genome_length {
             genome.set(bit, rng.gen());
@@ -170,7 +179,10 @@ impl GenomeBuilder<FixedBitSet> for BinaryEncodedGenomeBuilder {
 
 impl GenomeBuilder<Vec<bool>> for BinaryEncodedGenomeBuilder {
 
-    fn build_genome<R>(&self, index: usize, rng: &mut R) -> Vec<bool> where R: Rng + Sized {
+    #[allow(unused_variables)]
+    fn build_genome<R>(&self, index: usize, rng: &mut R) -> Vec<bool>
+        where R: Rng + Sized
+    { #[warn(unused_variables)]
         (0..self.genome_length).map(|_|
             rng.gen()
         ).collect()
@@ -194,9 +206,11 @@ impl<V> ValueEncodedGenomeBuilder<V> {
 }
 
 impl<V> GenomeBuilder<Vec<V>> for ValueEncodedGenomeBuilder<V>
-    where V: Clone + Debug + PartialEq + PartialOrd + SampleRange + Send + Sync {
-
-    fn build_genome<R>(&self, index: usize, rng: &mut R) -> Vec<V> where R: Rng + Sized {
+    where V: Clone + Debug + PartialEq + PartialOrd + SampleRange + Send + Sync
+{
+    #[allow(unused_variables)]
+    fn build_genome<R>(&self, index: usize, rng: &mut R) -> Vec<V> where R: Rng + Sized
+    { #[warn(unused_variables)]
         (0..self.genome_length).map(|_|
             rng.gen_range(self.min_value.clone(), self.max_value.clone())
         ).collect()

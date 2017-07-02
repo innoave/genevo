@@ -5,8 +5,7 @@
 
 use genetic::{Fitness, Genotype, Parents};
 use operator::{GeneticOperator, SelectionOp, SingleObjective, MultiObjective};
-use random::{random_index, random_probability};
-use rand::Rng;
+use random::{Rng, random_index, random_probability};
 use simulation::{EvaluatedPopulation, SimError};
 
 

@@ -16,8 +16,7 @@
 
 use genetic::{Fitness, Genotype, Parents, AsScalar};
 use operator::{GeneticOperator, SelectionOp, SingleObjective};
-use random::{WeightedDistribution, random_probability};
-use rand::Rng;
+use random::{Rng, WeightedDistribution, random_probability};
 use simulation::{EvaluatedPopulation, SimError};
 
 

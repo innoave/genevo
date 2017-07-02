@@ -2,9 +2,8 @@
 //! `genetic::Genotype`s.
 
 use operator::{GeneticOperator, MutationOp};
+use random::{Rng, random_cut_points};
 use simulation::SimError;
-use random::random_cut_points;
-use rand::Rng;
 use std::fmt::Debug;
 
 

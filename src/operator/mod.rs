@@ -10,8 +10,8 @@
 pub mod prelude;
 
 use genetic::{Children, Fitness, Genotype, Offspring, Parents};
+use random::Rng;
 use simulation::{EvaluatedPopulation, SimError};
-use rand::Rng;
 
 
 /// Marker trait for genetic operators and functions that are used for

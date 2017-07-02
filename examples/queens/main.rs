@@ -7,6 +7,7 @@ extern crate rand;
 use genevo::genetic::FitnessFunction;
 use genevo::mutation::value::{BreederValueMutation, BreederValueMutator, RandomValueMutation};
 use genevo::population::{GenomeBuilder, Population, build_population};
+use genevo::random::Rng;
 use genevo::recombination::discrete::DiscreteCrossBreeder;
 use genevo::reinsertion::elitist::ElitistReinserter;
 use genevo::selection::proportionate::RouletteWheelSelector;
@@ -14,8 +15,7 @@ use genevo::simulation::{Simulation, SimulationBuilder, SimResult};
 use genevo::simulation::ga;
 use genevo::termination::or;
 use genevo::termination::limiter::{FitnessLimit, GenerationLimit};
-use genevo::types::Display;
-use rand::{Rng, thread_rng};
+use genevo::types::fmt::Display;
 
 const NUMBER_OF_QUEENS: i16 = 16;
 const NUM_ROWS: i16 = NUMBER_OF_QUEENS;
@@ -118,9 +118,10 @@ impl RandomValueMutation for Pos {
 struct QueensPositions;
 
 impl GenomeBuilder<Positions> for QueensPositions {
+    #[allow(unused_variables)]
     fn build_genome<R>(&self, index: usize, rng: &mut R) -> Positions
         where R: Rng + Sized
-    {
+    { #[warn(unused_variables)]
         (0..NUM_ROWS).map(|row|
             Pos {
                 x: row,
@@ -131,8 +132,6 @@ impl GenomeBuilder<Positions> for QueensPositions {
 }
 
 fn main() {
-
-    let mut rng = thread_rng();
 
     let initial_population: Population<Positions> = build_population()
         .with_genome_builder(QueensPositions)

@@ -30,11 +30,11 @@ use chrono::{DateTime, Duration, Local};
 use genetic::{Fitness, FitnessFunction, Genotype, Offspring, Parents};
 use operator::{CrossoverOp, MutationOp, ReinsertionOp, SelectionOp};
 use population::Population;
+use random::thread_rng;
 use simulation::{BestSolution, Evaluated, EvaluatedPopulation, SimError, SimResult, Simulation,
                  SimulationBuilder, State};
 use statistic::{TimedResult, timed};
 use termination::{StopFlag, Termination};
-use rand::thread_rng;
 use rayon;
 use std::marker::PhantomData;
 use std::mem;
@@ -364,7 +364,7 @@ fn par_evaluate_fitness<G, F, E>(population: &[G], evaluator: &E)
             let mut highest = evaluator.lowest_possible_fitness();
             let mut lowest = evaluator.highest_possible_fitness();
             for genome in population.iter() {
-                let score = evaluator.fitness_of(&genome);
+                let score = evaluator.fitness_of(genome);
                 if score > highest {
                     highest = score.clone();
                 }

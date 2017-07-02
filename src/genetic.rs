@@ -3,7 +3,6 @@
 //! or search problem. The types are named after terms as they are found in
 //! genetic biology.
 
-use rand::Rng;
 use std::fmt::Debug;
 
 /// A `Phenotype` is a candidate solution of the optimization or search problem.
@@ -95,10 +94,8 @@ pub trait Fitness: PartialEq + Eq + Ord + Clone + Debug + Sized {
 /// multi-objective `Fitness` value into a scalar representation. A well-known
 /// method is calculating the weighted sum: F = Sum(W * f).
 pub trait AsScalar {
-
     /// Returns a float value that represents this type in scalar form.
     fn as_scalar(&self) -> f64;
-
 }
 
 /// Defines the evaluation function to calculate the `Fitness` value of a

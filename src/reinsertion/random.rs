@@ -4,9 +4,8 @@
 
 use genetic::{Fitness, Genotype, Offspring};
 use operator::{GeneticOperator, MultiObjective, ReinsertionOp, SingleObjective};
+use random::{Rng, random_index};
 use simulation::{EvaluatedPopulation, SimError};
-use random::random_index;
-use rand::Rng;
 
 
 /// The `UniformReinserter` takes n individuals from the offspring and

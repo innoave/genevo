@@ -14,8 +14,7 @@ use genevo::simulation::{Simulation, SimulationBuilder, SimResult};
 use genevo::simulation::ga;
 use genevo::termination::or;
 use genevo::termination::limiter::{FitnessLimit, GenerationLimit};
-use genevo::types::Display;
-use rand::{Rng, thread_rng};
+use genevo::types::fmt::Display;
 
 //const TARGET_TEXT: &str = "See how a genius creates a legend";
 const TARGET_TEXT: &str = "Be not afraid of greatness! Some are great, some achieve greatness, \
@@ -100,8 +99,6 @@ impl FitnessFunction<TextGenome, usize> for FitnessCalc {
 fn main() {
 
     let params = Parameter::default();
-
-    let mut rng = thread_rng();
 
     let initial_population: Population<TextGenome> = build_population()
         .with_genome_builder(ValueEncodedGenomeBuilder::new(TARGET_TEXT.len(), 32, 126))
