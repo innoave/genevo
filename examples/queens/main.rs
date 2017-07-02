@@ -4,8 +4,9 @@
 extern crate genevo;
 extern crate rand;
 
-use genevo::genetic::{FitnessFunction, PopulationGenerator};
+use genevo::genetic::FitnessFunction;
 use genevo::mutation::value::{BreederValueMutation, BreederValueMutator, RandomValueMutation};
+use genevo::population::{GenomeBuilder, Population, build_population};
 use genevo::recombination::discrete::DiscreteCrossBreeder;
 use genevo::reinsertion::elitist::ElitistReinserter;
 use genevo::selection::proportionate::RouletteWheelSelector;
@@ -114,11 +115,12 @@ impl RandomValueMutation for Pos {
 }
 
 /// Generate some random boards
-struct QueensPositions {}
+struct QueensPositions;
 
-impl PopulationGenerator<Positions> for QueensPositions {
-    fn generate_genotype<R>(&self, rng: &mut R) -> Positions
-        where R: Rng + Sized {
+impl GenomeBuilder<Positions> for QueensPositions {
+    fn build_genome<R>(&self, index: usize, rng: &mut R) -> Positions
+        where R: Rng + Sized
+    {
         (0..NUM_ROWS).map(|row|
             Pos {
                 x: row,
@@ -132,7 +134,10 @@ fn main() {
 
     let mut rng = thread_rng();
 
-    let initial_population = QueensPositions{}.generate_population(POPULATION_SIZE, &mut rng);
+    let initial_population: Population<Positions> = build_population()
+        .with_genome_builder(QueensPositions)
+        .of_size(POPULATION_SIZE)
+        .uniform_at_random();
 
     let mut queens_sim = ga::Simulator::builder(
         FitnessCalc{},

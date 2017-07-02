@@ -4,10 +4,11 @@
 extern crate genevo;
 extern crate rand;
 
-use genevo::genetic::{FitnessFunction, PopulationGenerator};
+use genevo::genetic::FitnessFunction;
 use genevo::mutation::value::RandomValueMutator;
 use genevo::recombination::discrete::MultiPointCrossBreeder;
 use genevo::reinsertion::elitist::ElitistReinserter;
+use genevo::population::{Population, ValueEncodedGenomeBuilder, build_population};
 use genevo::selection::truncation::MaximizeSelector;
 use genevo::simulation::{Simulation, SimulationBuilder, SimResult};
 use genevo::simulation::ga;
@@ -96,25 +97,16 @@ impl FitnessFunction<TextGenome, usize> for FitnessCalc {
     }
 }
 
-/// The random population generator
-struct Monkey {}
-
-impl PopulationGenerator<TextGenome> for Monkey {
-    fn generate_genotype<R>(&self, rng: &mut R) -> TextGenome
-        where R: Rng + Sized {
-        (0..TARGET_TEXT.len()).map(|_|
-            rng.gen_range(32u8, 126u8)
-        ).collect()
-    }
-}
-
 fn main() {
 
     let params = Parameter::default();
 
     let mut rng = thread_rng();
 
-    let initial_population = Monkey{}.generate_population(params.population_size, &mut rng);
+    let initial_population: Population<TextGenome> = build_population()
+        .with_genome_builder(ValueEncodedGenomeBuilder::new(TARGET_TEXT.len(), 32, 126))
+        .of_size(params.population_size)
+        .uniform_at_random();
 
     let mut monkeys_sim = ga::Simulator::builder(
         FitnessCalc {},

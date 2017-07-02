@@ -27,8 +27,9 @@
 //! `SimulatorBuilder` implements the `simulation::SimulationBuilder` trait.
 
 use chrono::{DateTime, Duration, Local};
-use genetic::{Fitness, FitnessFunction, Genotype, Offspring, Parents, Population};
+use genetic::{Fitness, FitnessFunction, Genotype, Offspring, Parents};
 use operator::{CrossoverOp, MutationOp, ReinsertionOp, SelectionOp};
+use population::Population;
 use simulation::{BestSolution, Evaluated, EvaluatedPopulation, SimError, SimResult, Simulation,
                  SimulationBuilder, State};
 use statistic::{TimedResult, timed};

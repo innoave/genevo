@@ -43,60 +43,6 @@ pub trait Genotype: Clone + Debug + PartialEq + Send + Sync {
 /// The `Locus` is a position within a `Genotype`.
 pub type Locus = usize;
 
-/// The `Population` defines a set of possible solutions to the optimization
-/// or search problem.
-#[derive(Debug)]
-pub struct Population<G>
-    where G: Genotype
-{
-    /// The individuals or members of the population.
-    individuals: Vec<G>,
-}
-
-impl<G> Population<G>
-    where G: Genotype
-{
-    /// Creates a new `Population` with an given individuals as members.
-    pub fn new(individuals: Vec<G>) -> Self {
-        Population {
-            individuals: individuals,
-        }
-    }
-
-    /// Returns a slice of all individuals of this `Population`.
-    pub fn individuals(&self) -> &[G] {
-        &self.individuals
-    }
-
-    /// Returns the number of individuals in this `Population`.
-    pub fn size(&self) -> usize {
-        self.individuals.len()
-    }
-}
-
-/// A `PopulationGenerator` creates a new `Population` with a number of newly
-/// created individuals or just individual `Genotype`s.
-///
-/// Typically the `PopulationGenerator` is used to create the initial
-/// population with randomly created individuals.
-pub trait PopulationGenerator<G>
-    where G: Genotype
-{
-    /// Generates a new `Population` containing the given number of individuals.
-    fn generate_population<R>(&self, size: usize, rng: &mut R) -> Population<G>
-        where R: Rng + Sized {
-        let individuals = (0..size).map(|_| {
-            self.generate_genotype(rng)
-        }).collect::<Vec<G>>();
-        Population::new(individuals)
-    }
-
-    /// Generates a new `Genotype`.
-    ///
-    /// An implementation typically generates a randomly created `Genotype`.
-    fn generate_genotype<R>(&self, rng: &mut R) -> G where R: Rng + Sized;
-}
-
 /// The `Parents` type defines a tuple of individuals that are needed for
 /// breeding one offspring. The `operator::SelectionOp` selects a list of
 /// parents which are taken by the `operator::CrossoverOp` for breeding

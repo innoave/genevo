@@ -8,33 +8,50 @@ use std::marker::PhantomData;
 use std::fmt::Debug;
 
 
+/// The `Population` defines a set of possible solutions to the optimization
+/// or search problem.
 #[derive(Debug)]
-pub struct Population<G> where G: Genotype {
+pub struct Population<G>
+    where G: Genotype
+{
+    /// The individuals or members of the population.
     individuals: Vec<G>,
 }
 
-impl<G> Population<G> where G: Genotype {
-
+impl<G> Population<G>
+    where G: Genotype
+{
+    /// Creates a new `Population` with the given individuals as members.
     pub fn with_individuals(individuals: Vec<G>) -> Population<G> {
         Population {
             individuals: individuals,
         }
     }
 
+    /// Returns a slice of all individuals of this `Population`.
     pub fn individuals(&self) -> &[G] {
         &self.individuals
     }
 
+    /// Returns the number of individuals in this `Population`.
     pub fn size(&self) -> usize {
         self.individuals.len()
     }
 }
 
+/// A `PopulationBuilder` creates a new `Population` with a number of newly
+/// created individuals or just individual `genetic::Genotype`s.
+///
+/// Typically the `PopulationBuilder` is used to create the initial
+/// population with randomly created individuals.
+///
+/// To use this `PopulationBuilder` for a custom `genetic::Genotype` the trait
+/// `GenomeBuilder` must be implemented for the custom `genetic::Genotype`.
 pub struct PopulationBuilder;
 
 impl PopulationBuilder {
 
-    pub fn build_population<B, G, TR, R>(genome_builder: &B, size: usize,
+    fn build_population<B, G, TR, R>(genome_builder: &B, size: usize,
                                       thread_rng: &TR) -> Population<G>
         where B: GenomeBuilder<G>, G: Genotype, TR: Fn() -> R + Send + Sync, R: Rng + Sized
     {
