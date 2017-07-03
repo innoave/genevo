@@ -36,6 +36,14 @@ impl<T1, T2, G, F> And<T1, T2, G, F>
             _f: PhantomData,
         }
     }
+
+    pub fn condition1(&self) -> &T1 {
+        &self.condition1
+    }
+
+    pub fn condition2(&self) -> &T2 {
+        &self.condition2
+    }
 }
 
 impl<T1, T2, G, F> Termination<G, F> for And<T1, T2, G, F>
@@ -90,6 +98,14 @@ impl<T1, T2, G, F> Or<T1, T2, G, F>
             _g: PhantomData,
             _f: PhantomData,
         }
+    }
+
+    pub fn condition1(&self) -> &T1 {
+        &self.condition1
+    }
+
+    pub fn condition2(&self) -> &T2 {
+        &self.condition2
     }
 }
 

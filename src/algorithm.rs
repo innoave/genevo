@@ -1,12 +1,11 @@
+
 use genetic::{Fitness, FitnessFunction, Genotype};
 use operator::{CrossoverOp, MutationOp, ReinsertionOp, SelectionOp};
 use termination::Termination;
 use std::marker::PhantomData;
 
 
-pub trait Algorithm {
-
-}
+pub trait Algorithm {}
 
 /// A `GeneticAlgorithm` declares the building blocks that make up the actual
 /// algorithm for a specific optimization problem.
@@ -53,11 +52,13 @@ impl<G, F, E, S, C, M, R, T> GeneticAlgorithm<G, F, E, S, C, M, R, T>
     }
 }
 
-pub fn genetic_algorithm<G, F, E, S, C, M, R, T>() -> EmptyGeneticAlgorithmBuilder<G, F>
-    where G: Genotype, F: Fitness, E: FitnessFunction<G, F>, S: SelectionOp<G, F>,
-          C: CrossoverOp<G>, M: MutationOp<G>, R: ReinsertionOp<G, F>, T: Termination<G, F>
+pub fn genetic_algorithm<G, F>() -> EmptyGeneticAlgorithmBuilder<G, F>
+    where G: Genotype, F: Fitness
 {
-    GeneticAlgorithmBuilder::<G, F, E, S, C, M, R, T>::new()
+    EmptyGeneticAlgorithmBuilder {
+        _g: PhantomData,
+        _f: PhantomData,
+    }
 }
 
 pub struct GeneticAlgorithmBuilder<G, F, E, S, C, M, R, T>
@@ -78,13 +79,6 @@ impl<G, F, E, S, C, M, R, T> GeneticAlgorithmBuilder<G, F, E, S, C, M, R, T>
     where G: Genotype, F: Fitness, E: FitnessFunction<G, F>, S: SelectionOp<G, F>,
           C: CrossoverOp<G>, M: MutationOp<G>, R: ReinsertionOp<G, F>, T: Termination<G, F>
 {
-    pub fn new() -> EmptyGeneticAlgorithmBuilder<G, F> {
-        EmptyGeneticAlgorithmBuilder {
-            _g: PhantomData,
-            _f: PhantomData,
-        }
-    }
-
     pub fn build(self) -> GeneticAlgorithm<G, F, E, S, C, M, R, T> {
         GeneticAlgorithm {
             _g: self._g,

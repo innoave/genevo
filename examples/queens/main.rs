@@ -14,7 +14,7 @@ use genevo::selection::proportionate::RouletteWheelSelector;
 use genevo::simulation::{Simulation, SimulationBuilder, SimResult};
 use genevo::simulation::ga;
 use genevo::termination::or;
-use genevo::termination::limiter::{FitnessLimit, GenerationLimit};
+use genevo::termination::limit::{FitnessLimit, GenerationLimit};
 use genevo::types::fmt::Display;
 
 const NUMBER_OF_QUEENS: i16 = 16;
@@ -71,7 +71,7 @@ fn count_collisions(positions: &Positions) -> i16 {
 
 /// The fitness function for `Positions`.
 #[derive(Clone)]
-struct FitnessCalc {}
+struct FitnessCalc;
 
 impl FitnessFunction<Positions, usize> for FitnessCalc {
 
@@ -139,12 +139,12 @@ fn main() {
         .uniform_at_random();
 
     let mut queens_sim = ga::Simulator::builder(
-        FitnessCalc{},
+        FitnessCalc,
         RouletteWheelSelector::new(SELECTION_RATIO, NUM_INDIVIDUALS_PER_PARENTS),
         DiscreteCrossBreeder::new(),
         BreederValueMutator::new(MUTATION_RATE, Pos{x:0, y:1}, 3, Pos{x:0,y:0}, Pos{x:NUM_ROWS,y:NUM_COLS}),
-        ElitistReinserter::new(FitnessCalc{}, false, REINSERTION_RATIO),
-        or(FitnessLimit::new(FitnessCalc{}.highest_possible_fitness()),
+        ElitistReinserter::new(FitnessCalc, false, REINSERTION_RATIO),
+        or(FitnessLimit::new(FitnessCalc.highest_possible_fitness()),
             GenerationLimit::new(GENERATION_LIMIT))
     ).initialize(initial_population);
 

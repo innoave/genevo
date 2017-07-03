@@ -23,7 +23,7 @@
 pub mod combinator;
 pub use self::combinator::{and, or};
 
-pub mod limiter;
+pub mod limit;
 
 use genetic::{Fitness, Genotype};
 use simulation::State;

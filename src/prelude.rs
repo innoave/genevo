@@ -7,7 +7,7 @@ pub use genetic::{Fitness, FitnessFunction, Genotype, Phenotype};
 //
 // Algorithm
 //
-pub use algorithm::genetic_algorithm;
+pub use algorithm::{GeneticAlgorithm, genetic_algorithm};
 
 //
 // Population
@@ -24,5 +24,5 @@ pub use simulation::{SimResult, Simulation, SimulationBuilder};
 //
 // Termination
 //
-pub use termination::combinator::{and, or};
-pub use termination::limiter::*;
+pub use termination::combinator::{and, or, Or, And};
+pub use termination::limit::*;

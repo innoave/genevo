@@ -35,6 +35,10 @@ impl<F> FitnessLimit<F>
             fitness_target: fitness_target,
         }
     }
+
+    pub fn fitness_target(&self) -> &F {
+        &self.fitness_target
+    }
 }
 
 impl<G, F> Termination<G, F> for FitnessLimit<F>
@@ -65,6 +69,10 @@ impl GenerationLimit {
         GenerationLimit {
             max_generations: max_generations,
         }
+    }
+
+    pub fn max_generations(&self) -> &u64 {
+        &self.max_generations
     }
 }
 
@@ -97,6 +105,10 @@ impl TimeLimit {
         TimeLimit {
             max_time: max_time,
         }
+    }
+
+    pub fn max_time(&self) -> &Duration {
+        &self.max_time
     }
 }
 

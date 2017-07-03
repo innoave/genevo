@@ -13,7 +13,7 @@ use genevo::selection::truncation::MaximizeSelector;
 use genevo::simulation::{Simulation, SimulationBuilder, SimResult};
 use genevo::simulation::ga;
 use genevo::termination::or;
-use genevo::termination::limiter::{FitnessLimit, GenerationLimit};
+use genevo::termination::limit::{FitnessLimit, GenerationLimit};
 use genevo::types::fmt::Display;
 
 //const TARGET_TEXT: &str = "See how a genius creates a legend";
@@ -67,7 +67,7 @@ impl AsPhenotype for TextGenome {
 
 /// The fitness function for `TextGenome`s.
 #[derive(Clone)]
-struct FitnessCalc {}
+struct FitnessCalc;
 
 impl FitnessFunction<TextGenome, usize> for FitnessCalc {
 
@@ -106,12 +106,12 @@ fn main() {
         .uniform_at_random();
 
     let mut monkeys_sim = ga::Simulator::builder(
-        FitnessCalc {},
+        FitnessCalc,
         MaximizeSelector::new(params.selection_ratio, params.num_individuals_per_parents),
         MultiPointCrossBreeder::new(params.num_crossover_points),
         RandomValueMutator::new(params.mutation_rate, 32, 126),
-        ElitistReinserter::new(FitnessCalc{}, true, params.reinsertion_ratio),
-        or(FitnessLimit::new(FitnessCalc{}.highest_possible_fitness()),
+        ElitistReinserter::new(FitnessCalc, true, params.reinsertion_ratio),
+        or(FitnessLimit::new(FitnessCalc.highest_possible_fitness()),
            GenerationLimit::new(params.generation_limit))
     ).initialize(initial_population);
 
