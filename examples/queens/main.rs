@@ -4,17 +4,9 @@
 extern crate genevo;
 extern crate rand;
 
-use genevo::genetic::FitnessFunction;
-use genevo::mutation::value::{BreederValueMutation, BreederValueMutator, RandomValueMutation};
-use genevo::population::{GenomeBuilder, Population, build_population};
+use genevo::prelude::*;
+use genevo::operator::prelude::*;
 use genevo::random::Rng;
-use genevo::recombination::discrete::DiscreteCrossBreeder;
-use genevo::reinsertion::elitist::ElitistReinserter;
-use genevo::selection::proportionate::RouletteWheelSelector;
-use genevo::simulation::{Simulation, SimulationBuilder, SimResult};
-use genevo::simulation::ga;
-use genevo::termination::or;
-use genevo::termination::limit::{FitnessLimit, GenerationLimit};
 use genevo::types::fmt::Display;
 
 const NUMBER_OF_QUEENS: i16 = 16;
@@ -138,15 +130,18 @@ fn main() {
         .of_size(POPULATION_SIZE)
         .uniform_at_random();
 
-    let mut queens_sim = ga::Simulator::builder(
-        FitnessCalc,
-        RouletteWheelSelector::new(SELECTION_RATIO, NUM_INDIVIDUALS_PER_PARENTS),
-        DiscreteCrossBreeder::new(),
-        BreederValueMutator::new(MUTATION_RATE, Pos{x:0, y:1}, 3, Pos{x:0,y:0}, Pos{x:NUM_ROWS,y:NUM_COLS}),
-        ElitistReinserter::new(FitnessCalc, false, REINSERTION_RATIO),
-        or(FitnessLimit::new(FitnessCalc.highest_possible_fitness()),
-            GenerationLimit::new(GENERATION_LIMIT))
-    ).initialize(initial_population);
+    let mut queens_sim = simulate(
+        genetic_algorithm()
+            .with_evaluation(FitnessCalc)
+            .with_selection(RouletteWheelSelector::new(SELECTION_RATIO, NUM_INDIVIDUALS_PER_PARENTS))
+            .with_crossover(DiscreteCrossBreeder::new())
+            .with_mutation(BreederValueMutator::new(MUTATION_RATE, Pos{x:0, y:1}, 3, Pos{x:0,y:0}, Pos{x:NUM_ROWS,y:NUM_COLS}))
+            .with_reinsertion(ElitistReinserter::new(FitnessCalc, false, REINSERTION_RATIO))
+            .with_termination(or(FitnessLimit::new(FitnessCalc.highest_possible_fitness()),
+                                 GenerationLimit::new(GENERATION_LIMIT)))
+            .build()
+        ).with_initial_population(initial_population)
+        .build();
 
     loop {
         let result = queens_sim.step();

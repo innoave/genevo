@@ -46,21 +46,4 @@ fn create_new_genetic_algorithm_application() {
 
     assert_that!(*algorithm.termination().condition1().max_generations(), is(equal_to(2000)));
     assert_that!(*algorithm.termination().condition2().fitness_target(), is(equal_to(10000)));
-
-//    let &mut rng = StdRng::with_seed(&[42]);
-//    iterate(algorithm).with_rng(&mut rng);
-//
-//    loop {
-//        let result = simulation.step();
-//
-//        match result {
-//            ResultFlag::Intermediate(result) => {
-//                //print progress
-//            },
-//            ResultFlag::Final(result) => {
-//                //print final results
-//                break;
-//            },
-//        }
-//    }
 }

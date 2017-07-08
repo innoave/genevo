@@ -4,16 +4,9 @@
 extern crate genevo;
 extern crate rand;
 
-use genevo::genetic::FitnessFunction;
-use genevo::mutation::value::RandomValueMutator;
-use genevo::recombination::discrete::MultiPointCrossBreeder;
-use genevo::reinsertion::elitist::ElitistReinserter;
-use genevo::population::{Population, ValueEncodedGenomeBuilder, build_population};
-use genevo::selection::truncation::MaximizeSelector;
-use genevo::simulation::{Simulation, SimulationBuilder, SimResult};
-use genevo::simulation::ga;
-use genevo::termination::or;
-use genevo::termination::limit::{FitnessLimit, GenerationLimit};
+use genevo::prelude::*;
+use genevo::operator::prelude::*;
+use genevo::population::ValueEncodedGenomeBuilder;
 use genevo::types::fmt::Display;
 
 //const TARGET_TEXT: &str = "See how a genius creates a legend";
@@ -105,15 +98,18 @@ fn main() {
         .of_size(params.population_size)
         .uniform_at_random();
 
-    let mut monkeys_sim = ga::Simulator::builder(
-        FitnessCalc,
-        MaximizeSelector::new(params.selection_ratio, params.num_individuals_per_parents),
-        MultiPointCrossBreeder::new(params.num_crossover_points),
-        RandomValueMutator::new(params.mutation_rate, 32, 126),
-        ElitistReinserter::new(FitnessCalc, true, params.reinsertion_ratio),
-        or(FitnessLimit::new(FitnessCalc.highest_possible_fitness()),
-           GenerationLimit::new(params.generation_limit))
-    ).initialize(initial_population);
+    let mut monkeys_sim = simulate(
+        genetic_algorithm()
+            .with_evaluation(FitnessCalc)
+            .with_selection(MaximizeSelector::new(params.selection_ratio, params.num_individuals_per_parents))
+            .with_crossover(MultiPointCrossBreeder::new(params.num_crossover_points))
+            .with_mutation(RandomValueMutator::new(params.mutation_rate, 32, 126))
+            .with_reinsertion(ElitistReinserter::new(FitnessCalc, true, params.reinsertion_ratio))
+            .with_termination(or(FitnessLimit::new(FitnessCalc.highest_possible_fitness()),
+                                 GenerationLimit::new(params.generation_limit)))
+            .build()
+        ).with_initial_population(initial_population)
+        .build();
 
     println!("Starting Shakespeare's Monkeys with: {:?}", params);
 

@@ -20,6 +20,7 @@ pub use population::Population;
 // Simulation
 //
 pub use simulation::{SimResult, Simulation, SimulationBuilder};
+pub use simulation::ga::simulate;
 
 //
 // Termination

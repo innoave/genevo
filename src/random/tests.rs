@@ -2,7 +2,8 @@
 use hamcrest::prelude::*;
 use quickcheck::TestResult;
 use super::*;
-use random::{SeedableRng, StdRng, thread_rng};
+use rand::StdRng;
+use random::{SeedableRng, thread_rng};
 
 quickcheck! {
 
@@ -108,12 +109,12 @@ fn weighted_distribution_select() {
     let mut rng = StdRng::from_seed(&[42usize]);
 
     let weights = vec![200, 150, 600, 50];
-    let n_sum = 1_000.;
+    let n_sum = 1_000;
 
     let weighted_distribution = WeightedDistribution::from_scalar_values(&weights);
 
     let mut counter = vec![0, 0, 0, 0];
-    for _ in 0..n_sum as usize {
+    for _ in 0..n_sum {
         let random = rng.next_f64() * weighted_distribution.sum();
         let index = weighted_distribution.select(random);
         counter[index] += 1;

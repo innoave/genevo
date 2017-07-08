@@ -8,7 +8,7 @@ extern crate rand;
 
 use genevo::prelude::*;
 use genevo::population::{BinaryEncodedGenomeBuilder, ValueEncodedGenomeBuilder};
-use genevo::random::{Rng, SeedableRng, StdRng};
+use genevo::random::Rng;
 use fixedbitset::FixedBitSet;
 
 
@@ -83,7 +83,7 @@ fn create_population_with_custom_number_generator() {
     let population: Population<FixedBitSet> = build_population()
         .with_genome_builder(BinaryEncodedGenomeBuilder::new(8))
         .of_size(200)
-        .using_number_generator(&|| StdRng::from_seed(&[42, 0]));
+        .using_seed([42, 0]);
 
     println!("{:?}", population);
     assert_that!(population.size(), is(equal_to(200)));

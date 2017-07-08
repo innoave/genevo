@@ -1,27 +1,18 @@
 
 pub mod ga;
 
+use algorithm::Algorithm;
+use genetic::{Fitness, Genotype};
+use random::Seed;
+use termination::StopReason;
 use chrono::{DateTime, Duration, Local};
-use genetic::{Fitness, FitnessFunction, Genotype};
-use operator::{CrossoverOp, MutationOp, ReinsertionOp, SelectionOp};
-use population::Population;
-use termination::{StopReason, Termination};
 use std::rc::Rc;
 
 
-/// A `Simulation` is the execution of a genetic algorithm.
-pub trait Simulation<G, F, E, S, C, M, R, Q>
-    where G: Genotype, F: Fitness,
-          E: FitnessFunction<G, F>, S: SelectionOp<G, F>, Q: Termination<G, F>,
-          C: CrossoverOp<G>, M: MutationOp<G>, R: ReinsertionOp<G, F>, Self: Sized
+/// A `Simulation` is the execution of an algorithm.
+pub trait Simulation<A, G, F>
+    where A: Algorithm, G: Genotype, F: Fitness
 {
-    /// A `SimulationBuilder` that can build this `Simulation`.
-    type Builder: SimulationBuilder<Self, G, F, E, S, C, M, R, Q>;
-
-    /// Start building a new instance of a `Simulation`.
-    fn builder(evaluator: E, selector: S, breeder: C, mutator: M, reinserter: R, termination: Q)
-        -> Self::Builder;
-
     /// Runs this simulation completely. The simulation ends when the
     /// termination criteria are met.
     fn run(&mut self) -> Result<SimResult<G, F>, SimError>;
@@ -29,6 +20,10 @@ pub trait Simulation<G, F, E, S, C, M, R, Q>
     /// Makes one step in this simulation. One step in the simulation performs
     /// one time the complete loop of the genetic algorithm.
     fn step(&mut self) -> Result<SimResult<G, F>, SimError>;
+
+    /// Makes one step in this simulation using the given seed. This function
+    /// can be used to replay previous simulation steps.
+    fn step_with_seed(&mut self, seed: Seed) -> Result<SimResult<G, F>, SimError>;
 
     /// Stops the simulation after the current loop is finished.
     fn stop(&mut self) -> Result<bool, SimError>;
@@ -40,20 +35,12 @@ pub trait Simulation<G, F, E, S, C, M, R, Q>
 }
 
 /// The `SimulationBuilder` creates a new `Simulation` with given parameters
-/// and options. It forms the initialization stage of the genetic algorithm.
-pub trait SimulationBuilder<Sim, G, F, E, S, C, M, R, Q>
-    where Sim: Simulation<G, F, E, S, C, M, R, Q>,
-          G: Genotype, F: Fitness,
-          E: FitnessFunction<G, F>, S: SelectionOp<G, F>, Q: Termination<G, F>,
-          C: CrossoverOp<G>, M: MutationOp<G>, R: ReinsertionOp<G, F>
+/// and options. It forms the initialization stage of the algorithm.
+pub trait SimulationBuilder<S, A, G, F>
+    where S: Simulation<A, G, F>, A: Algorithm, G: Genotype, F: Fitness
 {
-    /// Finally initializes the `Simulation` with the given `Population`
-    /// and returns the newly created `Simulation`.
-    ///
-    /// Note: This operation is made the last operation in the chain of
-    /// configuration option methods to be able to reuse a previously
-    /// configured `SimulationBuilder` with a different initial population.
-    fn initialize(&mut self, population: Population<G>) -> Sim;
+    /// Finally build the Simulation.
+    fn build(self) -> S;
 }
 
 /// The `Evaluated` type marks an individual as evaluated. Mostly this means
@@ -188,8 +175,8 @@ impl<G, F> EvaluatedPopulation<G, F>
 }
 
 /// The `State` struct holds the results of one pass of the genetic algorithm
-/// loop, i.e. the processing of the evoluation from one generation to the
-/// next generation.
+/// loop, i.e. the processing of the evolution from one generation to the next
+/// generation.
 #[derive(Debug, Eq, PartialEq)]
 pub struct State<G, F>
     where G: Genotype, F: Fitness
@@ -200,6 +187,8 @@ pub struct State<G, F>
     /// counted from 1 and increased by 1 each time a new generation is
     /// accepted, e.i. each iteration of the genetic algorithm.
     pub generation: u64,
+    /// The seed used to derive the population of this generation.
+    pub seed: Seed,
     /// The population of the current generation.
     pub population: Vec<G>,
     /// The fitness values of all individuals of the current population.

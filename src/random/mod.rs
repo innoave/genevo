@@ -3,28 +3,47 @@
 
 use genetic::AsScalar;
 
-pub use rand::{Rng, SeedableRng, StdRng, thread_rng};
+pub use rand::{Rng, SeedableRng};
 pub use rand::distributions::range::SampleRange;
+pub use xorshift::RngJump;
 
-pub type RngProvider<R: Rng + Sized> = Fn() -> R + Send + Sync;
+use rand::thread_rng;
+use xorshift::Xoroshiro128;
+
+
+pub type Seed = [u64; 2];
+pub type Prng = Xoroshiro128;
+
+pub fn random_seed() -> Seed {
+    let mut rng = thread_rng();
+    [rng.gen(), rng.gen()]
+}
+
+pub fn get_rng(seed: Seed) -> Prng {
+    Xoroshiro128::from_seed(&seed)
+}
 
 pub fn random_index<R>(rng: &mut R, length: usize) -> usize
-    where R: Rng + Sized {
+    where R: Rng + Sized
+{
     random_index_from_range(rng, 0, length)
 }
 
 pub fn random_index_from_range<R>(rng: &mut R, min: usize, max: usize) -> usize
-    where R: Rng + Sized {
+    where R: Rng + Sized
+{
     rng.gen_range(min, max)
 }
 
 pub fn random_cut_points<R>(rng: &mut R, length: usize) -> (usize, usize)
-    where R: Rng + Sized {
+    where R: Rng + Sized
+{
     random_cut_points_from_range(rng, 0, length)
 }
 
 pub fn random_cut_points_from_range<R>(rng: &mut R, min: usize, max: usize) -> (usize, usize)
-    where R: Rng + Sized {
+    where R: Rng + Sized
+{
     assert!(max >= min + 4);
     let max_slice = max - min - 2;
     loop {
@@ -45,7 +64,8 @@ pub fn random_cut_points_from_range<R>(rng: &mut R, min: usize, max: usize) -> (
 }
 
 pub fn random_n_cut_points<R>(rng: &mut R, n: usize, length: usize) -> Vec<usize>
-    where R: Rng + Sized {
+    where R: Rng + Sized
+{
     assert!(n > 0);
     assert!(length >= 2 * n);
     let mut cutpoints = Vec::with_capacity(n);
@@ -86,20 +106,24 @@ pub fn random_n_cut_points<R>(rng: &mut R, n: usize, length: usize) -> Vec<usize
 }
 
 pub fn random_probability<R>(rng: &mut R) -> f64
-    where R: Rng + Sized {
+    where R: Rng + Sized
+{
     rng.next_f64()
 }
 
 /// The `WeightedDistribution` is used to select values proportional to their
 /// weighted values.
-pub struct WeightedDistribution<'a, T> where T: 'a + AsScalar {
+pub struct WeightedDistribution<'a, T>
+    where T: 'a + AsScalar
+{
     values: &'a [T],
     sum: f64,
     weights: Vec<f64>,
 }
 
-impl<'a, T> WeightedDistribution<'a, T> where T: 'a + AsScalar {
-
+impl<'a, T> WeightedDistribution<'a, T>
+    where T: 'a + AsScalar
+{
     pub fn from_scalar_values(values: &'a [T]) -> Self {
         let (weights, weight_sum) = calc_weights_and_sum(values);
         WeightedDistribution {
@@ -120,12 +144,12 @@ impl<'a, T> WeightedDistribution<'a, T> where T: 'a + AsScalar {
     pub fn value(&self, index: usize) -> &T {
         &self.values[index]
     }
-
 }
 
 /// Calculates weights and the sum for the given values.
 fn calc_weights_and_sum<'a, T>(values: &'a [T]) -> (Vec<f64>, f64)
-    where T: 'a + AsScalar {
+    where T: 'a + AsScalar
+{
     let mut weights = Vec::with_capacity(values.len());
     let mut weight_sum: f64 = 0.;
     for value in values.iter() {

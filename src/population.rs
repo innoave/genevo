@@ -1,6 +1,6 @@
 
 use genetic::{Genotype};
-use random::{Rng, RngProvider, thread_rng, SampleRange};
+use random::{Prng, Rng, RngJump, SampleRange, Seed, get_rng, random_seed};
 use fixedbitset::FixedBitSet;
 use rayon;
 use std::marker::PhantomData;
@@ -50,23 +50,24 @@ pub struct PopulationBuilder;
 
 impl PopulationBuilder {
 
-    fn build_population<B, G, R>(genome_builder: &B, size: usize,
-                                      get_rng: &RngProvider<R>) -> Population<G>
-        where B: GenomeBuilder<G>, G: Genotype, R: Rng + Sized
+    fn build_population<B, G>(genome_builder: &B, size: usize, rng: Prng) -> Population<G>
+        where B: GenomeBuilder<G>, G: Genotype
     {
         if size < 60 {
-            let mut rng = get_rng();
+            let mut rng = rng;
             Population {
                 individuals: (0..size).map(|index|
                     genome_builder.build_genome(index, &mut rng)
                 ).collect(),
             }
         } else {
+            let mut rng1 = rng; rng1.jump(1);
+            let mut rng2 = rng; rng2.jump(2);
             let left_size = size / 2;
             let right_size = size - left_size;
             let (left_population, right_population) = rayon::join(
-                || Self::build_population(genome_builder, left_size, get_rng),
-                || Self::build_population(genome_builder, right_size, get_rng)
+                || Self::build_population(genome_builder, left_size, rng1),
+                || Self::build_population(genome_builder, right_size, rng2)
             );
             let mut right_individuals = right_population.individuals;
             let mut individuals = left_population.individuals;
@@ -134,13 +135,11 @@ impl<B, G> PopulationWithGenomeBuilderAndSizeBuilder<B, G>
     where B: GenomeBuilder<G>, G: Genotype
 {
     pub fn uniform_at_random(self) -> Population<G> {
-        PopulationBuilder::build_population(&self.genome_builder, self.population_size, &thread_rng)
+        PopulationBuilder::build_population(&self.genome_builder, self.population_size, get_rng(random_seed()))
     }
 
-    pub fn using_number_generator<R>(self, get_rng: &RngProvider<R>) -> Population<G>
-        where R: Rng + Sized
-    {
-        PopulationBuilder::build_population(&self.genome_builder, self.population_size, get_rng)
+    pub fn using_seed(self, seed: Seed) -> Population<G> {
+        PopulationBuilder::build_population(&self.genome_builder, self.population_size, get_rng(seed))
     }
 }
 

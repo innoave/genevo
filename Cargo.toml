@@ -26,6 +26,7 @@ chrono = "*"
 log = "*"
 rand = "*"
 rayon = "*"
+xorshift = "*"
 
 [dev-dependencies]
 quickcheck = "*"

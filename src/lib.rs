@@ -22,6 +22,7 @@ extern crate fixedbitset;
 extern crate chrono;
 extern crate rand;
 extern crate rayon;
+extern crate xorshift;
 
 pub mod prelude;
 
