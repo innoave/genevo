@@ -2,10 +2,10 @@
 //! individuals from the offspring and the old population by choosing the best
 //! individuals from both.
 
+use algorithm::EvaluatedPopulation;
 use genetic::{Fitness, FitnessFunction, Genotype, Offspring};
 use operator::{GeneticOperator, MultiObjective, ReinsertionOp, SingleObjective};
 use random::Rng;
-use simulation::{EvaluatedPopulation, SimError};
 use std::marker::PhantomData;
 
 
@@ -100,11 +100,8 @@ impl<G, F, E> MultiObjective for ElitistReinserter<G, F, E>
 impl<G, F, E> ReinsertionOp<G, F> for ElitistReinserter<G, F, E>
     where G: Genotype, F: Fitness, E: FitnessFunction<G, F>
 {
-    #[allow(unused_variables)]
-    fn combine<R>(&self, offspring: &mut Offspring<G>, evaluated: &EvaluatedPopulation<G, F>, rng: &mut R)
-        -> Result<Vec<G>, SimError>
-        where R: Rng + Sized
-    { #[warn(unused_variables)]
+    fn combine<R>(&self, offspring: &mut Offspring<G>, evaluated: &EvaluatedPopulation<G, F>,
+                  _: &mut R) -> Vec<G> where R: Rng + Sized {
         let old_individuals = evaluated.individuals();
         let old_fitness_values = evaluated.fitness_values();
         // holds indices to the individuals and fitness_values slices
@@ -123,8 +120,7 @@ impl<G, F, E> ReinsertionOp<G, F> for ElitistReinserter<G, F, E>
             if num_offspring < offspring.len() {
                 // evaluate fitness of the offspring individuals
                 let mut offspring_fitness: Vec<(G, F)> = Vec::with_capacity(offspring.len());
-                while !offspring.is_empty() {
-                    let child = offspring.pop().unwrap();
+                while let Some(child) = offspring.pop() {
                     let fitness = self.fitness_evaluator.fitness_of(&child);
                     offspring_fitness.push((child, fitness));
                 }
@@ -150,8 +146,7 @@ impl<G, F, E> ReinsertionOp<G, F> for ElitistReinserter<G, F, E>
         } else {
             // evaluate fitness of the offspring individuals
             let mut offspring_fitness: Vec<(G, F)> = Vec::with_capacity(offspring.len());
-            while !offspring.is_empty() {
-                let child = offspring.pop().unwrap();
+            while let Some(child) = offspring.pop() {
                 let fitness = self.fitness_evaluator.fitness_of(&child);
                 offspring_fitness.push((child, fitness));
             }
@@ -162,8 +157,8 @@ impl<G, F, E> ReinsertionOp<G, F> for ElitistReinserter<G, F, E>
                 let index_old = old_population_indices[0];
                 if !offspring_fitness.is_empty()
                     && offspring_fitness[offspring_fitness.len() - 1].1 > old_fitness_values[index_old] {
-                    // insert best from offspring
                     let (offspring, _) = offspring_fitness.pop().unwrap();
+                    // insert best from offspring
                     new_population.push(offspring);
                 } else {
                     // insert best from old population
@@ -172,6 +167,6 @@ impl<G, F, E> ReinsertionOp<G, F> for ElitistReinserter<G, F, E>
                 }
             }
         }
-        Ok(new_population)
+        new_population
     }
 }

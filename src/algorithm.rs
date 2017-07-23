@@ -1,271 +1,183 @@
 
-use genetic::{Fitness, FitnessFunction, Genotype};
-use operator::{CrossoverOp, MutationOp, ReinsertionOp, SelectionOp};
-use termination::Termination;
-use std::marker::PhantomData;
+use genetic::{Fitness, Genotype};
+use random::Prng;
+use chrono::{DateTime, Local};
+use std::fmt::Debug;
+use std::rc::Rc;
 
 
-pub trait Algorithm {}
+pub trait Algorithm {
+    type Result: Debug + PartialEq;
+    type Error: Debug;
 
-/// A `GeneticAlgorithm` declares the building blocks that make up the actual
-/// algorithm for a specific optimization problem.
-pub struct GeneticAlgorithm<G, F, E, S, C, M, R, T> {
-    _g: PhantomData<G>,
-    _f: PhantomData<F>,
-    evaluator: E,
-    selector: S,
-    breeder: C,
-    mutator: M,
-    reinserter: R,
-    termination: T,
+    fn next(&mut self, iteration: u64, rng: &mut Prng) -> Result<Self::Result, Self::Error>;
+
+    fn reset(&mut self) -> Result<bool, Self::Error>;
+
 }
 
-impl<G, F, E, S, C, M, R, T> Algorithm for GeneticAlgorithm<G, F, E, S, C, M, R, T> {}
-
-impl<G, F, E, S, C, M, R, T> GeneticAlgorithm<G, F, E, S, C, M, R, T>
-    where G: Genotype, F: Fitness, E: FitnessFunction<G, F>,
-          S: SelectionOp<G, F>, C: CrossoverOp<G>, M: MutationOp<G>,
-          R: ReinsertionOp<G, F>, T: Termination<G, F>
-{
-    pub fn evaluator(&self) -> &E {
-        &self.evaluator
-    }
-
-    pub fn selector(&self) -> &S {
-        &self.selector
-    }
-
-    pub fn breeder(&self) -> &C {
-        &self.breeder
-    }
-
-    pub fn mutator(&self) -> &M {
-        &self.mutator
-    }
-
-    pub fn reinserter(&self) -> &R {
-        &self.reinserter
-    }
-
-    pub fn termination(&self) -> &T {
-        &self.termination
-    }
-}
-
-pub fn genetic_algorithm<G, F>() -> EmptyGeneticAlgorithmBuilder<G, F>
+pub trait Optimization<G, F>
     where G: Genotype, F: Fitness
 {
-    EmptyGeneticAlgorithmBuilder {
-        _g: PhantomData,
-        _f: PhantomData,
-    }
+    fn best_solution(&self) -> BestSolution<G, F>;
 }
 
-pub struct GeneticAlgorithmBuilder<G, F, E, S, C, M, R, T>
-    where G: Genotype, F: Fitness, E: FitnessFunction<G, F>, S: SelectionOp<G, F>,
-          C: CrossoverOp<G>, M: MutationOp<G>, R: ReinsertionOp<G, F>, T: Termination<G, F>
-{
-    _g: PhantomData<G>,
-    _f: PhantomData<F>,
-    evaluator: E,
-    selector: S,
-    breeder: C,
-    mutator: M,
-    reinserter: R,
-    termination: T,
-}
-
-impl<G, F, E, S, C, M, R, T> GeneticAlgorithmBuilder<G, F, E, S, C, M, R, T>
-    where G: Genotype, F: Fitness, E: FitnessFunction<G, F>, S: SelectionOp<G, F>,
-          C: CrossoverOp<G>, M: MutationOp<G>, R: ReinsertionOp<G, F>, T: Termination<G, F>
-{
-    pub fn build(self) -> GeneticAlgorithm<G, F, E, S, C, M, R, T> {
-        GeneticAlgorithm {
-            _g: self._g,
-            _f: self._f,
-            evaluator: self.evaluator,
-            selector: self.selector,
-            breeder: self.breeder,
-            mutator: self.mutator,
-            reinserter: self.reinserter,
-            termination: self.termination,
-        }
-    }
-}
-
-pub struct EmptyGeneticAlgorithmBuilder<G, F>
+/// The `Evaluated` type marks an individual as evaluated. Mostly this means
+/// that the `genetic::Fitness` value has been calculated for this individual.
+///
+/// This structure is used to store the fitness value, so that the fitness
+/// value needs to be calculated only one time for each individual. For
+/// simulation with more sophisticated fitness calculations this can improve
+/// performance.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct Evaluated<G, F>
     where G: Genotype, F: Fitness
 {
-    // phantom data to prevent direct initialization by the user of the lib
-    _g: PhantomData<G>,
-    _f: PhantomData<F>
+    /// The `genetic::Genotype` that has been evaluated.
+    pub genome: G,
+    /// The `genetic::Fitness` value of the evaluated `genetic::Genotype`.
+    pub fitness: F,
 }
 
-impl<G, F> EmptyGeneticAlgorithmBuilder<G, F>
+/// The best solution found by the `Simulation`. If the simulation is not
+/// finished this is the best solution of the generation currently evaluated.
+/// If the solution is finished this is the overall best solution found by the
+/// simulation.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct BestSolution<G, F>
     where G: Genotype, F: Fitness
 {
-    pub fn with_evaluation<E>(self, fitness_function: E)
-        -> GeneticAlgorithmWithEvalBuilder<G, F, E>
-        where E: FitnessFunction<G, F> {
-        GeneticAlgorithmWithEvalBuilder {
-            _g: self._g,
-            _f: self._f,
-            evaluator: fitness_function,
+    /// The local time at which this solution is found.
+    pub found_at: DateTime<Local>,
+    /// The number of the generation in which this solution is found.
+    pub generation: u64,
+    /// The evaluated `genetic::Genotype` that is considered to be best.
+    pub solution: Evaluated<G, F>,
+}
+
+/// The `EvaluatedPopulation` holds the results of the evaluation stage of
+/// the genetic algorithm. It is used to pass these values to the
+/// `operator::SelectionOp` for enable this operator to do its job.
+///
+/// Currently is contains the fitness value of each individual in a population,
+/// their normalized fitness values and highest and average fitness of the
+/// population.
+///
+/// As the information in this struct is only used to pass the output of the
+/// evaluation stage to the selection operator and this happens once for every
+/// population the types of the fields are designed to avoid cloning of whole
+/// data structures. To be able to change the fields internally later when
+/// new optimization are found the fields are kept private.
+#[derive(Debug, Eq, PartialEq)]
+pub struct EvaluatedPopulation<G, F>
+    where G: Genotype, F: Fitness
+{
+    individuals: Rc<Vec<G>>,
+    fitness_values: Vec<F>,
+    highest_fitness: F,
+    lowest_fitness: F,
+    average_fitness: F,
+}
+
+impl<G, F> EvaluatedPopulation<G, F>
+    where G: Genotype, F: Fitness
+{
+    /// Construct a new instance of the `EvaluatedPopulation` struct.
+    pub fn new(individuals: Rc<Vec<G>>,
+               fitness_values: Vec<F>,
+               highest_fitness: F,
+               lowest_fitness: F,
+               average_fitness: F
+    ) -> Self {
+        EvaluatedPopulation {
+            individuals: individuals,
+            fitness_values: fitness_values,
+            highest_fitness: highest_fitness,
+            lowest_fitness: lowest_fitness,
+            average_fitness: average_fitness
         }
     }
-}
 
-pub struct GeneticAlgorithmWithEvalBuilder<G, F, E>
-    where G: Genotype, F: Fitness, E: FitnessFunction<G, F>
-{
-    _g: PhantomData<G>,
-    _f: PhantomData<F>,
-    evaluator: E,
-}
-
-impl<G, F, E> GeneticAlgorithmWithEvalBuilder<G, F, E>
-    where G: Genotype, F: Fitness, E: FitnessFunction<G, F> {
-
-    pub fn with_selection<S>(self, selection_op: S)
-        -> GeneticAlgorithmWithEvalAndSeleBuilder<G, F, E, S>
-        where S: SelectionOp<G, F>
-    {
-        GeneticAlgorithmWithEvalAndSeleBuilder {
-            _g: self._g,
-            _f: self._f,
-            evaluator: self.evaluator,
-            selector: selection_op,
-        }
+    /// Returns the individuals of the population that has been evaluated.
+    pub fn individuals(&self) -> Rc<Vec<G>> {
+        self.individuals.clone()
     }
-}
 
-pub struct GeneticAlgorithmWithEvalAndSeleBuilder<G, F, E, S>
-    where G: Genotype, F: Fitness, E: FitnessFunction<G, F>, S: SelectionOp<G, F>
-{
-    _g: PhantomData<G>,
-    _f: PhantomData<F>,
-    evaluator: E,
-    selector: S,
-}
-
-impl<G, F, E, S> GeneticAlgorithmWithEvalAndSeleBuilder<G, F, E, S>
-    where G: Genotype, F: Fitness, E: FitnessFunction<G, F>, S: SelectionOp<G, F>
-{
-    pub fn with_crossover<C>(self, crossover_op: C)
-        -> GeneticAlgorithmWithEvalSeleAndBreeBuilder<G, F, E, S, C>
-        where C: CrossoverOp<G> {
-        GeneticAlgorithmWithEvalSeleAndBreeBuilder {
-            _g: self._g,
-            _f: self._f,
-            evaluator: self.evaluator,
-            selector: self.selector,
-            breeder: crossover_op,
-        }
+    /// Returns the fitness values of all individuals of the evaluated
+    /// population.
+    ///
+    /// The returned slice contains the fitness values of the individuals
+    /// in the same order as the slice returned by function `individuals`
+    /// contains the individuals itself, i.e. for individual with index `i`
+    /// in `individuals()[i]` the fitness value is stored in
+    /// `fitness_values()[i]`.
+    pub fn fitness_values(&self) -> &[F] {
+        &self.fitness_values
     }
-}
 
-pub struct GeneticAlgorithmWithEvalSeleAndBreeBuilder<G, F, E, S, C>
-    where G: Genotype, F: Fitness, E: FitnessFunction<G, F>, S: SelectionOp<G, F>,
-          C: CrossoverOp<G>
-{
-    _g: PhantomData<G>,
-    _f: PhantomData<F>,
-    evaluator: E,
-    selector: S,
-    breeder: C,
-}
-
-impl<G, F, E, S, C> GeneticAlgorithmWithEvalSeleAndBreeBuilder<G, F, E, S, C>
-    where G: Genotype, F: Fitness, E: FitnessFunction<G, F>, S: SelectionOp<G, F>,
-          C: CrossoverOp<G> {
-
-    pub fn with_mutation<M>(self, mutation_op: M)
-        -> GeneticAlgorithmWithEvalSeleBreeAndMutaBuilder<G, F, E, S, C, M>
-        where M: MutationOp<G> {
-        GeneticAlgorithmWithEvalSeleBreeAndMutaBuilder {
-            _g: self._g,
-            _f: self._f,
-            evaluator: self.evaluator,
-            selector: self.selector,
-            breeder: self.breeder,
-            mutator: mutation_op,
-        }
+    /// Returns the highest `genetic::Fitness` value found in the evaluated
+    /// population.
+    pub fn highest_fitness(&self) -> &F {
+        &self.highest_fitness
     }
-}
 
-pub struct GeneticAlgorithmWithEvalSeleBreeAndMutaBuilder<G, F, E, S, C, M>
-    where G: Genotype, F: Fitness, E: FitnessFunction<G, F>, S: SelectionOp<G, F>,
-          C: CrossoverOp<G>, M: MutationOp<G>
-{
-    _g: PhantomData<G>,
-    _f: PhantomData<F>,
-    evaluator: E,
-    selector: S,
-    breeder: C,
-    mutator: M,
-}
-
-impl<G, F, E, S, C, M> GeneticAlgorithmWithEvalSeleBreeAndMutaBuilder<G, F, E, S, C, M>
-    where G: Genotype, F: Fitness, E: FitnessFunction<G, F>, S: SelectionOp<G, F>,
-          C: CrossoverOp<G>, M: MutationOp<G>
-{
-    pub fn with_reinsertion<R>(self, reinsertion_op: R)
-        -> GeneticAlgorithmWithEvalSeleBreeMutaAndReinBuilder<G, F, E, S, C, M, R>
-        where R: ReinsertionOp<G, F> {
-        GeneticAlgorithmWithEvalSeleBreeMutaAndReinBuilder {
-            _g: self._g,
-            _f: self._f,
-            evaluator: self.evaluator,
-            selector: self.selector,
-            breeder: self.breeder,
-            mutator: self.mutator,
-            reinserter: reinsertion_op,
-        }
+    /// Returns the lowest `genetic::Fitness` value found in the evaluated
+    /// population.
+    pub fn lowest_fitness(&self) -> &F {
+        &self.lowest_fitness
     }
-}
 
-pub struct GeneticAlgorithmWithEvalSeleBreeMutaAndReinBuilder<G, F, E, S, C, M, R>
-    where G: Genotype, F: Fitness, E: FitnessFunction<G, F>, S: SelectionOp<G, F>,
-          C: CrossoverOp<G>, M: MutationOp<G>, R: ReinsertionOp<G, F>
-{
-    _g: PhantomData<G>,
-    _f: PhantomData<F>,
-    evaluator: E,
-    selector: S,
-    breeder: C,
-    mutator: M,
-    reinserter: R,
-}
-
-impl<G, F, E, S, C, M, R> GeneticAlgorithmWithEvalSeleBreeMutaAndReinBuilder<G, F, E, S, C, M, R>
-    where G: Genotype, F: Fitness, E: FitnessFunction<G, F>, S: SelectionOp<G, F>,
-          C: CrossoverOp<G>, M: MutationOp<G>, R: ReinsertionOp<G, F>
-{
-    pub fn with_termination<T>(self, termination: T)
-        -> GeneticAlgorithmBuilder<G, F, E, S, C, M, R, T>
-        where T: Termination<G, F> {
-        GeneticAlgorithmBuilder {
-            _g: self._g,
-            _f: self._f,
-            evaluator: self.evaluator,
-            selector: self.selector,
-            breeder: self.breeder,
-            mutator: self.mutator,
-            reinserter: self.reinserter,
-            termination: termination,
-        }
+    /// Returns the average of all `genetic::Fitness` values of the evaluated
+    /// population.
+    pub fn average_fitness(&self) -> &F {
+        &self.average_fitness
     }
-}
 
-pub trait Simulation<A>
-    where A: Algorithm
-{
+    /// Returns the individual at the given index.
+    pub fn individual(&self, index: usize) -> Option<&G> {
+        self.individuals.get(index)
+    }
 
-}
+    /// Returns the `genetic::Fitness` value of the given individual.
+    ///
+    /// Note: This function might be more expensive due to the data structure
+    /// chosen for this struct. So use it sparingly.
+    pub fn fitness_of_individual(&self, individual: &G) -> Option<&F> {
+        self.index_of_individual(individual).map(|index|
+            &self.fitness_values[index])
+    }
 
+    /// Returns the `genetic::Genotype` of the individual with a given
+    /// `genetic::Fitness` value.
+    ///
+    /// Note: This function might be more expensive due to the data structure
+    /// chosen for this struct. So use it sparingly.
+    pub fn individual_with_fitness(&self, fitness: &F) -> Option<&G> {
+        self.index_of_fitness(fitness).map(|index|
+            &self.individuals[index])
+    }
 
-pub fn iterate<A, P>(algorithm: A) -> P
-    where A: Algorithm, P: Simulation<A>
-{
-    unimplemented!()
+    /// Returns the `Evaluated` individual with a given `genetic::Fitness`
+    /// value.
+    ///
+    /// Note: This function might be more expensive due to the data structure
+    /// chosen for this struct. So use it sparingly.
+    pub fn evaluated_individual_with_fitness(&self, fitness: &F) -> Option<Evaluated<G, F>> {
+        self.index_of_fitness(&fitness)
+            .map(|index| Evaluated {
+                genome: self.individuals[index].clone(),
+                fitness: self.fitness_values[index].clone(),
+            })
+    }
+
+    /// Determines the index in the `individuals` slice of an individual.
+    fn index_of_individual(&self, individual: &G) -> Option<usize> {
+        self.individuals.iter().position(|v| *v == *individual)
+    }
+
+    /// Determines the index in the `fitness_values` slice of a fitness value.
+    fn index_of_fitness(&self, fitness: &F) -> Option<usize> {
+        self.fitness_values.iter().position(|v| *v == *fitness)
+    }
+
 }

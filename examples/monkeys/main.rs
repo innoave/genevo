@@ -105,10 +105,11 @@ fn main() {
             .with_crossover(MultiPointCrossBreeder::new(params.num_crossover_points))
             .with_mutation(RandomValueMutator::new(params.mutation_rate, 32, 126))
             .with_reinsertion(ElitistReinserter::new(FitnessCalc, true, params.reinsertion_ratio))
-            .with_termination(or(FitnessLimit::new(FitnessCalc.highest_possible_fitness()),
-                                 GenerationLimit::new(params.generation_limit)))
+            .with_initial_population(initial_population)
             .build()
-        ).with_initial_population(initial_population)
+        )
+        .until(or(FitnessLimit::new(FitnessCalc.highest_possible_fitness()),
+                             GenerationLimit::new(params.generation_limit)))
         .build();
 
     println!("Starting Shakespeare's Monkeys with: {:?}", params);
@@ -116,29 +117,33 @@ fn main() {
     loop {
         let result = monkeys_sim.step();
         match result {
-            Ok(SimResult::Intermediate(result)) => {
+            Ok(SimResult::Intermediate(step)) => {
+                let evaluated_population = step.result.evaluated_population;
+                let best_solution = step.result.best_solution;
                 println!("Step: generation: {}, average_fitness: {}, \
-                         best_solution: [{}], fitness: {}, processing_time: {}",
-                         result.generation, result.average_fitness,
-                         result.best_solution.solution.genome.as_text(),
-                         result.best_solution.solution.fitness,
-                         result.processing_time.fmt());
+                         best fitness: {}, duration: {}, processing_time: {}",
+                         step.iteration, evaluated_population.average_fitness(),
+                         best_solution.solution.fitness,
+                         step.duration.fmt(),
+                         step.processing_time.fmt());
+                println!("      {}", best_solution.solution.genome.as_text());
 //                println!("| population: [{}]", result.population.iter().map(|g| g.as_text())
 //                    .collect::<Vec<String>>().join("], ["));
             },
-            Ok(SimResult::Final(result, duration, stop_reason)) => {
+            Ok(SimResult::Final(step, processing_time, duration, stop_reason)) => {
+                let best_solution = step.result.best_solution;
                 println!("{}", stop_reason);
                 println!("Final result after {}: generation: {}, \
-                         best_solution: [{}] with fitness {} found in generation {}, processing_time: {}",
-                         duration.fmt(), result.generation,
-                         result.best_solution.solution.genome.as_text(),
-                         result.best_solution.solution.fitness,
-                         result.best_solution.generation,
-                         result.processing_time.fmt());
+                         best solution with fitness {} found in generation {}, processing_time: {}",
+                         duration.fmt(), step.iteration,
+                         best_solution.solution.fitness,
+                         best_solution.generation,
+                         processing_time.fmt());
+                println!("      {}", best_solution.solution.genome.as_text());
                 break;
             },
             Err(error) => {
-                println!("{:?}", error);
+                println!("{}", error.display());
                 break;
             },
         }

@@ -110,10 +110,10 @@ impl RandomValueMutation for Pos {
 struct QueensPositions;
 
 impl GenomeBuilder<Positions> for QueensPositions {
-    #[allow(unused_variables)]
-    fn build_genome<R>(&self, index: usize, rng: &mut R) -> Positions
+
+    fn build_genome<R>(&self, _: usize, rng: &mut R) -> Positions
         where R: Rng + Sized
-    { #[warn(unused_variables)]
+    {
         (0..NUM_ROWS).map(|row|
             Pos {
                 x: row,
@@ -137,40 +137,45 @@ fn main() {
             .with_crossover(DiscreteCrossBreeder::new())
             .with_mutation(BreederValueMutator::new(MUTATION_RATE, Pos{x:0, y:1}, 3, Pos{x:0,y:0}, Pos{x:NUM_ROWS,y:NUM_COLS}))
             .with_reinsertion(ElitistReinserter::new(FitnessCalc, false, REINSERTION_RATIO))
-            .with_termination(or(FitnessLimit::new(FitnessCalc.highest_possible_fitness()),
-                                 GenerationLimit::new(GENERATION_LIMIT)))
+            .with_initial_population(initial_population)
             .build()
-        ).with_initial_population(initial_population)
+        )
+        .until(or(FitnessLimit::new(FitnessCalc.highest_possible_fitness()),
+                   GenerationLimit::new(GENERATION_LIMIT)))
         .build();
 
     loop {
         let result = queens_sim.step();
         match result {
-            Ok(SimResult::Intermediate(result)) => {
+            Ok(SimResult::Intermediate(step)) => {
+                let evaluated_population = step.result.evaluated_population;
+                let best_solution = step.result.best_solution;
                 println!("Step: generation: {}, average_fitness: {}, \
-                         best fitness: {}, processing_time: {}",
-                         result.generation, result.average_fitness,
-                         result.best_solution.solution.fitness,
-                         result.processing_time.fmt());
-                for row in result.best_solution.solution.genome.as_board() {
+                         best fitness: {}, duration: {}, processing_time: {}",
+                         step.iteration, evaluated_population.average_fitness(),
+                         best_solution.solution.fitness,
+                         step.duration.fmt(),
+                         step.processing_time.fmt());
+                for row in best_solution.solution.genome.as_board() {
                     println!("      {:?}", row);
                 }
             },
-            Ok(SimResult::Final(result, duration, stop_reason)) => {
+            Ok(SimResult::Final(step, processing_time, duration, stop_reason)) => {
+                let best_solution = step.result.best_solution;
                 println!("{}", stop_reason);
                 println!("Final result after {}: generation: {}, \
-                         best_solution with fitness {} found in generation {}, processing_time: {}",
-                         duration.fmt(), result.generation,
-                         result.best_solution.solution.fitness,
-                         result.best_solution.generation,
-                         result.processing_time.fmt());
-                for row in result.best_solution.solution.genome.as_board() {
+                         best solution with fitness {} found in generation {}, processing_time: {}",
+                         duration.fmt(), step.iteration,
+                         best_solution.solution.fitness,
+                         best_solution.generation,
+                         processing_time.fmt());
+                for row in best_solution.solution.genome.as_board() {
                     println!("      {:?}", row);
                 }
                 break;
             },
             Err(error) => {
-                println!("{:?}", error);
+                println!("{}", error.display());
                 break;
             },
         }

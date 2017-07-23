@@ -14,10 +14,10 @@
 //! * `RouletteWheelSelector` - no bias - does not guarantee minimal spread.
 //! * `UniversalSamplingSelector` - no bias - minimal spread.
 
+use algorithm::EvaluatedPopulation;
 use genetic::{Fitness, Genotype, Parents, AsScalar};
 use operator::{GeneticOperator, SelectionOp, SingleObjective};
 use random::{Rng, WeightedDistribution, random_probability};
-use simulation::{EvaluatedPopulation, SimError};
 
 
 /// The `RouletteWheelSelector` implements stochastic fitness proportionate
@@ -83,9 +83,9 @@ impl GeneticOperator for RouletteWheelSelector {
 impl<G, F> SelectionOp<G, F> for RouletteWheelSelector
     where G: Genotype, F: Fitness + AsScalar
 {
-    fn select_from<R>(&self, evaluated: &EvaluatedPopulation<G, F>, rng: &mut R)
-        -> Result<Vec<Parents<G>>, SimError>
-        where R: Rng + Sized {
+    fn select_from<R>(&self, evaluated: &EvaluatedPopulation<G, F>, rng: &mut R) -> Vec<Parents<G>>
+        where R: Rng + Sized
+    {
         let individuals = evaluated.individuals();
         let num_parents_to_select = (individuals.len() as f64 * self.selection_ratio + 0.5).floor() as usize;
         let mut parents = Vec::with_capacity(num_parents_to_select);
@@ -99,7 +99,7 @@ impl<G, F> SelectionOp<G, F> for RouletteWheelSelector
             }
             parents.push(tuple);
         }
-        Ok(parents)
+        parents
     }
 }
 
@@ -166,9 +166,9 @@ impl GeneticOperator for UniversalSamplingSelector {
 impl<G, F> SelectionOp<G, F> for UniversalSamplingSelector
     where G: Genotype, F: Fitness + AsScalar
 {
-    fn select_from<R>(&self, evaluated: &EvaluatedPopulation<G, F>, rng: &mut R)
-        -> Result<Vec<Parents<G>>, SimError>
-        where R: Rng + Sized {
+    fn select_from<R>(&self, evaluated: &EvaluatedPopulation<G, F>, rng: &mut R) -> Vec<Parents<G>>
+        where R: Rng + Sized
+    {
         let individuals = evaluated.individuals();
         let num_parents_to_select = (individuals.len() as f64 * self.selection_ratio + 0.5).floor() as usize;
         let mut parents = Vec::with_capacity(num_parents_to_select);
@@ -184,6 +184,6 @@ impl<G, F> SelectionOp<G, F> for UniversalSamplingSelector
             }
             parents.push(tuple);
         }
-        Ok(parents)
+        parents
     }
 }

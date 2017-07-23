@@ -10,7 +10,6 @@
 use genetic::{Children, Genotype, Parents};
 use operator::{CrossoverOp, GeneticOperator};
 use random::{Rng, random_n_cut_points};
-use simulation::SimError;
 use fixedbitset::FixedBitSet;
 use std::fmt::Debug;
 
@@ -38,9 +37,9 @@ impl GeneticOperator for UniformCrossBreeder {
 
 impl CrossoverOp<FixedBitSet> for UniformCrossBreeder {
 
-    fn crossover<R>(&self, parents: Parents<FixedBitSet>, rng: &mut R)
-        -> Result<Children<FixedBitSet>, SimError>
-        where R: Rng + Sized {
+    fn crossover<R>(&self, parents: Parents<FixedBitSet>, rng: &mut R) -> Children<FixedBitSet>
+        where R: Rng + Sized
+    {
         let genome_length = parents[0].len();
         let parents_size = parents.len();
         // breed one child for each partner in parents
@@ -56,7 +55,7 @@ impl CrossoverOp<FixedBitSet> for UniformCrossBreeder {
             }
             offspring.push(genome);
         }
-        Ok(offspring)
+        offspring
     }
 }
 
@@ -85,9 +84,9 @@ impl GeneticOperator for DiscreteCrossBreeder {
 impl<V> CrossoverOp<Vec<V>> for DiscreteCrossBreeder
     where V: Clone + Debug + PartialEq + Send + Sync
 {
-    fn crossover<R>(&self, parents: Parents<Vec<V>>, rng: &mut R)
-        -> Result<Children<Vec<V>>, SimError>
-        where R: Rng + Sized {
+    fn crossover<R>(&self, parents: Parents<Vec<V>>, rng: &mut R) -> Children<Vec<V>>
+        where R: Rng + Sized
+    {
         let genome_length = parents[0].len();
         let parents_size = parents.len();
         // breed one child for each partner in parents
@@ -103,7 +102,7 @@ impl<V> CrossoverOp<Vec<V>> for DiscreteCrossBreeder
             }
             offspring.push(genome);
         }
-        Ok(offspring)
+        offspring
     }
 }
 
@@ -148,10 +147,8 @@ impl GeneticOperator for MultiPointCrossBreeder {
 impl<G> CrossoverOp<G> for MultiPointCrossBreeder
     where G: Genotype + MultiPointCrossover
 {
-    fn crossover<R>(&self, parents: Parents<G>, rng: &mut R)
-        -> Result<Children<G>, SimError>
-        where R: Rng {
-        Ok(MultiPointCrossover::crossover(parents, self.num_cut_points, rng))
+    fn crossover<R>(&self, parents: Parents<G>, rng: &mut R) -> Children<G> where R: Rng + Sized {
+        MultiPointCrossover::crossover(parents, self.num_cut_points, rng)
     }
 }
 
@@ -159,8 +156,7 @@ pub trait MultiPointCrossover: Genotype {
     type Dna;
 
     fn crossover<R>(parents: Parents<Self>, num_cut_points: usize, rng: &mut R) -> Children<Self>
-        where R: Rng;
-
+        where R: Rng + Sized;
 }
 
 impl<V> MultiPointCrossover for Vec<V>
@@ -168,7 +164,8 @@ impl<V> MultiPointCrossover for Vec<V>
     type Dna = V;
 
     fn crossover<R>(parents: Parents<Self>, num_cut_points: usize, rng: &mut R) -> Children<Self>
-        where R: Rng {
+        where R: Rng + Sized
+    {
         let genome_length = parents[0].len();
         let parents_size = parents.len();
         // breed one child for each partner in parents
@@ -208,7 +205,9 @@ impl MultiPointCrossover for FixedBitSet {
     type Dna = bool;
 
     fn crossover<R>(parents: Parents<FixedBitSet>, num_cut_points: usize, rng: &mut R)
-        -> Children<FixedBitSet> where R: Rng {
+        -> Children<FixedBitSet>
+        where R: Rng + Sized
+    {
         let genome_length = parents[0].len();
         let parents_size = parents.len();
         // breed one child for each partner in parents

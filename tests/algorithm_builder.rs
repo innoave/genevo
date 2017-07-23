@@ -8,6 +8,7 @@ extern crate rand;
 
 use genevo::prelude::*;
 use genevo::operator::prelude::*;
+use genevo::population::ValueEncodedGenomeBuilder;
 
 
 #[test]
@@ -35,15 +36,21 @@ fn create_new_genetic_algorithm_application() {
         }
     }
 
+    let initial_population: Population<Vec<f64>> = build_population()
+        .with_genome_builder(ValueEncodedGenomeBuilder::new(4, -2., 2.))
+        .of_size(200)
+        .uniform_at_random();
+
     let algorithm = genetic_algorithm()
             .with_evaluation(MyFitnessEvaluator)
             .with_selection(RouletteWheelSelector::new(0.7, 2))
             .with_crossover(MultiPointCrossBreeder::new(3))
             .with_mutation(RandomValueMutator::new(0.015, -2.0, 2.0))
             .with_reinsertion(ElitistReinserter::new(MyFitnessEvaluator, false, 0.7))
-            .with_termination(or(GenerationLimit::new(2000), FitnessLimit::new(10000)))
+            .with_initial_population(initial_population)
             .build();
 
-    assert_that!(*algorithm.termination().condition1().max_generations(), is(equal_to(2000)));
-    assert_that!(*algorithm.termination().condition2().fitness_target(), is(equal_to(10000)));
+    assert_that!(algorithm.selector().selection_ratio(), is(equal_to(0.7)));
+    assert_that!(algorithm.selector().num_individuals_per_parents(), is(equal_to(2)));
+    assert_that!(algorithm.breeder().num_cut_points(), is(equal_to(3)));
 }

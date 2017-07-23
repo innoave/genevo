@@ -7,7 +7,8 @@ pub use genetic::{Fitness, FitnessFunction, Genotype, Phenotype};
 //
 // Algorithm
 //
-pub use algorithm::{GeneticAlgorithm, genetic_algorithm};
+pub use algorithm::Algorithm;
+pub use ga::{GeneticAlgorithm, genetic_algorithm};
 
 //
 // Population
@@ -20,7 +21,7 @@ pub use population::Population;
 // Simulation
 //
 pub use simulation::{SimResult, Simulation, SimulationBuilder};
-pub use simulation::ga::simulate;
+pub use simulation::simulator::simulate;
 
 //
 // Termination

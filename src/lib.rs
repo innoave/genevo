@@ -10,7 +10,7 @@
 //!
 //! ```ignore
 //! [dependencies]
-//! genevo = "^0.1.0"
+//! genevo = "0.1"
 //! ```
 //!
 //! and adding `extern crate genevo;` to your crate root.
@@ -29,6 +29,8 @@ pub mod prelude;
 pub mod genetic;
 
 pub mod algorithm;
+
+pub mod ga;
 
 pub mod population;
 

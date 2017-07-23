@@ -2,10 +2,10 @@
 //! individuals from the offspring and the old population without considering
 //! the fitness or any other attribute of the individuals.
 
+use algorithm::EvaluatedPopulation;
 use genetic::{Fitness, Genotype, Offspring};
 use operator::{GeneticOperator, MultiObjective, ReinsertionOp, SingleObjective};
 use random::{Rng, random_index};
-use simulation::{EvaluatedPopulation, SimError};
 
 
 /// The `UniformReinserter` takes n individuals from the offspring and
@@ -66,9 +66,8 @@ impl MultiObjective for UniformReinserter {}
 impl<G, F> ReinsertionOp<G, F> for UniformReinserter
     where G: Genotype, F: Fitness
 {
-    fn combine<R>(&self, offspring: &mut Offspring<G>, evaluated: &EvaluatedPopulation<G, F>, rng: &mut R)
-               -> Result<Vec<G>, SimError>
-        where R: Rng + Sized {
+    fn combine<R>(&self, offspring: &mut Offspring<G>, evaluated: &EvaluatedPopulation<G, F>,
+                  rng: &mut R) -> Vec<G> where R: Rng + Sized {
         let old_individuals = evaluated.individuals();
         let population_size = old_individuals.len();
         let mut new_population = Vec::with_capacity(population_size);
@@ -98,6 +97,6 @@ impl<G, F> ReinsertionOp<G, F> for UniformReinserter
             let index = random_index(rng, old_individuals.len());
             new_population.push(old_individuals[index].clone());
         }
-        Ok(new_population)
+        new_population
     }
 }

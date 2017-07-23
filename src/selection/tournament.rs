@@ -3,10 +3,10 @@
 //! The provided `SelectionOp` implementations are:
 //! * `TournamentSelector`
 
+use algorithm::EvaluatedPopulation;
 use genetic::{Fitness, Genotype, Parents};
 use operator::{GeneticOperator, SelectionOp, SingleObjective, MultiObjective};
 use random::{Rng, random_index, random_probability};
-use simulation::{EvaluatedPopulation, SimError};
 
 
 /// The `TournamentSelector` implements the tournament selection method.
@@ -148,9 +148,9 @@ impl GeneticOperator for TournamentSelector {
 impl<G, F> SelectionOp<G, F> for TournamentSelector
     where G: Genotype, F: Fitness
 {
-    fn select_from<R>(&self, evaluated: &EvaluatedPopulation<G, F>, rng: &mut R)
-        -> Result<Vec<Parents<G>>, SimError>
-        where R: Rng + Sized {
+    fn select_from<R>(&self, evaluated: &EvaluatedPopulation<G, F>, rng: &mut R) -> Vec<Parents<G>>
+        where R: Rng + Sized
+    {
         let individuals = evaluated.individuals();
         let fitness_values = evaluated.fitness_values();
 
@@ -206,6 +206,6 @@ impl<G, F> SelectionOp<G, F> for TournamentSelector
             }
             selected.push(tuple);
         }
-        Ok(selected)
+        selected
     }
 }

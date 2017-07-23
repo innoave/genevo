@@ -164,10 +164,9 @@ impl BinaryEncodedGenomeBuilder {
 
 impl GenomeBuilder<FixedBitSet> for BinaryEncodedGenomeBuilder {
 
-    #[allow(unused_variables)]
-    fn build_genome<R>(&self, index: usize, rng: &mut R) -> FixedBitSet
+    fn build_genome<R>(&self, _: usize, rng: &mut R) -> FixedBitSet
         where R: Rng + Sized
-    { #[warn(unused_variables)]
+    {
         let mut genome = FixedBitSet::with_capacity(self.genome_length);
         for bit in 0..self.genome_length {
             genome.set(bit, rng.gen());
@@ -178,10 +177,9 @@ impl GenomeBuilder<FixedBitSet> for BinaryEncodedGenomeBuilder {
 
 impl GenomeBuilder<Vec<bool>> for BinaryEncodedGenomeBuilder {
 
-    #[allow(unused_variables)]
-    fn build_genome<R>(&self, index: usize, rng: &mut R) -> Vec<bool>
+    fn build_genome<R>(&self, _: usize, rng: &mut R) -> Vec<bool>
         where R: Rng + Sized
-    { #[warn(unused_variables)]
+    {
         (0..self.genome_length).map(|_|
             rng.gen()
         ).collect()
@@ -207,9 +205,8 @@ impl<V> ValueEncodedGenomeBuilder<V> {
 impl<V> GenomeBuilder<Vec<V>> for ValueEncodedGenomeBuilder<V>
     where V: Clone + Debug + PartialEq + PartialOrd + SampleRange + Send + Sync
 {
-    #[allow(unused_variables)]
-    fn build_genome<R>(&self, index: usize, rng: &mut R) -> Vec<V> where R: Rng + Sized
-    { #[warn(unused_variables)]
+    fn build_genome<R>(&self, _: usize, rng: &mut R) -> Vec<V> where R: Rng + Sized
+    {
         (0..self.genome_length).map(|_|
             rng.gen_range(self.min_value.clone(), self.max_value.clone())
         ).collect()

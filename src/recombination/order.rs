@@ -10,7 +10,6 @@
 use genetic::{Children, Parents};
 use operator::{CrossoverOp, GeneticOperator};
 use random::{Rng, random_cut_points};
-use simulation::SimError;
 use std::collections::HashMap;
 
 
@@ -35,9 +34,10 @@ impl GeneticOperator for OrderOneCrossover {
 }
 
 impl CrossoverOp<Vec<usize>> for OrderOneCrossover {
-    fn crossover<R>(&self, parents: Parents<Vec<usize>>, rng: &mut R)
-        -> Result<Children<Vec<usize>>, SimError>
-        where R: Rng + Sized {
+
+    fn crossover<R>(&self, parents: Parents<Vec<usize>>, rng: &mut R) -> Children<Vec<usize>>
+        where R: Rng + Sized
+    {
         multi_parents_cyclic_crossover(&parents, order_one_crossover, rng)
     }
 }
@@ -64,17 +64,19 @@ impl GeneticOperator for PartiallyMappedCrossover {
 }
 
 impl CrossoverOp<Vec<usize>> for PartiallyMappedCrossover {
-    fn crossover<R>(&self, parents: Parents<Vec<usize>>, rng: &mut R)
-        -> Result<Children<Vec<usize>>, SimError>
-        where R: Rng + Sized {
+
+    fn crossover<R>(&self, parents: Parents<Vec<usize>>, rng: &mut R) -> Children<Vec<usize>>
+        where R: Rng + Sized
+    {
         multi_parents_cyclic_crossover(&parents, partial_mapped_crossover, rng)
     }
 }
 
 
-fn multi_parents_cyclic_crossover<'a, FN, R>(parents: &'a Parents<Vec<usize>>, crossover: FN, rng: &mut R)
-    -> Result<Children<Vec<usize>>, SimError>
-    where FN: Fn(&'a [usize], &'a [usize], usize, usize) -> Vec<usize>, R: Rng + Sized {
+fn multi_parents_cyclic_crossover<'a, FN, R>(parents: &'a Parents<Vec<usize>>, crossover: FN,
+                                             rng: &mut R) -> Children<Vec<usize>>
+    where FN: Fn(&'a [usize], &'a [usize], usize, usize) -> Vec<usize>, R: Rng + Sized
+{
     let parents_size = parents.len();
     let genome_length = parents[0].len();
     // breed one child for each partner in parents
@@ -89,12 +91,13 @@ fn multi_parents_cyclic_crossover<'a, FN, R>(parents: &'a Parents<Vec<usize>>, c
             p2_index = 0;
         }
     }
-    Ok(offspring)
+    offspring
 }
 
 fn order_one_crossover(parent1: &[usize], parent2: &[usize],
                        cutpoint1: usize, cutpoint2: usize)
-    -> Vec<usize> {
+    -> Vec<usize>
+{
     let genome_length = parent1.len();
     let mut genome: Vec<usize> = Vec::with_capacity(genome_length);
     // collect genes of parent1 located at cutpoint1 to cutpoint2

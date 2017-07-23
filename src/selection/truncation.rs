@@ -5,10 +5,10 @@
 //! The provided `SelectionOp` implementations are:
 //! * `MaximizeSelector`
 
+use algorithm::EvaluatedPopulation;
 use genetic::{Fitness, Genotype, Parents};
 use operator::{GeneticOperator, SelectionOp, SingleObjective, MultiObjective};
 use random::Rng;
-use simulation::{EvaluatedPopulation, SimError};
 
 
 /// The `MaximizeSelector` selects the best performing `genetic::Genotype`s
@@ -79,11 +79,9 @@ impl GeneticOperator for MaximizeSelector {
 impl<G, F> SelectionOp<G, F> for MaximizeSelector
     where G: Genotype, F: Fitness
 {
-    #[allow(unused_variables)]
-    fn select_from<R>(&self, evaluated: &EvaluatedPopulation<G, F>, rng: &mut R)
-        -> Result<Vec<Parents<G>>, SimError>
+    fn select_from<R>(&self, evaluated: &EvaluatedPopulation<G, F>, _: &mut R) -> Vec<Parents<G>>
         where R: Rng + Sized
-    { #[warn(unused_variables)]
+    {
         let individuals = evaluated.individuals();
         let fitness_values = evaluated.fitness_values();
 
@@ -110,6 +108,6 @@ impl<G, F> SelectionOp<G, F> for MaximizeSelector
             }
             selected.push(tuple);
         }
-        Ok(selected)
+        selected
     }
 }

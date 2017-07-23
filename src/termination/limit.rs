@@ -4,34 +4,40 @@
 //! Provided limiters are:
 //! * `FitnessLimit` - stops the simulation after a solution with a certain
 //!   fitness has been found.
-//! * `GenerationLimit` - stops the simulation after a maximum number of
-//!   generations has been processed.
+//! * `IterationLimit` - stops the simulation after a maximum number of
+//!   iterations has been processed.
 //! * `TimeLimit` - stops the simulation after a the specified time limit
 //!   has been reached.
 
-use chrono::{Duration, Local};
-use genetic::{Fitness, Genotype};
+use algorithm::Algorithm;
+use ga::GeneticAlgorithm;
+use genetic::{Fitness, FitnessFunction, Genotype};
+use operator::{CrossoverOp, MutationOp, ReinsertionOp, SelectionOp};
 use simulation::State;
 use termination::{StopFlag, Termination};
+use chrono::{Duration, Local};
+use std::marker::PhantomData;
 
 
 /// The `FitnessLimit` condition stops the simulation after a solution with
 /// a certain fitness has been found.
 #[derive(Clone)]
-pub struct FitnessLimit<F>
-    where F: Fitness
+pub struct FitnessLimit<G, F>
+    where G: Genotype, F: Fitness
 {
+    _g: PhantomData<G>,
     /// The fitness value that shall be reached to stop simulation.
     fitness_target: F,
 }
 
-impl<F> FitnessLimit<F>
-    where F: Fitness
+impl<G, F> FitnessLimit<G, F>
+    where G: Genotype, F: Fitness
 {
     /// Create a new instance of `FitnessLimit` with the specified limit
     /// of generations.
     pub fn new(fitness_target: F) -> Self {
         FitnessLimit {
+            _g: PhantomData,
             fitness_target: fitness_target,
         }
     }
@@ -41,13 +47,16 @@ impl<F> FitnessLimit<F>
     }
 }
 
-impl<G, F> Termination<G, F> for FitnessLimit<F>
-    where G: Genotype, F: Fitness
+impl<G, F, E, S, C, M, R> Termination<GeneticAlgorithm<G, F, E, S, C, M, R>> for FitnessLimit<G, F>
+    where G: Genotype, F: Fitness + Send + Sync, E: FitnessFunction<G, F>,
+          E: FitnessFunction<G, F> + Sync, S: SelectionOp<G, F>,
+          C: CrossoverOp<G> + Sync, M: MutationOp<G> + Sync, R: ReinsertionOp<G, F>
 {
-    fn evaluate(&mut self, state: &State<G, F>) -> StopFlag {
-        if state.highest_fitness >= self.fitness_target {
+    fn evaluate(&mut self, state: &State<GeneticAlgorithm<G, F, E, S, C, M , R>>) -> StopFlag {
+        let highest_fitness = &state.result.best_solution.solution.fitness;
+        if highest_fitness >= &self.fitness_target {
             StopFlag::StopNow(format!("Simulation stopped after a solution with a fitness of {:?} \
-                has been found.", &state.highest_fitness))
+                has been found.", highest_fitness))
         } else {
             StopFlag::Continue
         }
@@ -76,13 +85,13 @@ impl GenerationLimit {
     }
 }
 
-impl<G, F> Termination<G, F> for GenerationLimit
-    where G: Genotype, F: Fitness
+impl<A> Termination<A> for GenerationLimit
+    where A: Algorithm
 {
-    fn evaluate(&mut self, state: &State<G, F>) -> StopFlag {
-        if state.generation >= self.max_generations {
+    fn evaluate(&mut self, state: &State<A>) -> StopFlag {
+        if state.iteration >= self.max_generations {
             StopFlag::StopNow(format!("Simulation stopped after the limit of {} generations have \
-                been processed.", &state.generation))
+                been processed.", &state.iteration))
         } else {
             StopFlag::Continue
         }
@@ -112,10 +121,10 @@ impl TimeLimit {
     }
 }
 
-impl<G, F> Termination<G, F> for TimeLimit
-    where G: Genotype, F: Fitness
+impl<A> Termination<A> for TimeLimit
+    where A: Algorithm
 {
-    fn evaluate(&mut self, state: &State<G, F>) -> StopFlag {
+    fn evaluate(&mut self, state: &State<A>) -> StopFlag {
         let duration = Local::now().signed_duration_since(state.started_at);
         if duration >= self.max_time {
             StopFlag::StopNow(format!("Simulation stopped after running for {} which exceeds the \
