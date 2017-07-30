@@ -26,7 +26,7 @@ pub struct FitnessLimit<G, F>
     where G: Genotype, F: Fitness
 {
     _g: PhantomData<G>,
-    /// The fitness value that shall be reached to stop simulation.
+    /// The fitness value that shall be reached to stop the simulation.
     fitness_target: F,
 }
 
@@ -42,6 +42,7 @@ impl<G, F> FitnessLimit<G, F>
         }
     }
 
+    /// Returns the fitness value that shall be reached to stop the simulation.
     pub fn fitness_target(&self) -> &F {
         &self.fitness_target
     }
@@ -116,6 +117,7 @@ impl TimeLimit {
         }
     }
 
+    /// Returns the maximum time the simulation should run.
     pub fn max_time(&self) -> &Duration {
         &self.max_time
     }

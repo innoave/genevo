@@ -62,7 +62,7 @@ pub struct State<A> where A: Algorithm {
     /// a multitude of the `duration`.
     pub processing_time: ProcessingTime,
     /// The result of this iteration.
-    pub result: <A as Algorithm>::Result,
+    pub result: <A as Algorithm>::Output,
 }
 
 /// The result of running a step in the `Simulation`.

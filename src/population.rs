@@ -1,3 +1,100 @@
+//! The `population` module defines the `Population` struct and the
+//! `PopulationBuilder` for building random populations.
+//!
+//! To use the `PopulationBuilder` for building `Population`s of a custom
+//! `genetic::Genotype` an implementation of the `GenomeBuilder` must be
+//! provided. A `GenomeBuilder` can build new individuals of a custom
+//! `genetic::Genotype`.
+//!
+//! Default implementations of `GenomeBuilder` are provided for the binary
+//! encoded types `fixedbitset::FixedBitSet` and `Vec<bool>` and for the
+//! value encoded type `Vec<T>`.
+//!
+//! ## Examples
+//!
+//! In the first example we build a population of binary encoded genomes. Each
+//! genome has a length of 12 bits and the population comprises 200 individuals.
+//!
+//! ```rust
+//! extern crate genevo;
+//! extern crate fixedbitset;
+//!
+//! use genevo::prelude::*;
+//! use genevo::population::BinaryEncodedGenomeBuilder;
+//! use fixedbitset::FixedBitSet;
+//!
+//! fn main() {
+//!     let population: Population<FixedBitSet> = build_population()
+//!         .with_genome_builder(BinaryEncodedGenomeBuilder::new(12))
+//!         .of_size(200)
+//!         .uniform_at_random();
+//!
+//!     println!("{:?}", population);
+//!     assert_eq!(200, population.size());
+//! }
+//! ```
+//!
+//! The next example builds a population of value encoded genomes. Each genome
+//! is represented by a `Vec` of 4 `i64` values in the range of -200 to +200.
+//! The generated population consists of 200 individuals.
+//!
+//! ```rust
+//! extern crate genevo;
+//!
+//! use genevo::prelude::*;
+//! use genevo::population::ValueEncodedGenomeBuilder;
+//!
+//! fn main() {
+//!     let population: Population<Vec<i64>> = build_population()
+//!         .with_genome_builder(ValueEncodedGenomeBuilder::new(4, -200, 201))
+//!         .of_size(200)
+//!         .uniform_at_random();
+//!
+//!     println!("{:?}", population);
+//!     assert_eq!(200, population.size());
+//! }
+//! ```
+//!
+//! In the following example we demonstrate how to generate a population
+//! containing individuals of the custom type `Pos`. Each genome consists of 8
+//! `Pos` values. The generated population comprises 200 individuals.
+//!
+//! ```rust
+//! extern crate genevo;
+//!
+//! use genevo::prelude::*;
+//!
+//! #[derive(Clone,Debug,PartialEq)]
+//! struct Pos {
+//!     x: usize,
+//!     y: usize,
+//! }
+//!
+//! struct PositionsBuilder;
+//! impl GenomeBuilder<Vec<Pos>> for PositionsBuilder {
+//!
+//!     fn build_genome<R>(&self, _: usize, rng: &mut R) -> Vec<Pos>
+//!         where R: Rng + Sized
+//!     {
+//!         (0..8).map(|row|
+//!             Pos {
+//!                 x: row,
+//!                 y: rng.gen_range(0, 8)
+//!             }
+//!         ).collect()
+//!     }
+//! }
+//!
+//! fn main() {
+//!     let population: Population<Vec<Pos>> = build_population()
+//!         .with_genome_builder(PositionsBuilder)
+//!         .of_size(200)
+//!         .uniform_at_random();
+//!
+//!     println!("{:?}", population);
+//!     assert_eq!(200, population.size());
+//! }
+//! ```
 
 use genetic::{Genotype};
 use random::{Prng, Rng, RngJump, SampleRange, Seed, get_rng, random_seed};
@@ -38,11 +135,11 @@ impl<G> Population<G>
     }
 }
 
-/// A `PopulationBuilder` creates a new `Population` with a number of newly
+/// The `PopulationBuilder` creates a new `Population` with a number of newly
 /// created individuals or just individual `genetic::Genotype`s.
 ///
-/// Typically the `PopulationBuilder` is used to create the initial
-/// population with randomly created individuals.
+/// Typically the `PopulationBuilder` is used to create the initial population
+/// with randomly created individuals.
 ///
 /// To use this `PopulationBuilder` for a custom `genetic::Genotype` the trait
 /// `GenomeBuilder` must be implemented for the custom `genetic::Genotype`.
@@ -80,8 +177,14 @@ impl PopulationBuilder {
 
 }
 
+/// A `GenomeBuilder` defines how to build individuals of a population for
+/// custom `genetic::Genotype`s.
+///
+/// Typically the individuals are generated randomly.
 pub trait GenomeBuilder<G>: Sync where G: Genotype {
 
+    /// Builds a new genome of type `genetic::Genotype` for the given
+    /// `index` using the given random number generator `rng`.
     fn build_genome<R>(&self, index: usize, rng: &mut R) -> G
         where R: Rng + Sized;
 
@@ -149,12 +252,18 @@ pub fn build_population() -> EmptyPopulationBuilder {
     }
 }
 
+/// A `GenomeBuilder` that builds binary encoded `genetic::Genotype`s.
+///
+/// The default implementation can build `fixedbitset::FixedBitSet` genomes
+/// and `Vec<bool>` genomes.
 pub struct BinaryEncodedGenomeBuilder {
     genome_length: usize
 }
 
 impl BinaryEncodedGenomeBuilder {
 
+    /// Returns a new instance of the `BinaryEncodedGenomeBuilder` that builds
+    /// binary encoded genomes of length specified by the given `genome_length`.
     pub fn new(genome_length: usize) -> Self {
         BinaryEncodedGenomeBuilder {
             genome_length: genome_length,
@@ -186,6 +295,11 @@ impl GenomeBuilder<Vec<bool>> for BinaryEncodedGenomeBuilder {
     }
 }
 
+/// A `GenomeBuilder` that builds value encoded `genetic::Genotype`s.
+///
+/// The default implementation can build `Vec<T>` genomes. The values of
+/// `T` are generated randomly in the range between a min value and a max
+/// value.
 pub struct ValueEncodedGenomeBuilder<V> {
     genome_length: usize,
     min_value: V,
@@ -193,6 +307,12 @@ pub struct ValueEncodedGenomeBuilder<V> {
 }
 
 impl<V> ValueEncodedGenomeBuilder<V> {
+
+    /// Returns a new instance of the `ValueEncodedGenomeBuilder` that builds
+    /// value encoded genomes of length specified by the given `genome_length`.
+    ///
+    /// The values of the generated genomes are in the range between the given
+    /// `min_value` (inclusive) and `max_value` (exclusive).
     pub fn new(genome_length: usize, min_value: V, max_value: V) -> Self {
         ValueEncodedGenomeBuilder {
             genome_length: genome_length,

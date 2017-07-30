@@ -9,6 +9,7 @@ pub use genetic::{Fitness, FitnessFunction, Genotype, Phenotype};
 //
 pub use algorithm::Algorithm;
 pub use ga::{GeneticAlgorithm, genetic_algorithm};
+pub use random::{Prng, Rng, RngJump, SampleRange, Seed};
 
 //
 // Population

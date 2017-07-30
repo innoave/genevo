@@ -1,3 +1,6 @@
+//! The `algorithm` module defines traits and structs for implementing
+//! concrete algorithms such as the `ga::GeneticAlgorithm` and various
+//! operators as defined in the `operator` module.
 
 use genetic::{Fitness, Genotype};
 use random::Prng;
@@ -5,21 +8,23 @@ use chrono::{DateTime, Local};
 use std::fmt::Debug;
 use std::rc::Rc;
 
-
+/// An `Algorithm` defines the steps to be processed in a
+/// `simulation::Simulation`. The `Simulation` uses an implementation of an
+/// `Algorithm` to perform one iteration of the evaluation stage.
 pub trait Algorithm {
-    type Result: Debug + PartialEq;
+    type Output: Debug + PartialEq;
     type Error: Debug;
 
-    fn next(&mut self, iteration: u64, rng: &mut Prng) -> Result<Self::Result, Self::Error>;
+    fn next(&mut self, iteration: u64, rng: &mut Prng) -> Result<Self::Output, Self::Error>;
 
     fn reset(&mut self) -> Result<bool, Self::Error>;
 
 }
 
-pub trait Optimization<G, F>
+pub trait OptimizationResult<G, F>
     where G: Genotype, F: Fitness
 {
-    fn best_solution(&self) -> BestSolution<G, F>;
+    fn best_solution(&self) -> &BestSolution<G, F>;
 }
 
 /// The `Evaluated` type marks an individual as evaluated. Mostly this means
@@ -57,7 +62,7 @@ pub struct BestSolution<G, F>
 
 /// The `EvaluatedPopulation` holds the results of the evaluation stage of
 /// the genetic algorithm. It is used to pass these values to the
-/// `operator::SelectionOp` for enable this operator to do its job.
+/// `operator::SelectionOp` to enable this operator to do its job.
 ///
 /// Currently is contains the fitness value of each individual in a population,
 /// their normalized fitness values and highest and average fitness of the

@@ -134,7 +134,7 @@ impl<G, F, E, S, C, M, R> Algorithm for GeneticAlgorithm<G, F, E, S, C, M, R>
           S: SelectionOp<G, F>, C: CrossoverOp<G> + Sync, M: MutationOp<G> + Sync,
           R: ReinsertionOp<G, F>
 {
-    type Result = State<G, F>;
+    type Output = State<G, F>;
     type Error = GeneticAlgorithmError;
 
     fn reset(&mut self) -> Result<bool, Self::Error> {
@@ -143,7 +143,8 @@ impl<G, F, E, S, C, M, R> Algorithm for GeneticAlgorithm<G, F, E, S, C, M, R>
         Ok(true)
     }
 
-    fn next(&mut self, iteration: u64, rng: &mut Prng) -> Result<Self::Result, Self::Error> {
+    fn next(&mut self, iteration: u64, rng: &mut Prng) -> Result<Self::Output, Self::Error>
+    {
         if self.population.is_empty() {
             return Err(GeneticAlgorithmError::EmptyPopulation(
                 format!("Population of generation {} is empty. The required minimum size for \

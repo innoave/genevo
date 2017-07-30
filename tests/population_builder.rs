@@ -4,7 +4,6 @@ use hamcrest::prelude::*;
 
 extern crate genevo;
 extern crate fixedbitset;
-extern crate rand;
 
 use genevo::prelude::*;
 use genevo::population::{BinaryEncodedGenomeBuilder, ValueEncodedGenomeBuilder};
