@@ -7,6 +7,7 @@ use random::{SeedableRng, thread_rng};
 
 quickcheck! {
 
+    #[allow(trivial_casts)]
     fn in_random_cut_points_from_range_cutpoint1_is_smaller_than_cutpoint2(
         min: usize, max: usize) -> TestResult {
         if max < min + 4 { return TestResult::discard() }
@@ -20,6 +21,7 @@ quickcheck! {
         }
     }
 
+    #[allow(trivial_casts)]
     fn in_random_cut_points_from_range_delta_of_cutpoint1_and_cutpoint2_is_smaller_than_range_minus_2(
         min: usize, max: usize) -> TestResult {
         if max < min + 4 { return TestResult::discard() }
@@ -33,6 +35,7 @@ quickcheck! {
         }
     }
 
+    #[allow(trivial_casts)]
     fn in_random_cut_points_from_range_cutpoint1_is_not_smaller_than_min_of_range(
         min: usize, max: usize) -> TestResult {
         if max < min + 4 { return TestResult::discard() }
@@ -46,6 +49,7 @@ quickcheck! {
         }
     }
 
+    #[allow(trivial_casts)]
     fn in_random_cut_points_from_range_cutpoint2_is_not_greater_than_max_of_range(
         min: usize, max: usize) -> TestResult {
         if max < min + 4 { return TestResult::discard() }
@@ -59,6 +63,7 @@ quickcheck! {
         }
     }
 
+    #[allow(trivial_casts)]
     fn in_random_n_cut_points_cutpoints_are_ordered_ascending(
         n: usize, length: usize) -> TestResult {
         if n == 0 { return TestResult::discard() }

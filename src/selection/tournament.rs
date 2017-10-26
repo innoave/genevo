@@ -31,7 +31,8 @@ use random::{Rng, random_index, random_probability};
 ///
 /// This `TournamentSelector` can be used for single-objective fitness values
 /// as well as multi-objective fitness values.
-#[derive(Clone)]
+#[allow(missing_copy_implementations)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct TournamentSelector {
     /// The fraction of number of parents to select in relation to the
     /// number of individuals in the population.
@@ -57,11 +58,11 @@ impl TournamentSelector {
                remove_selected_individuals: bool
     ) -> Self {
         TournamentSelector {
-            selection_ratio: selection_ratio,
-            num_individuals_per_parents: num_individuals_per_parents,
-            tournament_size: tournament_size,
-            probability: probability,
-            remove_selected_individuals: remove_selected_individuals,
+            selection_ratio,
+            num_individuals_per_parents,
+            tournament_size,
+            probability,
+            remove_selected_individuals,
         }
     }
 

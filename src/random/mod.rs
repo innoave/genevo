@@ -135,6 +135,7 @@ pub fn random_probability<R>(rng: &mut R) -> f64
 /// The values in a `WeightedDistribution` must have a scalar representation.
 /// Thus their types must implement the `genetic::AsScalar` trait. The weights
 /// of the values are calculated from their scalar representation.
+#[derive(Clone, Debug, PartialEq)]
 pub struct WeightedDistribution<'a, T>
     where T: 'a + AsScalar
 {
@@ -151,8 +152,8 @@ impl<'a, T> WeightedDistribution<'a, T>
     pub fn from_scalar_values(values: &'a [T]) -> Self {
         let (weights, weight_sum) = calc_weights_and_sum(values);
         WeightedDistribution {
-            values: values,
-            weights: weights,
+            values,
+            weights,
             sum: weight_sum,
         }
     }

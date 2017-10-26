@@ -25,7 +25,8 @@ use random::{Rng, WeightedDistribution, random_probability};
 /// picked that is proportional to its fitness value.
 ///
 /// Characteristics: no bias, does not guarantee minimal spread.
-#[derive(Clone)]
+#[allow(missing_copy_implementations)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct RouletteWheelSelector {
     /// The fraction of number of parents to select in relation to the
     /// number of individuals in the population.
@@ -38,8 +39,8 @@ impl RouletteWheelSelector {
     /// Constructs a new instance of `RouletteWheelSelector`.
     pub fn new(selection_ratio: f64, num_individuals_per_parents: usize) -> Self {
         RouletteWheelSelector {
-            selection_ratio: selection_ratio,
-            num_individuals_per_parents: num_individuals_per_parents,
+            selection_ratio,
+            num_individuals_per_parents,
         }
     }
 
@@ -108,7 +109,8 @@ impl<G, F> SelectionOp<G, F> for RouletteWheelSelector
 /// picked by equidistant jumps.
 ///
 /// Characteristics: no bias, minimal spread.
-#[derive(Clone)]
+#[allow(missing_copy_implementations)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct UniversalSamplingSelector {
     /// The fraction of number of parents to select in relation to the
     /// number of individuals in the population.
@@ -121,8 +123,8 @@ impl UniversalSamplingSelector {
     /// Constructs a new instance of `UniversalSamplingSelector`.
     pub fn new(selection_ratio: f64, num_individuals_per_parents: usize) -> Self {
         UniversalSamplingSelector {
-            selection_ratio: selection_ratio,
-            num_individuals_per_parents: num_individuals_per_parents,
+            selection_ratio,
+            num_individuals_per_parents,
         }
     }
 

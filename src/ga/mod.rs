@@ -42,7 +42,7 @@ use std::rc::Rc;
 /// The `State` struct holds the results of one pass of the genetic algorithm
 /// loop, i.e. the processing of the evolution from one generation to the next
 /// generation.
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct State<G, F>
     where G: Genotype, F: Fitness
 {
@@ -55,7 +55,7 @@ pub struct State<G, F>
 }
 
 /// An error that can occur during execution of a `GeneticAlgorithm`.
-#[derive(Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum GeneticAlgorithmError {
     /// The algorithm is run with an empty population.
     EmptyPopulation(String),
@@ -72,6 +72,7 @@ pub fn genetic_algorithm<G, F>() -> EmptyGeneticAlgorithmBuilder<G, F>
 
 /// A `GeneticAlgorithm` declares the building blocks that make up the actual
 /// algorithm for a specific optimization problem.
+#[derive(Clone, Debug, PartialEq)]
 pub struct GeneticAlgorithm<G, F, E, S, C, M, R>
     where G: Genotype, F: Fitness, E: FitnessFunction<G, F>,
           S: SelectionOp<G, F>, C: CrossoverOp<G>, M: MutationOp<G>,
@@ -256,7 +257,7 @@ fn determine_best_solution<G, F>(generation: u64, score_board: &EvaluatedPopulat
                              &score_board.highest_fitness()));
         BestSolution {
             found_at: Local::now(),
-            generation: generation,
+            generation,
             solution: evaluated,
         }
     }).run()

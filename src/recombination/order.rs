@@ -18,7 +18,8 @@ use std::collections::HashMap;
 ///
 /// This crossover operator always creates as many child individuals as there
 /// are individuals in the given `genetic::Parents` parameter.
-#[derive(Clone)]
+#[allow(missing_copy_implementations)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct OrderOneCrossover {}
 
 impl OrderOneCrossover {
@@ -48,7 +49,8 @@ impl CrossoverOp<Vec<usize>> for OrderOneCrossover {
 ///
 /// This crossover operator always creates as many child individuals as there
 /// are individuals in the given `genetic::Parents` parameter.
-#[derive(Clone)]
+#[allow(missing_copy_implementations)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct PartiallyMappedCrossover {}
 
 impl PartiallyMappedCrossover {

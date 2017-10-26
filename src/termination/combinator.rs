@@ -12,6 +12,7 @@ pub fn and<T1, T2, A>(condition1: T1, condition2: T2) -> And<T1, T2, A>
 }
 
 //TODO add doc comments
+#[derive(Clone, Debug, PartialEq)]
 pub struct And<T1, T2, A>
     where T1: Termination<A>, T2: Termination<A>, A: Algorithm
 {
@@ -25,8 +26,8 @@ impl<T1, T2, A> And<T1, T2, A>
 {
     pub fn new(condition1: T1, condition2: T2) -> Self {
         And {
-            condition1: condition1,
-            condition2: condition2,
+            condition1,
+            condition2,
             _a: PhantomData,
         }
     }
@@ -68,6 +69,7 @@ pub fn or<T1, T2, A>(condition1: T1, condition2: T2) -> Or<T1, T2, A>
 }
 
 //TODO add doc comments
+#[derive(Clone, Debug, PartialEq)]
 pub struct Or<T1, T2, A>
     where T1: Termination<A>, T2: Termination<A>, A: Algorithm
 {
@@ -81,8 +83,8 @@ impl<T1, T2, A> Or<T1, T2, A>
 {
     pub fn new(condition1: T1, condition2: T2) -> Self {
         Or {
-            condition1: condition1,
-            condition2: condition2,
+            condition1,
+            condition2,
             _a: PhantomData,
         }
     }

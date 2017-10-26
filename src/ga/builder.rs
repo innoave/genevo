@@ -10,6 +10,7 @@ use std::rc::Rc;
 
 const DEFAULT_MIN_POPULATION_SIZE: usize = 6;
 
+#[derive(Clone, Debug, PartialEq)]
 pub struct GeneticAlgorithmBuilder<G, F, E, S, C, M, R>
     where G: Genotype, F: Fitness, E: FitnessFunction<G, F>, S: SelectionOp<G, F>,
           C: CrossoverOp<G>, M: MutationOp<G>, R: ReinsertionOp<G, F>
@@ -49,6 +50,7 @@ impl<G, F, E, S, C, M, R> GeneticAlgorithmBuilder<G, F, E, S, C, M, R>
     }
 }
 
+#[derive(Clone, Debug, PartialEq)]
 pub struct EmptyGeneticAlgorithmBuilder<G, F>
     where G: Genotype, F: Fitness
 {
@@ -78,6 +80,7 @@ impl<G, F> EmptyGeneticAlgorithmBuilder<G, F>
     }
 }
 
+#[derive(Clone, Debug, PartialEq)]
 pub struct GeneticAlgorithmWithEvalBuilder<G, F, E>
     where G: Genotype, F: Fitness, E: FitnessFunction<G, F>
 {
@@ -102,6 +105,7 @@ impl<G, F, E> GeneticAlgorithmWithEvalBuilder<G, F, E>
     }
 }
 
+#[derive(Clone, Debug, PartialEq)]
 pub struct GeneticAlgorithmWithEvalAndSeleBuilder<G, F, E, S>
     where G: Genotype, F: Fitness, E: FitnessFunction<G, F>, S: SelectionOp<G, F>
 {
@@ -127,6 +131,7 @@ impl<G, F, E, S> GeneticAlgorithmWithEvalAndSeleBuilder<G, F, E, S>
     }
 }
 
+#[derive(Clone, Debug, PartialEq)]
 pub struct GeneticAlgorithmWithEvalSeleAndBreeBuilder<G, F, E, S, C>
     where G: Genotype, F: Fitness, E: FitnessFunction<G, F>, S: SelectionOp<G, F>,
           C: CrossoverOp<G>
@@ -156,6 +161,7 @@ impl<G, F, E, S, C> GeneticAlgorithmWithEvalSeleAndBreeBuilder<G, F, E, S, C>
     }
 }
 
+#[derive(Clone, Debug, PartialEq)]
 pub struct GeneticAlgorithmWithEvalSeleBreeAndMutaBuilder<G, F, E, S, C, M>
     where G: Genotype, F: Fitness, E: FitnessFunction<G, F>, S: SelectionOp<G, F>,
           C: CrossoverOp<G>, M: MutationOp<G>
@@ -187,6 +193,7 @@ impl<G, F, E, S, C, M> GeneticAlgorithmWithEvalSeleBreeAndMutaBuilder<G, F, E, S
     }
 }
 
+#[derive(Clone, Debug, PartialEq)]
 pub struct GeneticAlgorithmWithEvalSeleBreeMutaAndReinBuilder<G, F, E, S, C, M, R>
     where G: Genotype, F: Fitness, E: FitnessFunction<G, F>, S: SelectionOp<G, F>,
           C: CrossoverOp<G>, M: MutationOp<G>, R: ReinsertionOp<G, F>
@@ -215,7 +222,7 @@ impl<G, F, E, S, C, M, R> GeneticAlgorithmWithEvalSeleBreeMutaAndReinBuilder<G, 
             mutator: self.mutator,
             reinserter: self.reinserter,
             min_population_size: DEFAULT_MIN_POPULATION_SIZE,
-            initial_population: initial_population,
+            initial_population,
         }
     }
 }

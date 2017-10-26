@@ -20,7 +20,8 @@ use std::fmt::Debug;
 ///
 /// This crossover operator always creates as many child individuals as there
 /// are individuals in the given `genetic::Parents` parameter.
-#[derive(Clone)]
+#[allow(missing_copy_implementations)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct UniformCrossBreeder {}
 
 impl UniformCrossBreeder {
@@ -66,7 +67,8 @@ impl CrossoverOp<FixedBitSet> for UniformCrossBreeder {
 ///
 /// This crossover operator always creates as many child individuals as there
 /// are individuals in the given `genetic::Parents` parameter.
-#[derive(Clone)]
+#[allow(missing_copy_implementations)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct DiscreteCrossBreeder {}
 
 impl DiscreteCrossBreeder {
@@ -114,7 +116,8 @@ impl<V> CrossoverOp<Vec<V>> for DiscreteCrossBreeder
 ///
 /// This crossover operator always creates as many child individuals as there
 /// are individuals in the given `genetic::Parents` parameter.
-#[derive(Clone)]
+#[allow(missing_copy_implementations)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct MultiPointCrossBreeder {
     /// The number of cut points used by this operator.
     num_cut_points: usize,
@@ -123,7 +126,7 @@ pub struct MultiPointCrossBreeder {
 impl MultiPointCrossBreeder {
     pub fn new(num_cut_points: usize) -> Self {
         MultiPointCrossBreeder {
-            num_cut_points: num_cut_points,
+            num_cut_points,
         }
     }
 

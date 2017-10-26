@@ -21,7 +21,7 @@ use std::marker::PhantomData;
 
 /// The `FitnessLimit` condition stops the simulation after a solution with
 /// a certain fitness has been found.
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct FitnessLimit<G, F>
     where G: Genotype, F: Fitness
 {
@@ -38,7 +38,7 @@ impl<G, F> FitnessLimit<G, F>
     pub fn new(fitness_target: F) -> Self {
         FitnessLimit {
             _g: PhantomData,
-            fitness_target: fitness_target,
+            fitness_target,
         }
     }
 
@@ -66,7 +66,8 @@ impl<G, F, E, S, C, M, R> Termination<GeneticAlgorithm<G, F, E, S, C, M, R>> for
 
 /// The `GenerationLimit` condition stops the simulation after a maximum
 /// number of generations has been processed.
-#[derive(Clone)]
+#[allow(missing_copy_implementations)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct GenerationLimit {
     /// Maximum number of generations to process.
     max_generations: u64,
@@ -77,7 +78,7 @@ impl GenerationLimit {
     /// of generations.
     pub fn new(max_generations: u64) -> Self {
         GenerationLimit {
-            max_generations: max_generations,
+            max_generations,
         }
     }
 
@@ -102,7 +103,8 @@ impl<A> Termination<A> for GenerationLimit
 /// The `TimeLimit` condition stops the simulation after the specified time
 /// limit has been reached, i.e. the simulation is already running for the
 /// specified amount of time.
-#[derive(Clone)]
+#[allow(missing_copy_implementations)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct TimeLimit {
     /// Maximum time the simulation should run
     max_time: Duration,
@@ -113,7 +115,7 @@ impl TimeLimit {
     /// of time.
     pub fn new(max_time: Duration) -> Self {
         TimeLimit {
-            max_time: max_time,
+            max_time,
         }
     }
 

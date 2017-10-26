@@ -7,7 +7,7 @@ use std::ops::{Add, AddAssign};
 use std::convert::From;
 use std::fmt;
 
-#[derive(Clone, Eq, PartialEq)]
+#[derive(Clone, Copy, Eq, PartialEq)]
 pub struct ProcessingTime {
     duration: Duration,
 }
@@ -27,7 +27,7 @@ impl ProcessingTime {
 impl From<Duration> for ProcessingTime {
     fn from(duration: Duration) -> Self {
         ProcessingTime {
-            duration: duration,
+            duration,
         }
     }
 }
@@ -67,6 +67,7 @@ pub trait TrackProcessingTime {
     fn processing_time(&self) -> &ProcessingTime;
 }
 
+#[derive(Clone, Debug, PartialEq)]
 pub struct TimedResult<U> {
     pub result: U,
     pub time: ProcessingTime,
@@ -78,6 +79,7 @@ pub fn timed<F, U>(op: F) -> TimedFn<F, U> where F: FnOnce() -> U {
     }
 }
 
+#[derive(Clone, Debug, PartialEq)]
 pub struct TimedFn<F, U> where F: FnOnce() -> U {
     function: F,
 }
@@ -88,7 +90,7 @@ impl<F, U> TimedFn<F, U> where F: FnOnce() -> U {
         let result = (self.function)();
         let time = Local::now().signed_duration_since(started_at);
         TimedResult {
-            result: result,
+            result,
             time: ProcessingTime::from(time),
         }
     }

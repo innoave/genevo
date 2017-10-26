@@ -6,7 +6,7 @@ use fixedbitset::FixedBitSet;
 use std::fmt::Debug;
 
 
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct RandomValueMutator<G>
     where G: Genotype + RandomGenomeMutation {
     mutation_rate: f64,
@@ -19,9 +19,9 @@ impl<G> RandomValueMutator<G>
     pub fn new(mutation_rate: f64, min_value: <G as Genotype>::Dna,
                max_value: <G as Genotype>::Dna) -> Self {
         RandomValueMutator {
-            mutation_rate: mutation_rate,
-            min_value: min_value,
-            max_value: max_value,
+            mutation_rate,
+            min_value,
+            max_value,
         }
     }
 }
@@ -118,7 +118,7 @@ macro_rules! impl_random_value_mutation {
 impl_random_value_mutation!(u8, u16, u32, u64, usize, i8, i16, i32, i64, isize, f32, f64);
 
 
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct BreederValueMutator<G>
     where G: Genotype + BreederGenomeMutation {
     mutation_rate: f64,
@@ -133,11 +133,11 @@ impl<G> BreederValueMutator<G>
     pub fn new(mutation_rate: f64, mutation_range: <G as Genotype>::Dna, mutation_precision: u8,
                min_value: <G as Genotype>::Dna, max_value: <G as Genotype>::Dna) -> Self {
         BreederValueMutator {
-            mutation_rate: mutation_rate,
-            mutation_range: mutation_range,
-            mutation_precision: mutation_precision,
-            min_value: min_value,
-            max_value: max_value,
+            mutation_rate,
+            mutation_range,
+            mutation_precision,
+            min_value,
+            max_value,
         }
     }
 }
@@ -217,6 +217,7 @@ pub trait BreederValueMutation {
 macro_rules! impl_breeder_mutation {
     ($($t:ty),*) => {
         $(
+            #[allow(trivial_numeric_casts)]
             impl BreederValueMutation for $t {
                 #[inline]
                 fn breeder_mutated(value: $t, range: &$t, adjustment: f64, sign: i8) -> $t {

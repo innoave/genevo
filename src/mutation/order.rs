@@ -6,7 +6,8 @@ use random::{Rng, random_cut_points};
 use std::fmt::Debug;
 
 
-#[derive(Clone)]
+#[allow(missing_copy_implementations)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct InsertOrderMutator {
     mutation_rate: f64,
 }
@@ -14,7 +15,7 @@ pub struct InsertOrderMutator {
 impl InsertOrderMutator {
     pub fn new(mutation_rate: f64) -> Self {
         InsertOrderMutator {
-            mutation_rate: mutation_rate,
+            mutation_rate,
         }
     }
 
@@ -49,7 +50,8 @@ impl<V> MutationOp<Vec<V>> for InsertOrderMutator
     }
 }
 
-#[derive(Clone)]
+#[allow(missing_copy_implementations)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct SwapOrderMutator {
     mutation_rate: f64,
 }
@@ -57,7 +59,7 @@ pub struct SwapOrderMutator {
 impl SwapOrderMutator {
     pub fn new(mutation_rate: f64) -> Self {
         SwapOrderMutator {
-            mutation_rate: mutation_rate,
+            mutation_rate,
         }
     }
 

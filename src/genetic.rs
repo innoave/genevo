@@ -36,7 +36,7 @@ pub trait Phenotype<G>: Clone + Debug
 /// properties should be stored in a compact form such as strings or vectors
 /// of primitive types.
 pub trait Genotype: Clone + Debug + PartialEq + Send + Sync {
-    type Dna: Clone;
+    type Dna: Clone + Debug + PartialEq;
 }
 
 /// The `Locus` is a position within a `Genotype`.

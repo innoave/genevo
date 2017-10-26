@@ -24,7 +24,8 @@ use random::{Rng, random_index};
 /// individuals then the new population is filled up with individuals from the
 /// old population. If the offspring contains more individuals than the size of
 /// the population then the individuals are chosen uniformly at random.
-#[derive(Clone)]
+#[allow(missing_copy_implementations)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct UniformReinserter {
     /// The `replace_ratio` defines the fraction of the population size that
     /// is going to be replaced by individuals from the offspring.
@@ -36,7 +37,7 @@ impl UniformReinserter {
     /// parameters.
     pub fn new(replace_ratio: f64) -> Self {
         UniformReinserter {
-            replace_ratio: replace_ratio,
+            replace_ratio,
         }
     }
 

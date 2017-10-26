@@ -96,7 +96,7 @@
 //! }
 //! ```
 
-use genetic::{Genotype};
+use genetic::Genotype;
 use random::{Prng, Rng, RngJump, SampleRange, Seed, get_rng, random_seed};
 use fixedbitset::FixedBitSet;
 use rayon;
@@ -106,7 +106,7 @@ use std::fmt::Debug;
 
 /// The `Population` defines a set of possible solutions to the optimization
 /// or search problem.
-#[derive(Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Population<G>
     where G: Genotype
 {
@@ -120,7 +120,7 @@ impl<G> Population<G>
     /// Creates a new `Population` with the given individuals as members.
     pub fn with_individuals(individuals: Vec<G>) -> Population<G> {
         Population {
-            individuals: individuals,
+            individuals,
         }
     }
 
@@ -143,6 +143,8 @@ impl<G> Population<G>
 ///
 /// To use this `PopulationBuilder` for a custom `genetic::Genotype` the trait
 /// `GenomeBuilder` must be implemented for the custom `genetic::Genotype`.
+#[allow(missing_copy_implementations)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct PopulationBuilder;
 
 impl PopulationBuilder {
@@ -170,7 +172,7 @@ impl PopulationBuilder {
             let mut individuals = left_population.individuals;
             individuals.append(&mut right_individuals);
             Population {
-                individuals: individuals,
+                individuals,
             }
         }
     }
@@ -190,6 +192,8 @@ pub trait GenomeBuilder<G>: Sync where G: Genotype {
 
 }
 
+#[allow(missing_copy_implementations)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct EmptyPopulationBuilder {
     // Phantom data to prevent direct instantiation by lib users.
     _empty: PhantomData<bool>,
@@ -202,11 +206,12 @@ impl EmptyPopulationBuilder {
     {
         PopulationWithGenomeBuilderBuilder {
             _g: PhantomData,
-            genome_builder: genome_builder,
+            genome_builder,
         }
     }
 }
 
+#[derive(Clone, Debug, PartialEq)]
 pub struct PopulationWithGenomeBuilderBuilder<B, G>
     where B: GenomeBuilder<G>, G: Genotype
 {
@@ -221,11 +226,12 @@ impl<B, G> PopulationWithGenomeBuilderBuilder<B, G>
         PopulationWithGenomeBuilderAndSizeBuilder {
             _g: self._g,
             genome_builder: self.genome_builder,
-            population_size: population_size,
+            population_size,
         }
     }
 }
 
+#[derive(Clone, Debug, PartialEq)]
 pub struct PopulationWithGenomeBuilderAndSizeBuilder<B, G>
     where B: GenomeBuilder<G>, G: Genotype
 {
@@ -256,6 +262,8 @@ pub fn build_population() -> EmptyPopulationBuilder {
 ///
 /// The default implementation can build `fixedbitset::FixedBitSet` genomes
 /// and `Vec<bool>` genomes.
+#[allow(missing_copy_implementations)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct BinaryEncodedGenomeBuilder {
     genome_length: usize
 }
@@ -266,7 +274,7 @@ impl BinaryEncodedGenomeBuilder {
     /// binary encoded genomes of length specified by the given `genome_length`.
     pub fn new(genome_length: usize) -> Self {
         BinaryEncodedGenomeBuilder {
-            genome_length: genome_length,
+            genome_length,
         }
     }
 }
@@ -300,6 +308,7 @@ impl GenomeBuilder<Vec<bool>> for BinaryEncodedGenomeBuilder {
 /// The default implementation can build `Vec<T>` genomes. The values of
 /// `T` are generated randomly in the range between a min value and a max
 /// value.
+#[derive(Clone, Debug, PartialEq)]
 pub struct ValueEncodedGenomeBuilder<V> {
     genome_length: usize,
     min_value: V,
@@ -315,9 +324,9 @@ impl<V> ValueEncodedGenomeBuilder<V> {
     /// `min_value` (inclusive) and `max_value` (exclusive).
     pub fn new(genome_length: usize, min_value: V, max_value: V) -> Self {
         ValueEncodedGenomeBuilder {
-            genome_length: genome_length,
-            min_value: min_value,
-            max_value: max_value,
+            genome_length,
+            min_value,
+            max_value,
         }
     }
 }

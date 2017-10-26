@@ -33,6 +33,7 @@ use simulation::State;
 ///
 /// If the `StopFlag` indicates that the simulation must stop, also the reason
 /// (`StopReason`) must be specified.
+#[derive(Clone, Debug, PartialEq)]
 pub enum StopFlag {
     /// Flag for 'Stop the simulation now'.
     StopNow(StopReason),

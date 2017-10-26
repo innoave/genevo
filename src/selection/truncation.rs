@@ -16,7 +16,8 @@ use random::Rng;
 ///
 /// This `MaximizeSelector` can be used for single-objective fitness values
 /// as well as multi-objective fitness values.
-#[derive(Clone)]
+#[allow(missing_copy_implementations)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct MaximizeSelector {
     /// The truncation threshold is the ratio between the number of parents
     /// to be selected and the size of the population:
@@ -31,8 +32,8 @@ impl MaximizeSelector {
     /// Constructs a new instance of the `MaximizeSelector`.
     pub fn new(selection_ratio: f64, num_individuals_per_parents: usize) -> Self {
         MaximizeSelector {
-            selection_ratio: selection_ratio,
-            num_individuals_per_parents: num_individuals_per_parents,
+            selection_ratio,
+            num_individuals_per_parents,
         }
     }
 

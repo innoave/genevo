@@ -13,10 +13,11 @@ pub fn simulate<A>(algorithm: A) -> SimulatorBuilderWithAlgorithm<A>
     where A: Algorithm
 {
     SimulatorBuilderWithAlgorithm {
-        algorithm: algorithm,
+        algorithm,
     }
 }
 
+#[derive(Clone, Debug, PartialEq)]
 pub struct SimulatorBuilder<A, T>
     where A: Algorithm, T: Termination<A>
 {
@@ -40,6 +41,7 @@ impl<A, T> SimulationBuilder<Simulator<A, T>, A> for SimulatorBuilder<A, T>
     }
 }
 
+#[derive(Clone, Debug, PartialEq)]
 pub struct SimulatorBuilderWithAlgorithm<A>
     where A: Algorithm
 {
@@ -54,14 +56,14 @@ impl<A> SimulatorBuilderWithAlgorithm<A>
     {
         SimulatorBuilder {
             algorithm: self.algorithm,
-            termination: termination,
+            termination,
         }
     }
 }
 
 /// The `RunMode` identifies whether the simulation is running and how it has
 /// been started.
-#[derive(Debug)]
+#[derive(Clone, Debug, PartialEq)]
 enum RunMode {
     /// The simulation is running in loop mode. i.e. it was started by calling
     /// the `run` function.
@@ -73,6 +75,7 @@ enum RunMode {
     NotRunning,
 }
 
+#[derive(Clone, Debug, PartialEq)]
 pub enum SimError<A>
     where A: Algorithm
 {
@@ -95,6 +98,7 @@ impl<A> SimError<A>
     }
 }
 
+#[derive(Clone, Debug, PartialEq)]
 pub struct Simulator<A, T>
     where A: Algorithm, T: Termination<A>
 {
@@ -126,10 +130,10 @@ impl<A, T> Simulator<A, T>
             Ok(result) => Ok(State {
                 started_at: self.started_at,
                 iteration: self.iteration,
-                seed: seed,
+                seed,
                 duration: loop_duration,
                 processing_time: self.algorithm.processing_time().clone(),
-                result: result,
+                result,
             }),
             Err(error) =>
                 Err(SimError::AlgorithmError(error)),

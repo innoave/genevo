@@ -12,8 +12,8 @@ use std::rc::Rc;
 /// `simulation::Simulation`. The `Simulation` uses an implementation of an
 /// `Algorithm` to perform one iteration of the evaluation stage.
 pub trait Algorithm {
-    type Output: Debug + PartialEq;
-    type Error: Debug;
+    type Output: Clone + Debug + PartialEq;
+    type Error: Clone + Debug + PartialEq;
 
     fn next(&mut self, iteration: u64, rng: &mut Prng) -> Result<Self::Output, Self::Error>;
 
@@ -73,7 +73,7 @@ pub struct BestSolution<G, F>
 /// population the types of the fields are designed to avoid cloning of whole
 /// data structures. To be able to change the fields internally later when
 /// new optimization are found the fields are kept private.
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct EvaluatedPopulation<G, F>
     where G: Genotype, F: Fitness
 {
@@ -95,11 +95,11 @@ impl<G, F> EvaluatedPopulation<G, F>
                average_fitness: F
     ) -> Self {
         EvaluatedPopulation {
-            individuals: individuals,
-            fitness_values: fitness_values,
-            highest_fitness: highest_fitness,
-            lowest_fitness: lowest_fitness,
-            average_fitness: average_fitness
+            individuals,
+            fitness_values,
+            highest_fitness,
+            lowest_fitness,
+            average_fitness
         }
     }
 

@@ -25,7 +25,7 @@ use std::marker::PhantomData;
 /// individuals then the new population is filled up with individuals from the
 /// old population. If the offspring contains more individuals than the size of
 /// the population then the individuals are chosen uniformly at random.
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct ElitistReinserter<G, F, E>
     where G: Genotype, F: Fitness, E: FitnessFunction<G, F>
 {
@@ -51,8 +51,8 @@ impl<G, F, E> ElitistReinserter<G, F, E>
     pub fn new(fitness_evaluator: E, offspring_has_precedence: bool, replace_ratio: f64) -> Self {
         ElitistReinserter {
             fitness_evaluator: Box::new(fitness_evaluator),
-            offspring_has_precedence: offspring_has_precedence,
-            replace_ratio: replace_ratio,
+            offspring_has_precedence,
+            replace_ratio,
             _g: PhantomData,
             _f: PhantomData,
         }
