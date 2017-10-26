@@ -1,13 +1,11 @@
 # genevo
 
+[![Crates.io][crb]][crl]
+[![Docs.rs][dcb]][dcl]
 [![Build Status][tcb]][tcl]
 [![codevoc.io][cvb]][cvl]
 [![MIT/Apache][lib]][lil]
 [![Join the chat][gcb]][gcl]
-<!--TODO uncomment once this resources are activated!
-[![Crates.io][crb]][crl]
-[![Docs.rs][dcb]][dcl]
--->
 
 [crb]: https://img.shields.io/crates/v/genevo.svg?style=flat-square
 [dcb]: https://docs.rs/genevo/badge.svg
@@ -30,14 +28,34 @@
 _genevo_ provides building blocks to run simulations of optimization and search
 problems using [genetic algorithms][GA] ([GA]).
 
-**This project is under construction and has no working version yet!**
- 
 The vision for _genevo_ is to be a flexible and greatly extensible framework
 for implementing genetic algorithm applications.
 
 _genevo_ is written in [Rust]. The library's API utilizes lots of traits and
 types for modelling the domain of genetic algorithms.
 
+[Documentation](https://docs.rs/genevo)
+
+## Usage
+
+Add this to your `Cargo.toml`:
+
+```toml
+[dependencies]
+genevo = "0.1"
+```
+
+And add this to your crate:
+
+```rust
+extern crate genevo;
+```
+
+Have a look at the examples to see how to use this crate:
+* [monkeys](./examples/monkeys/main.rs): explores the idea of Shakespeare's monkeys, also known
+  as the [infinite monkey theorem](https://en.wikipedia.org/wiki/Infinite_monkey_theorem)
+* [queens](./examples/queens/main.rs): searches for solutions of the
+  [N Queens Problem](https://en.wikipedia.org/wiki/Eight_queens_puzzle)
 
 ## Research
 

@@ -1,4 +1,5 @@
-//! The `monkeys` example explores the idea of the Shakespeare's monkeys or the
+//! The `monkeys` example explores the idea of the Shakespeare's monkeys also
+//! known as the
 //! [infinite monkey theorem](https://en.wikipedia.org/wiki/Infinite_monkey_theorem).
 
 extern crate genevo;
