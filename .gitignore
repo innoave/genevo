@@ -1,7 +1,7 @@
 # build output
 target/
-out/
 **/*.rs.bk
+Cargo.lock
 
 # Eclipse
 .project
@@ -14,4 +14,3 @@ out/
 
 # Sublime Text
 *.sublime-workspace
-
