@@ -11,7 +11,7 @@
 [crb]: https://img.shields.io/crates/v/genevo.svg?style=flat-square
 [dcb]: https://docs.rs/genevo/badge.svg?style=flat-square
 [tcb]: https://img.shields.io/travis/innoave/genevo/master.svg?style=flat-square
-[avb]: https://img.shields.io/appveyor/ci/innoave/genevo.svg
+[avb]: https://img.shields.io/appveyor/ci/innoave/genevo.svg?style=flat-square
 [cvb]: https://img.shields.io/codecov/c/github/innoave/genevo/master.svg?style=flat-square
 [lib]: https://img.shields.io/badge/license-MIT%2FApache-blue.svg?style=flat-square
 [l1b]: https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square
