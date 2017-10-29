@@ -10,6 +10,7 @@
 [crb]: https://img.shields.io/crates/v/genevo.svg?style=flat-square
 [dcb]: https://docs.rs/genevo/badge.svg
 [tcb]: https://img.shields.io/travis/innoave/genevo/master.svg?style=flat-square
+[avb]: https://img.shields.io/appveyor/ci/innoave/genevo.svg
 [cvb]: https://img.shields.io/codecov/c/github/innoave/genevo/master.svg?style=flat-square
 [lib]: https://img.shields.io/badge/license-MIT%2FApache-blue.svg?style=flat-square
 [l1b]: https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square
@@ -19,6 +20,7 @@
 [crl]: https://crates.io/crates/genevo/
 [dcl]: https://docs.rs/genevo
 [tcl]: https://travis-ci.org/innoave/genevo/
+[avl]: https://ci.appveyor.com/project/innoave/genevo
 [cvl]: https://codecov.io/github/innoave/genevo?branch=master
 [lil]: COPYRIGHT.txt
 [l1l]: https://opensource.org/licenses/MIT
