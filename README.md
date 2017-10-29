@@ -3,7 +3,7 @@
 [![Crates.io][crb]][crl]
 [![Docs.rs][dcb]][dcl]
 [![Linux Build Status][tcb]][tcl]
-[![Windows Build Status][avb][avl]
+[![Windows Build Status][avb]][avl]
 [![codevoc.io][cvb]][cvl]
 [![MIT/Apache][lib]][lil]
 [![Join the chat][gcb]][gcl]
