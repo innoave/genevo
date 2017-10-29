@@ -9,7 +9,7 @@
 [![Join the chat][gcb]][gcl]
 
 [crb]: https://img.shields.io/crates/v/genevo.svg?style=flat-square
-[dcb]: https://docs.rs/genevo/badge.svg
+[dcb]: https://docs.rs/genevo/badge.svg?style=flat-square
 [tcb]: https://img.shields.io/travis/innoave/genevo/master.svg?style=flat-square
 [avb]: https://img.shields.io/appveyor/ci/innoave/genevo.svg
 [cvb]: https://img.shields.io/codecov/c/github/innoave/genevo/master.svg?style=flat-square
