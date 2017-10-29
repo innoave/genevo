@@ -125,8 +125,17 @@ fn weighted_distribution_select() {
         counter[index] += 1;
     }
 
-    assert_that!(counter[0], is(equal_to(204)));
-    assert_that!(counter[1], is(equal_to(152)));
-    assert_that!(counter[2], is(equal_to(600)));
-    assert_that!(counter[3], is(equal_to(44)));
+    #[cfg(not(target_pointer_width = "32"))] {
+        assert_that!(counter[0], is(equal_to(204)));
+        assert_that!(counter[1], is(equal_to(152)));
+        assert_that!(counter[2], is(equal_to(600)));
+        assert_that!(counter[3], is(equal_to(44)));
+    }
+
+    #[cfg(target_pointer_width = "32")] {
+        assert_that!(counter[0], is(equal_to(182)));
+        assert_that!(counter[1], is(equal_to(152)));
+        assert_that!(counter[2], is(equal_to(600)));
+        assert_that!(counter[3], is(equal_to(44)));
+    }
 }
