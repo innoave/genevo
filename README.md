@@ -122,7 +122,7 @@ Add this to your `Cargo.toml`:
 genevo = "0.1"
 ```
 
-And add this to your crate:
+And add this to your crate root:
 
 ```rust
 extern crate genevo;
