@@ -52,7 +52,8 @@ Anyway if one wants to use different implementations for one or the other
 building block it can be extended by implementing any of the traits in a more
 sophisticated and customized way.
 
-The building blocks (or traits) are:
+The building blocks (defined as traits) are:
+
 * Simulation
 * Algorithm
 * Termination
@@ -92,12 +93,12 @@ to implement any of these operators in a way that suits best for your problem
 and plug them into the provided implementation of the genetic algorithm.
 
 The genetic algorithm needs a population that it evolves with each iteration.
-One population represents a possible candidate solution for an optimization
-problem for which the best solution is search for. This crate provides a
-`PopulationBuilder` to build population of genomes. To run the population
-builder it needs an implementation of the `GenomeBuilder` trait. A
-`GenomeBuilder` defines how to create one individual (or genome) within the
-population.
+A population contains a number of individuals. Each individual represents a
+possible candidate solution for an optimization problem for which the best 
+solution is searched for. This crate provides a `PopulationBuilder` to build 
+population of genomes. To run the population builder it needs an implementation
+of the `GenomeBuilder` trait. A `GenomeBuilder` defines how to create one 
+individual (or genome) within the population.
 
 Last but maybe most important are the traits `Phenotype`, `Genotype` and
 `FitnessFunction`. These are the traits which define the domain of the
