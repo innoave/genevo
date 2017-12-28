@@ -1,7 +1,7 @@
 [package]
 name = "genevo"
 version = "0.1.3"
-authors = ["haraldmaida <harald.maida@innoave.com>"]
+authors = ["Harald Maida"]
 license = "MIT/Apache-2.0"
 description = """
 genevo provides building blocks to run simulations of optimization and search problems using
@@ -22,15 +22,15 @@ path = "src/lib.rs"
 [dependencies]
 chrono = "0.4"
 fixedbitset = "0.1"
-log = "0.3"
+log = "0.4"
 rand = "0.3"
-rayon = "0.8"
+rayon = "0.9"
 xorshift = "0.1"
 
 [dev-dependencies]
-quickcheck = "0.4"
+quickcheck = "0.5"
 hamcrest = "0.1"
-#log4rs = "*"
+#log4rs = "0.8"
 
 [[example]]
 name = "monkeys"
