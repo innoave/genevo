@@ -1,7 +1,7 @@
 [package]
 name = "genevo"
-version = "0.1.4-MASTER"
-authors = ["Harald Maida"]
+version = "0.1.4"
+authors = ["haraldmaida"]
 license = "MIT/Apache-2.0"
 description = """
 genevo provides building blocks to run simulations of optimization and search problems using
@@ -24,7 +24,7 @@ chrono = "0.4"
 fixedbitset = "0.1"
 log = "0.4"
 rand = "0.3"
-rayon = "0.9"
+rayon = "1.0"
 xorshift = "0.1"
 
 [dev-dependencies]
