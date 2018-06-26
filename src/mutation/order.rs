@@ -2,9 +2,8 @@
 //! `genetic::Genotype`s.
 
 use operator::{GeneticOperator, MutationOp};
-use random::{Rng, random_cut_points};
+use random::{random_cut_points, Rng};
 use std::fmt::Debug;
-
 
 #[allow(missing_copy_implementations)]
 #[derive(Clone, Debug, PartialEq)]
@@ -14,9 +13,7 @@ pub struct InsertOrderMutator {
 
 impl InsertOrderMutator {
     pub fn new(mutation_rate: f64) -> Self {
-        InsertOrderMutator {
-            mutation_rate,
-        }
+        InsertOrderMutator { mutation_rate }
     }
 
     pub fn mutation_rate(&self) -> f64 {
@@ -35,11 +32,16 @@ impl GeneticOperator for InsertOrderMutator {
 }
 
 impl<V> MutationOp<Vec<V>> for InsertOrderMutator
-    where V: Clone + Debug + PartialEq + Send + Sync
+where
+    V: Clone + Debug + PartialEq + Send + Sync,
 {
-    fn mutate<R>(&self, genome: Vec<V>, rng: &mut R) -> Vec<V> where R: Rng + Sized {
+    fn mutate<R>(&self, genome: Vec<V>, rng: &mut R) -> Vec<V>
+    where
+        R: Rng + Sized,
+    {
         let genome_length = genome.len();
-        let num_mutations = ((genome_length as f64 * self.mutation_rate) + rng.next_f64()).floor() as usize;
+        let num_mutations =
+            ((genome_length as f64 * self.mutation_rate) + rng.next_f64()).floor() as usize;
         let mut mutated = genome;
         for _ in 0..num_mutations {
             let (locus1, locus2) = random_cut_points(rng, genome_length);
@@ -58,9 +60,7 @@ pub struct SwapOrderMutator {
 
 impl SwapOrderMutator {
     pub fn new(mutation_rate: f64) -> Self {
-        SwapOrderMutator {
-            mutation_rate,
-        }
+        SwapOrderMutator { mutation_rate }
     }
 
     pub fn mutation_rate(&self) -> f64 {
@@ -79,11 +79,16 @@ impl GeneticOperator for SwapOrderMutator {
 }
 
 impl<V> MutationOp<Vec<V>> for SwapOrderMutator
-    where V: Clone + Debug + PartialEq + Send + Sync
+where
+    V: Clone + Debug + PartialEq + Send + Sync,
 {
-    fn mutate<R>(&self, genome: Vec<V>, rng: &mut R) -> Vec<V> where R: Rng + Sized {
+    fn mutate<R>(&self, genome: Vec<V>, rng: &mut R) -> Vec<V>
+    where
+        R: Rng + Sized,
+    {
         let genome_length = genome.len();
-        let num_mutations = ((genome_length as f64 * self.mutation_rate) + rng.next_f64()).floor() as usize;
+        let num_mutations =
+            ((genome_length as f64 * self.mutation_rate) + rng.next_f64()).floor() as usize;
         let mut mutated = genome;
         for _ in 0..num_mutations {
             let (locus1, locus2) = random_cut_points(rng, genome_length);

@@ -8,7 +8,6 @@ use operator::{GeneticOperator, MultiObjective, ReinsertionOp, SingleObjective};
 use random::Rng;
 use std::marker::PhantomData;
 
-
 /// The `ElitistReinserter` combines the best individuals from the offspring.
 /// and the old population. When there are more individuals in the offspring
 /// than necessary either because the offspring is larger than the population
@@ -27,7 +26,10 @@ use std::marker::PhantomData;
 /// the population then the individuals are chosen uniformly at random.
 #[derive(Clone, Debug, PartialEq)]
 pub struct ElitistReinserter<G, F, E>
-    where G: Genotype, F: Fitness, E: FitnessFunction<G, F>
+where
+    G: Genotype,
+    F: Fitness,
+    E: FitnessFunction<G, F>,
 {
     /// The `FitnessFunction` to be used to calculate fitness values of
     /// individuals of the offspring.
@@ -45,7 +47,10 @@ pub struct ElitistReinserter<G, F, E>
 }
 
 impl<G, F, E> ElitistReinserter<G, F, E>
-    where G: Genotype, F: Fitness, E: FitnessFunction<G, F>
+where
+    G: Genotype,
+    F: Fitness,
+    E: FitnessFunction<G, F>,
 {
     /// Constructs a new instance of the `ElitistReinserter`.
     pub fn new(fitness_evaluator: E, offspring_has_precedence: bool, replace_ratio: f64) -> Self {
@@ -83,7 +88,10 @@ impl<G, F, E> ElitistReinserter<G, F, E>
 }
 
 impl<G, F, E> GeneticOperator for ElitistReinserter<G, F, E>
-    where G: Genotype, F: Fitness, E: FitnessFunction<G, F>
+where
+    G: Genotype,
+    F: Fitness,
+    E: FitnessFunction<G, F>,
 {
     fn name() -> String {
         "Uniform-Reinserter".to_string()
@@ -92,16 +100,34 @@ impl<G, F, E> GeneticOperator for ElitistReinserter<G, F, E>
 
 /// Can be used for single-objective optimization
 impl<G, F, E> SingleObjective for ElitistReinserter<G, F, E>
-    where G: Genotype, F: Fitness, E: FitnessFunction<G, F> {}
+where
+    G: Genotype,
+    F: Fitness,
+    E: FitnessFunction<G, F>,
+{}
 /// Can be used for multi-objective optimization
 impl<G, F, E> MultiObjective for ElitistReinserter<G, F, E>
-    where G: Genotype, F: Fitness, E: FitnessFunction<G, F> {}
+where
+    G: Genotype,
+    F: Fitness,
+    E: FitnessFunction<G, F>,
+{}
 
 impl<G, F, E> ReinsertionOp<G, F> for ElitistReinserter<G, F, E>
-    where G: Genotype, F: Fitness, E: FitnessFunction<G, F>
+where
+    G: Genotype,
+    F: Fitness,
+    E: FitnessFunction<G, F>,
 {
-    fn combine<R>(&self, offspring: &mut Offspring<G>, evaluated: &EvaluatedPopulation<G, F>,
-                  _: &mut R) -> Vec<G> where R: Rng + Sized {
+    fn combine<R>(
+        &self,
+        offspring: &mut Offspring<G>,
+        evaluated: &EvaluatedPopulation<G, F>,
+        _: &mut R,
+    ) -> Vec<G>
+    where
+        R: Rng + Sized,
+    {
         let old_individuals = evaluated.individuals();
         let old_fitness_values = evaluated.fitness_values();
         // holds indices to the individuals and fitness_values slices
@@ -156,7 +182,9 @@ impl<G, F, E> ReinsertionOp<G, F> for ElitistReinserter<G, F, E>
                 // compare fitness of best offspring with best fitness of old population
                 let index_old = old_population_indices[0];
                 if !offspring_fitness.is_empty()
-                    && offspring_fitness[offspring_fitness.len() - 1].1 > old_fitness_values[index_old] {
+                    && offspring_fitness[offspring_fitness.len() - 1].1
+                        > old_fitness_values[index_old]
+                {
                     let (offspring, _) = offspring_fitness.pop().unwrap();
                     // insert best from offspring
                     new_population.push(offspring);

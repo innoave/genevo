@@ -5,9 +5,8 @@
 
 use algorithm::EvaluatedPopulation;
 use genetic::{Fitness, Genotype, Parents};
-use operator::{GeneticOperator, SelectionOp, SingleObjective, MultiObjective};
-use random::{Rng, random_index, random_probability};
-
+use operator::{GeneticOperator, MultiObjective, SelectionOp, SingleObjective};
+use random::{random_index, random_probability, Rng};
 
 /// The `TournamentSelector` implements the tournament selection method.
 /// It runs tournaments with a small size of participants and pick the best
@@ -51,11 +50,12 @@ pub struct TournamentSelector {
 
 impl TournamentSelector {
     /// Constructs a new instance of the `TournamentSelector`.
-    pub fn new(selection_ratio: f64,
-               num_individuals_per_parents: usize,
-               tournament_size: usize,
-               probability: f64,
-               remove_selected_individuals: bool
+    pub fn new(
+        selection_ratio: f64,
+        num_individuals_per_parents: usize,
+        tournament_size: usize,
+        probability: f64,
+        remove_selected_individuals: bool,
     ) -> Self {
         TournamentSelector {
             selection_ratio,
@@ -147,10 +147,13 @@ impl GeneticOperator for TournamentSelector {
 }
 
 impl<G, F> SelectionOp<G, F> for TournamentSelector
-    where G: Genotype, F: Fitness
+where
+    G: Genotype,
+    F: Fitness,
 {
     fn select_from<R>(&self, evaluated: &EvaluatedPopulation<G, F>, rng: &mut R) -> Vec<Parents<G>>
-        where R: Rng + Sized
+    where
+        R: Rng + Sized,
     {
         let individuals = evaluated.individuals();
         let fitness_values = evaluated.fitness_values();
@@ -158,7 +161,8 @@ impl<G, F> SelectionOp<G, F> for TournamentSelector
         // mating pool holds indices to the individuals and fitness_values slices
         let mut mating_pool: Vec<usize> = (0..fitness_values.len()).collect();
 
-        let num_parents_to_select = (individuals.len() as f64 * self.selection_ratio + 0.5).floor() as usize;
+        let num_parents_to_select =
+            (individuals.len() as f64 * self.selection_ratio + 0.5).floor() as usize;
         let target_num_candidates = num_parents_to_select * self.num_individuals_per_parents;
 
         // select candidates for parents
@@ -175,12 +179,13 @@ impl<G, F> SelectionOp<G, F> for TournamentSelector
                 count_participants += 1;
             }
             if tournament.is_empty() {
-               break;
+                break;
             }
             // sort tournament from best performing to worst performing index
             tournament.sort_by(|x, y| fitness_values[*y].cmp(&fitness_values[*x]));
             // pick candidates with probability
-            let mut prob = self.probability; let mut prob_redux = 1.;
+            let mut prob = self.probability;
+            let mut prob_redux = 1.;
             while prob > 0. {
                 if random_probability(rng) <= prob {
                     let picked = tournament.remove(0);

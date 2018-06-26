@@ -4,7 +4,6 @@ extern crate test;
 
 use test::Bencher;
 
-
 #[derive(Debug, PartialEq)]
 struct Gene {
     order: Vec<usize>,
@@ -15,7 +14,6 @@ struct Fixture {
 }
 
 impl Fixture {
-
     fn index_of_gene_functional(&self, gene: &Gene) -> Option<usize> {
         self.data.iter().position(|g| *g == *gene)
     }
@@ -30,12 +28,15 @@ impl Fixture {
         }
         index_of_gene
     }
-
 }
 
 fn fixture(member: usize, size: usize) -> Fixture {
     Fixture {
-        data: (0..member).map(|i| Gene { order: (i..i + size).collect() }).collect()
+        data: (0..member)
+            .map(|i| Gene {
+                order: (i..i + size).collect(),
+            })
+            .collect(),
     }
 }
 

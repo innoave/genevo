@@ -10,20 +10,21 @@
 //!   has been reached.
 
 use algorithm::Algorithm;
+use chrono::{Duration, Local};
 use ga::GeneticAlgorithm;
 use genetic::{Fitness, FitnessFunction, Genotype};
 use operator::{CrossoverOp, MutationOp, ReinsertionOp, SelectionOp};
 use simulation::State;
-use termination::{StopFlag, Termination};
-use chrono::{Duration, Local};
 use std::marker::PhantomData;
-
+use termination::{StopFlag, Termination};
 
 /// The `FitnessLimit` condition stops the simulation after a solution with
 /// a certain fitness has been found.
 #[derive(Clone, Debug, PartialEq)]
 pub struct FitnessLimit<G, F>
-    where G: Genotype, F: Fitness
+where
+    G: Genotype,
+    F: Fitness,
 {
     _g: PhantomData<G>,
     /// The fitness value that shall be reached to stop the simulation.
@@ -31,7 +32,9 @@ pub struct FitnessLimit<G, F>
 }
 
 impl<G, F> FitnessLimit<G, F>
-    where G: Genotype, F: Fitness
+where
+    G: Genotype,
+    F: Fitness,
 {
     /// Create a new instance of `FitnessLimit` with the specified limit
     /// of generations.
@@ -49,15 +52,24 @@ impl<G, F> FitnessLimit<G, F>
 }
 
 impl<G, F, E, S, C, M, R> Termination<GeneticAlgorithm<G, F, E, S, C, M, R>> for FitnessLimit<G, F>
-    where G: Genotype, F: Fitness + Send + Sync, E: FitnessFunction<G, F>,
-          E: FitnessFunction<G, F> + Sync, S: SelectionOp<G, F>,
-          C: CrossoverOp<G> + Sync, M: MutationOp<G> + Sync, R: ReinsertionOp<G, F>
+where
+    G: Genotype,
+    F: Fitness + Send + Sync,
+    E: FitnessFunction<G, F>,
+    E: FitnessFunction<G, F> + Sync,
+    S: SelectionOp<G, F>,
+    C: CrossoverOp<G> + Sync,
+    M: MutationOp<G> + Sync,
+    R: ReinsertionOp<G, F>,
 {
-    fn evaluate(&mut self, state: &State<GeneticAlgorithm<G, F, E, S, C, M , R>>) -> StopFlag {
+    fn evaluate(&mut self, state: &State<GeneticAlgorithm<G, F, E, S, C, M, R>>) -> StopFlag {
         let highest_fitness = &state.result.best_solution.solution.fitness;
         if highest_fitness >= &self.fitness_target {
-            StopFlag::StopNow(format!("Simulation stopped after a solution with a fitness of {:?} \
-                has been found.", highest_fitness))
+            StopFlag::StopNow(format!(
+                "Simulation stopped after a solution with a fitness of {:?} \
+                 has been found.",
+                highest_fitness
+            ))
         } else {
             StopFlag::Continue
         }
@@ -77,9 +89,7 @@ impl GenerationLimit {
     /// Create a new instance of `GenerationLimit` with the specified limit
     /// of generations.
     pub fn new(max_generations: u64) -> Self {
-        GenerationLimit {
-            max_generations,
-        }
+        GenerationLimit { max_generations }
     }
 
     pub fn max_generations(&self) -> &u64 {
@@ -88,12 +98,16 @@ impl GenerationLimit {
 }
 
 impl<A> Termination<A> for GenerationLimit
-    where A: Algorithm
+where
+    A: Algorithm,
 {
     fn evaluate(&mut self, state: &State<A>) -> StopFlag {
         if state.iteration >= self.max_generations {
-            StopFlag::StopNow(format!("Simulation stopped after the limit of {} generations have \
-                been processed.", &state.iteration))
+            StopFlag::StopNow(format!(
+                "Simulation stopped after the limit of {} generations have \
+                 been processed.",
+                &state.iteration
+            ))
         } else {
             StopFlag::Continue
         }
@@ -114,9 +128,7 @@ impl TimeLimit {
     /// Create a new instance of `TimeLimit` with the specified amount
     /// of time.
     pub fn new(max_time: Duration) -> Self {
-        TimeLimit {
-            max_time,
-        }
+        TimeLimit { max_time }
     }
 
     /// Returns the maximum time the simulation should run.
@@ -126,13 +138,17 @@ impl TimeLimit {
 }
 
 impl<A> Termination<A> for TimeLimit
-    where A: Algorithm
+where
+    A: Algorithm,
 {
     fn evaluate(&mut self, state: &State<A>) -> StopFlag {
         let duration = Local::now().signed_duration_since(state.started_at);
         if duration >= self.max_time {
-            StopFlag::StopNow(format!("Simulation stopped after running for {} which exceeds the \
-                maximal runtime of {}.", &duration, &self.max_time))
+            StopFlag::StopNow(format!(
+                "Simulation stopped after running for {} which exceeds the \
+                 maximal runtime of {}.",
+                &duration, &self.max_time
+            ))
         } else {
             StopFlag::Continue
         }

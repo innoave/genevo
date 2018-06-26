@@ -7,9 +7,8 @@
 
 use algorithm::EvaluatedPopulation;
 use genetic::{Fitness, Genotype, Parents};
-use operator::{GeneticOperator, SelectionOp, SingleObjective, MultiObjective};
+use operator::{GeneticOperator, MultiObjective, SelectionOp, SingleObjective};
 use random::Rng;
-
 
 /// The `MaximizeSelector` selects the best performing `genetic::Genotype`s
 /// from the population.
@@ -78,10 +77,13 @@ impl GeneticOperator for MaximizeSelector {
 }
 
 impl<G, F> SelectionOp<G, F> for MaximizeSelector
-    where G: Genotype, F: Fitness
+where
+    G: Genotype,
+    F: Fitness,
 {
     fn select_from<R>(&self, evaluated: &EvaluatedPopulation<G, F>, _: &mut R) -> Vec<Parents<G>>
-        where R: Rng + Sized
+    where
+        R: Rng + Sized,
     {
         let individuals = evaluated.individuals();
         let fitness_values = evaluated.fitness_values();
@@ -92,7 +94,8 @@ impl<G, F> SelectionOp<G, F> for MaximizeSelector
         mating_pool.sort_by(|x, y| fitness_values[*y].cmp(&fitness_values[*x]));
         let mating_pool = mating_pool;
 
-        let num_parents_to_select = (individuals.len() as f64 * self.selection_ratio + 0.5).floor() as usize;
+        let num_parents_to_select =
+            (individuals.len() as f64 * self.selection_ratio + 0.5).floor() as usize;
         let pool_size = mating_pool.len();
         let mut selected: Vec<Parents<G>> = Vec::with_capacity(num_parents_to_select);
 

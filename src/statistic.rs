@@ -1,11 +1,11 @@
 //! The `statistic` module provides functionality to collect and display
 //! statistic about a genetic algorithm application and its execution.
 
-use types::fmt::Display;
 use chrono::{Duration, Local};
-use std::ops::{Add, AddAssign};
 use std::convert::From;
 use std::fmt;
+use std::ops::{Add, AddAssign};
+use types::fmt::Display;
 
 #[derive(Clone, Copy, Eq, PartialEq)]
 pub struct ProcessingTime {
@@ -26,9 +26,7 @@ impl ProcessingTime {
 
 impl From<Duration> for ProcessingTime {
     fn from(duration: Duration) -> Self {
-        ProcessingTime {
-            duration,
-        }
+        ProcessingTime { duration }
     }
 }
 
@@ -73,18 +71,25 @@ pub struct TimedResult<U> {
     pub time: ProcessingTime,
 }
 
-pub fn timed<F, U>(op: F) -> TimedFn<F, U> where F: FnOnce() -> U {
-    TimedFn {
-        function: op,
-    }
+pub fn timed<F, U>(op: F) -> TimedFn<F, U>
+where
+    F: FnOnce() -> U,
+{
+    TimedFn { function: op }
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub struct TimedFn<F, U> where F: FnOnce() -> U {
+pub struct TimedFn<F, U>
+where
+    F: FnOnce() -> U,
+{
     function: F,
 }
 
-impl<F, U> TimedFn<F, U> where F: FnOnce() -> U {
+impl<F, U> TimedFn<F, U>
+where
+    F: FnOnce() -> U,
+{
     pub fn run(self) -> TimedResult<U> {
         let started_at = Local::now();
         let result = (self.function)();

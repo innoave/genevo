@@ -18,11 +18,13 @@
 //! * `usize`
 
 pub mod fmt;
-#[cfg(test)] mod fmt_tests;
+#[cfg(test)]
+mod fmt_tests;
 
-#[cfg(test)] mod tests;
+#[cfg(test)]
+mod tests;
 
-use genetic::{Fitness, AsScalar};
+use genetic::{AsScalar, Fitness};
 
 macro_rules! implement_fitness_for_signed_integer {
     ( $($t:ty),* ) => {
@@ -49,7 +51,6 @@ macro_rules! implement_fitness_for_signed_integer {
 }
 
 implement_fitness_for_signed_integer!(i8, i16, i32, i64, isize);
-
 
 macro_rules! implement_fitness_for_unsigned_integer {
     ( $($t:ty),* ) => {

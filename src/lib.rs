@@ -87,11 +87,15 @@
     unused_qualifications,
 )]
 
-#[cfg(test)] #[macro_use] extern crate hamcrest;
-#[cfg(test)] #[macro_use] extern crate quickcheck;
+#[cfg(test)]
+#[macro_use]
+extern crate hamcrest;
+#[cfg(test)]
+#[macro_use]
+extern crate quickcheck;
 
-extern crate fixedbitset;
 extern crate chrono;
+extern crate fixedbitset;
 extern crate rand;
 extern crate rayon;
 extern crate xorshift;

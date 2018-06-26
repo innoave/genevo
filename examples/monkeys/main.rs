@@ -5,9 +5,9 @@
 extern crate genevo;
 extern crate rand;
 
-use genevo::prelude::*;
 use genevo::operator::prelude::*;
 use genevo::population::ValueEncodedGenomeBuilder;
+use genevo::prelude::*;
 use genevo::types::fmt::Display;
 
 //const TARGET_TEXT: &str = "See how a genius creates a legend";
@@ -64,7 +64,6 @@ impl AsPhenotype for TextGenome {
 struct FitnessCalc;
 
 impl FitnessFunction<TextGenome, usize> for FitnessCalc {
-
     fn fitness_of(&self, genome: &TextGenome) -> usize {
         let mut score = 0;
         for (c, t) in genome.iter().zip(TARGET_TEXT.chars()) {
@@ -91,7 +90,6 @@ impl FitnessFunction<TextGenome, usize> for FitnessCalc {
 }
 
 fn main() {
-
     let params = Parameter::default();
 
     let initial_population: Population<TextGenome> = build_population()
@@ -102,15 +100,23 @@ fn main() {
     let mut monkeys_sim = simulate(
         genetic_algorithm()
             .with_evaluation(FitnessCalc)
-            .with_selection(MaximizeSelector::new(params.selection_ratio, params.num_individuals_per_parents))
+            .with_selection(MaximizeSelector::new(
+                params.selection_ratio,
+                params.num_individuals_per_parents,
+            ))
             .with_crossover(MultiPointCrossBreeder::new(params.num_crossover_points))
             .with_mutation(RandomValueMutator::new(params.mutation_rate, 32, 126))
-            .with_reinsertion(ElitistReinserter::new(FitnessCalc, true, params.reinsertion_ratio))
+            .with_reinsertion(ElitistReinserter::new(
+                FitnessCalc,
+                true,
+                params.reinsertion_ratio,
+            ))
             .with_initial_population(initial_population)
-            .build()
-        )
-        .until(or(FitnessLimit::new(FitnessCalc.highest_possible_fitness()),
-                             GenerationLimit::new(params.generation_limit)))
+            .build(),
+    ).until(or(
+        FitnessLimit::new(FitnessCalc.highest_possible_fitness()),
+        GenerationLimit::new(params.generation_limit),
+    ))
         .build();
 
     println!("Starting Shakespeare's Monkeys with: {:?}", params);
@@ -121,25 +127,31 @@ fn main() {
             Ok(SimResult::Intermediate(step)) => {
                 let evaluated_population = step.result.evaluated_population;
                 let best_solution = step.result.best_solution;
-                println!("Step: generation: {}, average_fitness: {}, \
-                         best fitness: {}, duration: {}, processing_time: {}",
-                         step.iteration, evaluated_population.average_fitness(),
-                         best_solution.solution.fitness,
-                         step.duration.fmt(),
-                         step.processing_time.fmt());
+                println!(
+                    "Step: generation: {}, average_fitness: {}, \
+                     best fitness: {}, duration: {}, processing_time: {}",
+                    step.iteration,
+                    evaluated_population.average_fitness(),
+                    best_solution.solution.fitness,
+                    step.duration.fmt(),
+                    step.processing_time.fmt()
+                );
                 println!("      {}", best_solution.solution.genome.as_text());
-//                println!("| population: [{}]", result.population.iter().map(|g| g.as_text())
-//                    .collect::<Vec<String>>().join("], ["));
+                //                println!("| population: [{}]", result.population.iter().map(|g| g.as_text())
+                //                    .collect::<Vec<String>>().join("], ["));
             },
             Ok(SimResult::Final(step, processing_time, duration, stop_reason)) => {
                 let best_solution = step.result.best_solution;
                 println!("{}", stop_reason);
-                println!("Final result after {}: generation: {}, \
-                         best solution with fitness {} found in generation {}, processing_time: {}",
-                         duration.fmt(), step.iteration,
-                         best_solution.solution.fitness,
-                         best_solution.generation,
-                         processing_time.fmt());
+                println!(
+                    "Final result after {}: generation: {}, \
+                     best solution with fitness {} found in generation {}, processing_time: {}",
+                    duration.fmt(),
+                    step.iteration,
+                    best_solution.solution.fitness,
+                    best_solution.generation,
+                    processing_time.fmt()
+                );
                 println!("      {}", best_solution.solution.genome.as_text());
                 break;
             },

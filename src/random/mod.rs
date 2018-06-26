@@ -1,12 +1,13 @@
 //! The `random` module defines functions that are used to generate random
 //! values for specific purposes.
 
-#[cfg(test)] mod tests;
+#[cfg(test)]
+mod tests;
 
 use genetic::AsScalar;
 
-pub use rand::{Closed01, Rng, SeedableRng};
 pub use rand::distributions::range::SampleRange;
+pub use rand::{Closed01, Rng, SeedableRng};
 pub use xorshift::RngJump;
 
 use rand::thread_rng;
@@ -33,14 +34,16 @@ pub fn get_rng(seed: Seed) -> Prng {
 /// Generates a random index into a slice of given length using the given
 /// `Prng`.
 pub fn random_index<R>(rng: &mut R, length: usize) -> usize
-    where R: Rng + Sized
+where
+    R: Rng + Sized,
 {
     random_index_from_range(rng, 0, length)
 }
 
 /// Generates a random index in the given range using the given `Prng`.
 pub fn random_index_from_range<R>(rng: &mut R, min: usize, max: usize) -> usize
-    where R: Rng + Sized
+where
+    R: Rng + Sized,
 {
     rng.gen_range(min, max)
 }
@@ -49,7 +52,8 @@ pub fn random_index_from_range<R>(rng: &mut R, min: usize, max: usize) -> usize
 /// The first of the two returned cut points is always smaller than the second
 /// one.
 pub fn random_cut_points<R>(rng: &mut R, length: usize) -> (usize, usize)
-    where R: Rng + Sized
+where
+    R: Rng + Sized,
 {
     random_cut_points_from_range(rng, 0, length)
 }
@@ -57,7 +61,8 @@ pub fn random_cut_points<R>(rng: &mut R, length: usize) -> (usize, usize)
 /// Generates two cut points within the given range using the given `Prng`. The
 /// first of the two returned cut points is always smaller than the second one.
 pub fn random_cut_points_from_range<R>(rng: &mut R, min: usize, max: usize) -> (usize, usize)
-    where R: Rng + Sized
+where
+    R: Rng + Sized,
 {
     assert!(max >= min + 4);
     let max_slice = max - min - 2;
@@ -68,12 +73,12 @@ pub fn random_cut_points_from_range<R>(rng: &mut R, min: usize, max: usize) -> (
             if cutpoint2 - cutpoint1 >= max_slice {
                 continue;
             }
-            return (cutpoint1, cutpoint2)
+            return (cutpoint1, cutpoint2);
         } else if cutpoint2 < cutpoint1 {
             if cutpoint1 - cutpoint2 >= max_slice {
                 continue;
             }
-            return (cutpoint2, cutpoint1)
+            return (cutpoint2, cutpoint1);
         }
     }
 }
@@ -81,7 +86,8 @@ pub fn random_cut_points_from_range<R>(rng: &mut R, min: usize, max: usize) -> (
 /// Generates `n` cut points for a slice of given length using the given `Prng`.
 /// The returned cut points are ordered in ascending order.
 pub fn random_n_cut_points<R>(rng: &mut R, n: usize, length: usize) -> Vec<usize>
-    where R: Rng + Sized
+where
+    R: Rng + Sized,
 {
     assert!(n > 0);
     assert!(length >= 2 * n);
@@ -124,7 +130,8 @@ pub fn random_n_cut_points<R>(rng: &mut R, n: usize, length: usize) -> Vec<usize
 
 /// Generates a random probability between 0 and 1 using the given `Prng`.
 pub fn random_probability<R>(rng: &mut R) -> f64
-    where R: Rng + Sized
+where
+    R: Rng + Sized,
 {
     rng.gen::<Closed01<f64>>().0
 }
@@ -137,7 +144,8 @@ pub fn random_probability<R>(rng: &mut R) -> f64
 /// of the values are calculated from their scalar representation.
 #[derive(Clone, Debug, PartialEq)]
 pub struct WeightedDistribution<'a, T>
-    where T: 'a + AsScalar
+where
+    T: 'a + AsScalar,
 {
     values: &'a [T],
     sum: f64,
@@ -145,7 +153,8 @@ pub struct WeightedDistribution<'a, T>
 }
 
 impl<'a, T> WeightedDistribution<'a, T>
-    where T: 'a + AsScalar
+where
+    T: 'a + AsScalar,
 {
     /// Constructs a new instance of `WeightedDistribution` for the given slice
     /// of values.
@@ -184,7 +193,8 @@ impl<'a, T> WeightedDistribution<'a, T>
 
 /// Calculates weights and the sum for the given values.
 fn calc_weights_and_sum<'a, T>(values: &'a [T]) -> (Vec<f64>, f64)
-    where T: 'a + AsScalar
+where
+    T: 'a + AsScalar,
 {
     let mut weights = Vec::with_capacity(values.len());
     let mut weight_sum: f64 = 0.;

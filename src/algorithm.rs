@@ -2,9 +2,9 @@
 //! concrete algorithms such as the `ga::GeneticAlgorithm` and various
 //! operators as defined in the `operator` module.
 
+use chrono::{DateTime, Local};
 use genetic::{Fitness, Genotype};
 use random::Prng;
-use chrono::{DateTime, Local};
 use std::fmt::Debug;
 use std::rc::Rc;
 
@@ -18,11 +18,12 @@ pub trait Algorithm {
     fn next(&mut self, iteration: u64, rng: &mut Prng) -> Result<Self::Output, Self::Error>;
 
     fn reset(&mut self) -> Result<bool, Self::Error>;
-
 }
 
 pub trait OptimizationResult<G, F>
-    where G: Genotype, F: Fitness
+where
+    G: Genotype,
+    F: Fitness,
 {
     fn best_solution(&self) -> &BestSolution<G, F>;
 }
@@ -36,7 +37,9 @@ pub trait OptimizationResult<G, F>
 /// performance.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Evaluated<G, F>
-    where G: Genotype, F: Fitness
+where
+    G: Genotype,
+    F: Fitness,
 {
     /// The `genetic::Genotype` that has been evaluated.
     pub genome: G,
@@ -50,7 +53,9 @@ pub struct Evaluated<G, F>
 /// simulation.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct BestSolution<G, F>
-    where G: Genotype, F: Fitness
+where
+    G: Genotype,
+    F: Fitness,
 {
     /// The local time at which this solution is found.
     pub found_at: DateTime<Local>,
@@ -75,7 +80,9 @@ pub struct BestSolution<G, F>
 /// new optimization are found the fields are kept private.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct EvaluatedPopulation<G, F>
-    where G: Genotype, F: Fitness
+where
+    G: Genotype,
+    F: Fitness,
 {
     individuals: Rc<Vec<G>>,
     fitness_values: Vec<F>,
@@ -85,21 +92,24 @@ pub struct EvaluatedPopulation<G, F>
 }
 
 impl<G, F> EvaluatedPopulation<G, F>
-    where G: Genotype, F: Fitness
+where
+    G: Genotype,
+    F: Fitness,
 {
     /// Construct a new instance of the `EvaluatedPopulation` struct.
-    pub fn new(individuals: Rc<Vec<G>>,
-               fitness_values: Vec<F>,
-               highest_fitness: F,
-               lowest_fitness: F,
-               average_fitness: F
+    pub fn new(
+        individuals: Rc<Vec<G>>,
+        fitness_values: Vec<F>,
+        highest_fitness: F,
+        lowest_fitness: F,
+        average_fitness: F,
     ) -> Self {
         EvaluatedPopulation {
             individuals,
             fitness_values,
             highest_fitness,
             lowest_fitness,
-            average_fitness
+            average_fitness,
         }
     }
 
@@ -148,8 +158,8 @@ impl<G, F> EvaluatedPopulation<G, F>
     /// Note: This function might be more expensive due to the data structure
     /// chosen for this struct. So use it sparingly.
     pub fn fitness_of_individual(&self, individual: &G) -> Option<&F> {
-        self.index_of_individual(individual).map(|index|
-            &self.fitness_values[index])
+        self.index_of_individual(individual)
+            .map(|index| &self.fitness_values[index])
     }
 
     /// Returns the `genetic::Genotype` of the individual with a given
@@ -158,8 +168,8 @@ impl<G, F> EvaluatedPopulation<G, F>
     /// Note: This function might be more expensive due to the data structure
     /// chosen for this struct. So use it sparingly.
     pub fn individual_with_fitness(&self, fitness: &F) -> Option<&G> {
-        self.index_of_fitness(fitness).map(|index|
-            &self.individuals[index])
+        self.index_of_fitness(fitness)
+            .map(|index| &self.individuals[index])
     }
 
     /// Returns the `Evaluated` individual with a given `genetic::Fitness`
@@ -168,11 +178,10 @@ impl<G, F> EvaluatedPopulation<G, F>
     /// Note: This function might be more expensive due to the data structure
     /// chosen for this struct. So use it sparingly.
     pub fn evaluated_individual_with_fitness(&self, fitness: &F) -> Option<Evaluated<G, F>> {
-        self.index_of_fitness(&fitness)
-            .map(|index| Evaluated {
-                genome: self.individuals[index].clone(),
-                fitness: self.fitness_values[index].clone(),
-            })
+        self.index_of_fitness(&fitness).map(|index| Evaluated {
+            genome: self.individuals[index].clone(),
+            fitness: self.fitness_values[index].clone(),
+        })
     }
 
     /// Determines the index in the `individuals` slice of an individual.
@@ -184,5 +193,4 @@ impl<G, F> EvaluatedPopulation<G, F>
     fn index_of_fitness(&self, fitness: &F) -> Option<usize> {
         self.fitness_values.iter().position(|v| *v == *fitness)
     }
-
 }

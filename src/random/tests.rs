@@ -1,9 +1,8 @@
-
+use super::*;
 use hamcrest::prelude::*;
 use quickcheck::TestResult;
-use super::*;
 use rand::StdRng;
-use random::{SeedableRng, thread_rng};
+use random::{thread_rng, SeedableRng};
 
 quickcheck! {
 
