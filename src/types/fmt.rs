@@ -29,8 +29,7 @@ impl Display for Duration {
         } else if duration_nanos == 0 {
             sign + &fmt_duration_seconds(&duration_secs, false)
         } else {
-            sign
-                + &fmt_duration_seconds(&duration_secs, true)
+            sign + &fmt_duration_seconds(&duration_secs, true)
                 + " "
                 + &fmt_duration_sub_seconds(&duration_nanos, true)
         }

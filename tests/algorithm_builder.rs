@@ -1,8 +1,8 @@
 #[cfg(test)]
 #[macro_use]
-extern crate hamcrest;
+extern crate galvanic_assert;
 
-use hamcrest::prelude::*;
+use galvanic_assert::matchers::*;
 
 extern crate fixedbitset;
 extern crate genevo;
@@ -52,10 +52,7 @@ fn create_new_genetic_algorithm_application() {
         .with_initial_population(initial_population)
         .build();
 
-    assert_that!(algorithm.selector().selection_ratio(), is(equal_to(0.7)));
-    assert_that!(
-        algorithm.selector().num_individuals_per_parents(),
-        is(equal_to(2))
-    );
-    assert_that!(algorithm.breeder().num_cut_points(), is(equal_to(3)));
+    assert_that!(&algorithm.selector().selection_ratio(), eq(0.7));
+    assert_that!(&algorithm.selector().num_individuals_per_parents(), eq(2));
+    assert_that!(&algorithm.breeder().num_cut_points(), eq(3));
 }

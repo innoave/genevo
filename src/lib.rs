@@ -89,7 +89,7 @@
 
 #[cfg(test)]
 #[macro_use]
-extern crate hamcrest;
+extern crate galvanic_assert;
 #[cfg(test)]
 #[macro_use]
 extern crate quickcheck;

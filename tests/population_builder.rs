@@ -1,8 +1,8 @@
 #[cfg(test)]
 #[macro_use]
-extern crate hamcrest;
+extern crate galvanic_assert;
 
-use hamcrest::prelude::*;
+use galvanic_assert::matchers::*;
 
 extern crate fixedbitset;
 extern crate genevo;
@@ -20,7 +20,7 @@ fn create_population_of_fixedbitset_uniform_at_random() {
         .uniform_at_random();
 
     println!("{:?}", population);
-    assert_that!(population.size(), is(equal_to(200)));
+    assert_that!(&population.size(), eq(200));
 }
 
 #[test]
@@ -31,7 +31,7 @@ fn create_population_of_vec_of_bool_uniform_at_random() {
         .uniform_at_random();
 
     println!("{:?}", population);
-    assert_that!(population.size(), is(equal_to(200)));
+    assert_that!(&population.size(), eq(200));
 }
 
 #[test]
@@ -42,7 +42,7 @@ fn create_population_of_vec_of_f64_uniform_at_random() {
         .uniform_at_random();
 
     println!("{:?}", population);
-    assert_that!(population.size(), is(equal_to(200)));
+    assert_that!(&population.size(), eq(200));
 }
 
 #[test]
@@ -74,7 +74,7 @@ fn create_population_of_custom_genotype_uniform_at_random() {
         .uniform_at_random();
 
     println!("{:?}", population);
-    assert_that!(population.size(), is(equal_to(200)));
+    assert_that!(&population.size(), eq(200));
 }
 
 #[test]
@@ -85,5 +85,5 @@ fn create_population_with_custom_number_generator() {
         .using_seed([42, 0]);
 
     println!("{:?}", population);
-    assert_that!(population.size(), is(equal_to(200)));
+    assert_that!(&population.size(), eq(200));
 }

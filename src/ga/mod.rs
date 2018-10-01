@@ -195,7 +195,8 @@ where
         let reinsertion = timed(|| {
             self.reinserter
                 .combine(&mut breeding.result, &evaluation.result, rng)
-        }).run();
+        })
+        .run();
 
         // Stage 4: On to the next generation:
         let loop_time = evaluation.time
@@ -262,7 +263,8 @@ where
                 fitness.push(score);
             }
             (fitness, highest, lowest)
-        }).run()
+        })
+        .run()
     } else {
         let mid_point = population.len() / 2;
         let (l_slice, r_slice) = population.split_at(mid_point);
@@ -311,7 +313,8 @@ where
             generation,
             solution: evaluated,
         }
-    }).run()
+    })
+    .run()
 }
 
 /// Lets the parents breed their offspring and mutate its children. And
@@ -338,7 +341,8 @@ where
                 }
             }
             offspring
-        }).run()
+        })
+        .run()
     } else {
         let mut rng1 = rng.clone();
         rng1.jump(1);

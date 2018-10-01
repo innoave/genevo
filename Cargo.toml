@@ -28,8 +28,8 @@ rayon = "1.0"
 xorshift = "0.1"
 
 [dev-dependencies]
-quickcheck = "0.5"
-hamcrest = "0.1"
+galvanic-assert = "0.8"
+quickcheck = "0.7"
 #log4rs = "0.8"
 
 [[example]]
