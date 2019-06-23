@@ -29,7 +29,7 @@ xorshift = "0.1"
 
 [dev-dependencies]
 galvanic-assert = "0.8"
-quickcheck = "0.7"
+quickcheck = "0.8"
 #log4rs = "0.8"
 
 [[example]]
