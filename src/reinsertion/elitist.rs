@@ -2,10 +2,12 @@
 //! individuals from the offspring and the old population by choosing the best
 //! individuals from both.
 
-use algorithm::EvaluatedPopulation;
-use genetic::{Fitness, FitnessFunction, Genotype, Offspring};
-use operator::{GeneticOperator, MultiObjective, ReinsertionOp, SingleObjective};
-use random::Rng;
+use crate::{
+    algorithm::EvaluatedPopulation,
+    genetic::{Fitness, FitnessFunction, Genotype, Offspring},
+    operator::{GeneticOperator, MultiObjective, ReinsertionOp, SingleObjective},
+    random::Rng,
+};
 use std::marker::PhantomData;
 
 /// The `ElitistReinserter` combines the best individuals from the offspring.
@@ -104,14 +106,16 @@ where
     G: Genotype,
     F: Fitness,
     E: FitnessFunction<G, F>,
-{}
+{
+}
 /// Can be used for multi-objective optimization
 impl<G, F, E> MultiObjective for ElitistReinserter<G, F, E>
 where
     G: Genotype,
     F: Fitness,
     E: FitnessFunction<G, F>,
-{}
+{
+}
 
 impl<G, F, E> ReinsertionOp<G, F> for ElitistReinserter<G, F, E>
 where
@@ -161,7 +165,6 @@ where
                 offspring.truncate(num_offspring);
                 new_population.append(offspring);
             }
-            //
             // finally fill up new population with individuals from old population
             //
             let num_old_population = population_size - new_population.len();

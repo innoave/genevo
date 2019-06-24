@@ -5,10 +5,12 @@
 //! The provided `SelectionOp` implementations are:
 //! * `MaximizeSelector`
 
-use algorithm::EvaluatedPopulation;
-use genetic::{Fitness, Genotype, Parents};
-use operator::{GeneticOperator, MultiObjective, SelectionOp, SingleObjective};
-use random::Rng;
+use crate::{
+    algorithm::EvaluatedPopulation,
+    genetic::{Fitness, Genotype, Parents},
+    operator::{GeneticOperator, MultiObjective, SelectionOp, SingleObjective},
+    random::Rng,
+};
 
 /// The `MaximizeSelector` selects the best performing `genetic::Genotype`s
 /// from the population.

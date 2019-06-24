@@ -7,10 +7,13 @@
 //! * `OrderOneCrossover` (OX1)
 //! * `PartiallyMappedCrossover` (PMX)
 
-use genetic::{Children, Parents};
-use operator::{CrossoverOp, GeneticOperator};
-use random::{random_cut_points, Rng};
 use std::collections::HashMap;
+
+use crate::{
+    genetic::{Children, Parents},
+    operator::{CrossoverOp, GeneticOperator},
+    random::{random_cut_points, Rng},
+};
 
 /// The `OrderOneCrossover` operator combines permutation encoded
 /// `genetic::Genotype`s according the order one crossover scheme (OX1).

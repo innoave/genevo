@@ -25,8 +25,7 @@ pub use self::combinator::{and, or};
 
 pub mod limit;
 
-use algorithm::Algorithm;
-use simulation::State;
+use crate::{algorithm::Algorithm, simulation::State};
 
 /// The `StopFlag` is the result of the `Termination` function. It tells
 /// the simulation whether it shall stop or if it can continue.

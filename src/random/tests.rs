@@ -1,8 +1,8 @@
 use super::*;
+use crate::random::{thread_rng, SeedableRng};
 use galvanic_assert::matchers::*;
-use quickcheck::TestResult;
+use quickcheck::{quickcheck, TestResult};
 use rand::StdRng;
-use random::{thread_rng, SeedableRng};
 
 quickcheck! {
 

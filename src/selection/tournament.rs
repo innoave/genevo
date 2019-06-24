@@ -3,10 +3,12 @@
 //! The provided `SelectionOp` implementations are:
 //! * `TournamentSelector`
 
-use algorithm::EvaluatedPopulation;
-use genetic::{Fitness, Genotype, Parents};
-use operator::{GeneticOperator, MultiObjective, SelectionOp, SingleObjective};
-use random::{random_index, random_probability, Rng};
+use crate::{
+    algorithm::EvaluatedPopulation,
+    genetic::{Fitness, Genotype, Parents},
+    operator::{GeneticOperator, MultiObjective, SelectionOp, SingleObjective},
+    random::{random_index, random_probability, Rng},
+};
 
 /// The `TournamentSelector` implements the tournament selection method.
 /// It runs tournaments with a small size of participants and pick the best

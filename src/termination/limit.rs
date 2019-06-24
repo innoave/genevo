@@ -9,14 +9,16 @@
 //! * `TimeLimit` - stops the simulation after a the specified time limit
 //!   has been reached.
 
-use algorithm::Algorithm;
+use crate::{
+    algorithm::Algorithm,
+    ga::GeneticAlgorithm,
+    genetic::{Fitness, FitnessFunction, Genotype},
+    operator::{CrossoverOp, MutationOp, ReinsertionOp, SelectionOp},
+    simulation::State,
+    termination::{StopFlag, Termination},
+};
 use chrono::{Duration, Local};
-use ga::GeneticAlgorithm;
-use genetic::{Fitness, FitnessFunction, Genotype};
-use operator::{CrossoverOp, MutationOp, ReinsertionOp, SelectionOp};
-use simulation::State;
 use std::marker::PhantomData;
-use termination::{StopFlag, Termination};
 
 /// The `FitnessLimit` condition stops the simulation after a solution with
 /// a certain fitness has been found.

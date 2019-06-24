@@ -151,3 +151,6 @@ fn fmt_duration_sub_seconds(duration_nanos: &i64, always_print_millis: bool) -> 
         format!("{}ms {},{:03}ns", millis, micros, nanos)
     }
 }
+
+#[cfg(test)]
+mod tests;

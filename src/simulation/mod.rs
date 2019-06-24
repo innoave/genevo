@@ -1,10 +1,9 @@
 pub mod simulator;
 
-use algorithm::Algorithm;
+use crate::{
+    algorithm::Algorithm, random::Seed, statistic::ProcessingTime, termination::StopReason,
+};
 use chrono::{DateTime, Duration, Local};
-use random::Seed;
-use statistic::ProcessingTime;
-use termination::StopReason;
 
 /// A `Simulation` is the execution of an algorithm.
 pub trait Simulation<A>

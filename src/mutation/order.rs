@@ -1,8 +1,10 @@
 //! The `order` module provides `operator::MutationOp`s for permutation encoded
 //! `genetic::Genotype`s.
 
-use operator::{GeneticOperator, MutationOp};
-use random::{random_cut_points, Rng};
+use crate::{
+    operator::{GeneticOperator, MutationOp},
+    random::{random_cut_points, Rng},
+};
 use std::fmt::Debug;
 
 #[allow(missing_copy_implementations)]

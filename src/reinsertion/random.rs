@@ -2,10 +2,12 @@
 //! individuals from the offspring and the old population without considering
 //! the fitness or any other attribute of the individuals.
 
-use algorithm::EvaluatedPopulation;
-use genetic::{Fitness, Genotype, Offspring};
-use operator::{GeneticOperator, MultiObjective, ReinsertionOp, SingleObjective};
-use random::{random_index, Rng};
+use crate::{
+    algorithm::EvaluatedPopulation,
+    genetic::{Fitness, Genotype, Offspring},
+    operator::{GeneticOperator, MultiObjective, ReinsertionOp, SingleObjective},
+    random::{random_index, Rng},
+};
 
 /// The `UniformReinserter` takes n individuals from the offspring and
 /// o individuals from the old population and combines them to the new

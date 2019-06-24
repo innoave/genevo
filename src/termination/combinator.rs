@@ -1,9 +1,11 @@
-use algorithm::Algorithm;
-use simulation::State;
+use crate::{
+    algorithm::Algorithm,
+    simulation::State,
+    termination::{StopFlag, Termination},
+};
 use std::marker::PhantomData;
-use termination::{StopFlag, Termination};
 
-//TODO add doc comments
+// TODO add doc comments
 pub fn and<T1, T2, A>(condition1: T1, condition2: T2) -> And<T1, T2, A>
 where
     T1: Termination<A>,
@@ -13,7 +15,7 @@ where
     And::new(condition1, condition2)
 }
 
-//TODO add doc comments
+// TODO add doc comments
 #[derive(Clone, Debug, PartialEq)]
 pub struct And<T1, T2, A>
 where
@@ -67,12 +69,12 @@ where
         }
         match reasons.len() {
             0 | 1 => StopFlag::Continue,
-            _ => StopFlag::StopNow(reasons.join(" and ")), //TODO how combine the two `StopReason`s preserving combinator semantics?
+            _ => StopFlag::StopNow(reasons.join(" and ")), /* TODO how combine the two `StopReason`s preserving combinator semantics? */
         }
     }
 }
 
-//TODO add doc comments
+// TODO add doc comments
 pub fn or<T1, T2, A>(condition1: T1, condition2: T2) -> Or<T1, T2, A>
 where
     T1: Termination<A>,
@@ -82,7 +84,7 @@ where
     Or::new(condition1, condition2)
 }
 
-//TODO add doc comments
+// TODO add doc comments
 #[derive(Clone, Debug, PartialEq)]
 pub struct Or<T1, T2, A>
 where
@@ -137,7 +139,7 @@ where
         match reasons.len() {
             0 => StopFlag::Continue,
             1 => StopFlag::StopNow(reasons[0].clone()),
-            _ => StopFlag::StopNow(reasons.join(" and ")), //TODO how combine the two `StopReason`s preserving combinator semantics?
+            _ => StopFlag::StopNow(reasons.join(" and ")), /* TODO how combine the two `StopReason`s preserving combinator semantics? */
         }
     }
 }

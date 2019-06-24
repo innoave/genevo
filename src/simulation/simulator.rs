@@ -1,9 +1,11 @@
-use algorithm::Algorithm;
+use crate::{
+    algorithm::Algorithm,
+    random::{get_rng, random_seed, Seed},
+    simulation::{SimResult, Simulation, SimulationBuilder, State},
+    statistic::{ProcessingTime, TrackProcessingTime},
+    termination::{StopFlag, Termination},
+};
 use chrono::{DateTime, Local};
-use random::{get_rng, random_seed, Seed};
-use simulation::{SimResult, Simulation, SimulationBuilder, State};
-use statistic::{ProcessingTime, TrackProcessingTime};
-use termination::{StopFlag, Termination};
 
 /// The `simulate` function creates a new `Simulator` for the given
 /// `algorithm::Algorithm`.

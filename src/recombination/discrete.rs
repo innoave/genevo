@@ -7,10 +7,12 @@
 //! * `UniformCrossover` for `fixedbitset::FixedBitSet`
 //! * `DiscreteCrossover` for `Vec` of any type.
 
+use crate::{
+    genetic::{Children, Genotype, Parents},
+    operator::{CrossoverOp, GeneticOperator},
+    random::{random_n_cut_points, Rng},
+};
 use fixedbitset::FixedBitSet;
-use genetic::{Children, Genotype, Parents};
-use operator::{CrossoverOp, GeneticOperator};
-use random::{random_n_cut_points, Rng};
 use std::fmt::Debug;
 
 /// The `UniformCrossBreeder` operator combines binary encoded `genetic::Genotype`s

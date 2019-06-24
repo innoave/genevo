@@ -14,10 +14,12 @@
 //! * `RouletteWheelSelector` - no bias - does not guarantee minimal spread.
 //! * `UniversalSamplingSelector` - no bias - minimal spread.
 
-use algorithm::EvaluatedPopulation;
-use genetic::{AsScalar, Fitness, Genotype, Parents};
-use operator::{GeneticOperator, SelectionOp, SingleObjective};
-use random::{random_probability, Rng, WeightedDistribution};
+use crate::{
+    algorithm::EvaluatedPopulation,
+    genetic::{AsScalar, Fitness, Genotype, Parents},
+    operator::{GeneticOperator, SelectionOp, SingleObjective},
+    random::{random_probability, Rng, WeightedDistribution},
+};
 
 /// The `RouletteWheelSelector` implements stochastic fitness proportionate
 /// selection. Each candidate is picked randomly with a probability of being

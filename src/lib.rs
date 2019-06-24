@@ -90,15 +90,6 @@
 #[cfg(test)]
 #[macro_use]
 extern crate galvanic_assert;
-#[cfg(test)]
-#[macro_use]
-extern crate quickcheck;
-
-extern crate chrono;
-extern crate fixedbitset;
-extern crate rand;
-extern crate rayon;
-extern crate xorshift;
 
 pub mod prelude;
 

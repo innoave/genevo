@@ -1,17 +1,7 @@
-pub use selection::proportionate::*;
-pub use selection::ranking::*;
-pub use selection::tournament::*;
-pub use selection::truncation::*;
-pub use selection::*;
+pub use crate::selection::{proportionate::*, ranking::*, tournament::*, truncation::*, *};
 
-pub use recombination::discrete::*;
-pub use recombination::order::*;
-pub use recombination::*;
+pub use crate::recombination::{discrete::*, order::*, *};
 
-pub use mutation::order::*;
-pub use mutation::value::*;
-pub use mutation::*;
+pub use crate::mutation::{order::*, value::*, *};
 
-pub use reinsertion::elitist::*;
-pub use reinsertion::random::*;
-pub use reinsertion::*;
+pub use crate::reinsertion::{elitist::*, random::*, *};

@@ -1,7 +1,9 @@
+use crate::{
+    genetic::Genotype,
+    operator::{GeneticOperator, MutationOp},
+    random::{random_index, Rng},
+};
 use fixedbitset::FixedBitSet;
-use genetic::Genotype;
-use operator::{GeneticOperator, MutationOp};
-use random::{random_index, Rng};
 use std::fmt::Debug;
 
 #[derive(Clone, Debug, PartialEq)]

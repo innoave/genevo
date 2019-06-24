@@ -9,9 +9,11 @@
 
 pub mod prelude;
 
-use algorithm::EvaluatedPopulation;
-use genetic::{Children, Fitness, Genotype, Offspring, Parents};
-use random::Rng;
+use crate::{
+    algorithm::EvaluatedPopulation,
+    genetic::{Children, Fitness, Genotype, Offspring, Parents},
+    random::Rng,
+};
 
 /// Marker trait for genetic operators and functions that are used for
 /// single-objective optimization.

@@ -26,17 +26,17 @@
 pub mod builder;
 
 use self::builder::EmptyGeneticAlgorithmBuilder;
-use algorithm::{Algorithm, BestSolution, EvaluatedPopulation};
+use crate::{
+    algorithm::{Algorithm, BestSolution, EvaluatedPopulation},
+    genetic::{Fitness, FitnessFunction, Genotype, Offspring, Parents},
+    operator::{CrossoverOp, MutationOp, ReinsertionOp, SelectionOp},
+    population::Population,
+    random::{Prng, RngJump},
+    statistic::{timed, ProcessingTime, TimedResult, TrackProcessingTime},
+};
 use chrono::Local;
-use genetic::{Fitness, FitnessFunction, Genotype, Offspring, Parents};
-use operator::{CrossoverOp, MutationOp, ReinsertionOp, SelectionOp};
-use population::Population;
-use random::{Prng, RngJump};
 use rayon;
-use statistic::{timed, ProcessingTime, TimedResult, TrackProcessingTime};
-use std::marker::PhantomData;
-use std::mem;
-use std::rc::Rc;
+use std::{marker::PhantomData, mem, rc::Rc};
 
 /// The `State` struct holds the results of one pass of the genetic algorithm
 /// loop, i.e. the processing of the evolution from one generation to the next

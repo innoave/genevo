@@ -21,8 +21,8 @@
 //! appropriate encoding trait. If an application is defining its own crossover
 //! and mutation operators then using these marker traits is optional.
 
+use crate::genetic::Genotype;
 use fixedbitset::FixedBitSet;
-use genetic::Genotype;
 use std::fmt::Debug;
 
 /// Marker trait for declaring a `genetic::Genotype` as binary encoded.

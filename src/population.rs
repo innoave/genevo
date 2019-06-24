@@ -96,12 +96,13 @@
 //! }
 //! ```
 
+use crate::{
+    genetic::Genotype,
+    random::{get_rng, random_seed, Prng, Rng, RngJump, SampleRange, Seed},
+};
 use fixedbitset::FixedBitSet;
-use genetic::Genotype;
-use random::{get_rng, random_seed, Prng, Rng, RngJump, SampleRange, Seed};
 use rayon;
-use std::fmt::Debug;
-use std::marker::PhantomData;
+use std::{fmt::Debug, marker::PhantomData};
 
 /// The `Population` defines a set of possible solutions to the optimization
 /// or search problem.

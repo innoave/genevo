@@ -1,15 +1,6 @@
 use super::*;
 use galvanic_assert::matchers::*;
-use std::i16;
-use std::i32;
-use std::i64;
-use std::i8;
-use std::isize;
-use std::u16;
-use std::u32;
-use std::u64;
-use std::u8;
-use std::usize;
+use std::{i16, i32, i64, i8, isize, u16, u32, u64, u8, usize};
 
 #[test]
 fn abs_diff_of_signed_1_and_0() {

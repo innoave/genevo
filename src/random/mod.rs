@@ -4,10 +4,9 @@
 #[cfg(test)]
 mod tests;
 
-use genetic::AsScalar;
+use crate::genetic::AsScalar;
 
-pub use rand::distributions::range::SampleRange;
-pub use rand::{Closed01, Rng, SeedableRng};
+pub use rand::{distributions::range::SampleRange, Closed01, Rng, SeedableRng};
 pub use xorshift::RngJump;
 
 use rand::thread_rng;
