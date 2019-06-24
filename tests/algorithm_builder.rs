@@ -4,13 +4,7 @@ extern crate galvanic_assert;
 
 use galvanic_assert::matchers::*;
 
-extern crate fixedbitset;
-extern crate genevo;
-extern crate rand;
-
-use genevo::operator::prelude::*;
-use genevo::population::ValueEncodedGenomeBuilder;
-use genevo::prelude::*;
+use genevo::{operator::prelude::*, population::ValueEncodedGenomeBuilder, prelude::*};
 
 #[test]
 fn create_new_genetic_algorithm_application() {

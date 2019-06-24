@@ -123,7 +123,7 @@ Add this to your `Cargo.toml`:
 genevo = "0.2"
 ```
 
-And add this to your crate root:
+If you are not using Rust 2018 edition add this to your crate root:
 
 ```rust
 extern crate genevo;

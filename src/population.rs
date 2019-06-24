@@ -16,9 +16,6 @@
 //! genome has a length of 12 bits and the population comprises 200 individuals.
 //!
 //! ```rust
-//! extern crate genevo;
-//! extern crate fixedbitset;
-//!
 //! use genevo::prelude::*;
 //! use genevo::population::BinaryEncodedGenomeBuilder;
 //! use fixedbitset::FixedBitSet;
@@ -39,8 +36,6 @@
 //! The generated population consists of 200 individuals.
 //!
 //! ```rust
-//! extern crate genevo;
-//!
 //! use genevo::prelude::*;
 //! use genevo::population::ValueEncodedGenomeBuilder;
 //!
@@ -60,8 +55,6 @@
 //! `Pos` values. The generated population comprises 200 individuals.
 //!
 //! ```rust
-//! extern crate genevo;
-//!
 //! use genevo::prelude::*;
 //!
 //! #[derive(Clone,Debug,PartialEq)]

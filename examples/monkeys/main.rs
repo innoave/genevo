@@ -2,9 +2,6 @@
 //! known as the
 //! [infinite monkey theorem](https://en.wikipedia.org/wiki/Infinite_monkey_theorem).
 
-extern crate genevo;
-extern crate rand;
-
 use genevo::operator::prelude::*;
 use genevo::population::ValueEncodedGenomeBuilder;
 use genevo::prelude::*;
@@ -113,11 +110,12 @@ fn main() {
             ))
             .with_initial_population(initial_population)
             .build(),
-    ).until(or(
+    )
+    .until(or(
         FitnessLimit::new(FitnessCalc.highest_possible_fitness()),
         GenerationLimit::new(params.generation_limit),
     ))
-        .build();
+    .build();
 
     println!("Starting Shakespeare's Monkeys with: {:?}", params);
 
@@ -139,7 +137,7 @@ fn main() {
                 println!("      {}", best_solution.solution.genome.as_text());
                 //                println!("| population: [{}]", result.population.iter().map(|g| g.as_text())
                 //                    .collect::<Vec<String>>().join("], ["));
-            },
+            }
             Ok(SimResult::Final(step, processing_time, duration, stop_reason)) => {
                 let best_solution = step.result.best_solution;
                 println!("{}", stop_reason);
@@ -154,11 +152,11 @@ fn main() {
                 );
                 println!("      {}", best_solution.solution.genome.as_text());
                 break;
-            },
+            }
             Err(error) => {
                 println!("{}", error.display());
                 break;
-            },
+            }
         }
     }
 }

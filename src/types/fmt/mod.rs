@@ -1,8 +1,8 @@
 //! This module defines project specific formatting of struct values for
 //! displaying values to the console or in log files.
 //!
-//! To do so it defines it defines its own `Display` trait, that is implemented
-//! for some types used in this project.
+//! To do so it defines its own `Display` trait, that is implemented for some
+//! types used in this project.
 
 use chrono::Duration;
 

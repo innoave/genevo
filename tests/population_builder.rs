@@ -4,9 +4,6 @@ extern crate galvanic_assert;
 
 use galvanic_assert::matchers::*;
 
-extern crate fixedbitset;
-extern crate genevo;
-
 use fixedbitset::FixedBitSet;
 use genevo::{
     population::{BinaryEncodedGenomeBuilder, ValueEncodedGenomeBuilder},

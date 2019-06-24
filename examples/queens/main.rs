@@ -1,13 +1,7 @@
 //! The `queens` example searches for solutions of the
 //! [N Queens Problem](https://en.wikipedia.org/wiki/Eight_queens_puzzle)
 
-extern crate genevo;
-extern crate rand;
-
-use genevo::operator::prelude::*;
-use genevo::prelude::*;
-use genevo::random::Rng;
-use genevo::types::fmt::Display;
+use genevo::{operator::prelude::*, prelude::*, random::Rng, types::fmt::Display};
 
 const NUMBER_OF_QUEENS: i16 = 16;
 const NUM_ROWS: i16 = NUMBER_OF_QUEENS;
@@ -160,11 +154,12 @@ fn main() {
             ))
             .with_initial_population(initial_population)
             .build(),
-    ).until(or(
+    )
+    .until(or(
         FitnessLimit::new(FitnessCalc.highest_possible_fitness()),
         GenerationLimit::new(GENERATION_LIMIT),
     ))
-        .build();
+    .build();
 
     loop {
         let result = queens_sim.step();
