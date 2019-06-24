@@ -28,7 +28,7 @@ rayon = "1.0"
 [dev-dependencies]
 criterion = { version = "0.2", default-features = false }
 galvanic-assert = "0.8"
-quickcheck = "0.8"
+proptest = "0.9"
 #log4rs = "0.8"
 
 [lib]

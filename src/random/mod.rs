@@ -1,9 +1,6 @@
 //! The `random` module defines functions that are used to generate random
 //! values for specific purposes.
 
-#[cfg(test)]
-mod tests;
-
 pub use rand::{
     distributions::{uniform::SampleUniform, Open01},
     seq::SliceRandom,
@@ -222,3 +219,6 @@ fn weighted_select(pointer: f64, weights: &[f64]) -> usize {
     // when rounding errors occur, return the last item's index
     weights.len() - 1
 }
+
+#[cfg(test)]
+mod tests;

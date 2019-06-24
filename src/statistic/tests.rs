@@ -1,4 +1,3 @@
-use super::*;
 use galvanic_assert::matchers::*;
 
 mod timed_fn {
