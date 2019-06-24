@@ -29,6 +29,9 @@ galvanic-assert = "0.8"
 quickcheck = "0.8"
 #log4rs = "0.8"
 
+[lib]
+bench = false
+
 [[bench]]
 name = "index_of_value_in_vector"
 harness = false
