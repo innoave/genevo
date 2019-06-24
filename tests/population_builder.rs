@@ -8,9 +8,11 @@ extern crate fixedbitset;
 extern crate genevo;
 
 use fixedbitset::FixedBitSet;
-use genevo::population::{BinaryEncodedGenomeBuilder, ValueEncodedGenomeBuilder};
-use genevo::prelude::*;
-use genevo::random::Rng;
+use genevo::{
+    population::{BinaryEncodedGenomeBuilder, ValueEncodedGenomeBuilder},
+    prelude::*,
+    random::Rng,
+};
 
 #[test]
 fn create_population_of_fixedbitset_uniform_at_random() {
@@ -82,7 +84,7 @@ fn create_population_with_custom_number_generator() {
     let population: Population<FixedBitSet> = build_population()
         .with_genome_builder(BinaryEncodedGenomeBuilder::new(8))
         .of_size(200)
-        .using_seed([42, 0]);
+        .using_seed([42; 32]);
 
     println!("{:?}", population);
     assert_that!(&population.size(), eq(200));

@@ -43,7 +43,7 @@ where
     {
         let genome_length = genome.len();
         let num_mutations =
-            ((genome_length as f64 * self.mutation_rate) + rng.next_f64()).floor() as usize;
+            ((genome_length as f64 * self.mutation_rate) + rng.gen::<f64>()).floor() as usize;
         let mut mutated = genome;
         for _ in 0..num_mutations {
             let (locus1, locus2) = random_cut_points(rng, genome_length);
@@ -90,7 +90,7 @@ where
     {
         let genome_length = genome.len();
         let num_mutations =
-            ((genome_length as f64 * self.mutation_rate) + rng.next_f64()).floor() as usize;
+            ((genome_length as f64 * self.mutation_rate) + rng.gen::<f64>()).floor() as usize;
         let mut mutated = genome;
         for _ in 0..num_mutations {
             let (locus1, locus2) = random_cut_points(rng, genome_length);

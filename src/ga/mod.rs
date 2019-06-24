@@ -31,7 +31,7 @@ use crate::{
     genetic::{Fitness, FitnessFunction, Genotype, Offspring, Parents},
     operator::{CrossoverOp, MutationOp, ReinsertionOp, SelectionOp},
     population::Population,
-    random::{Prng, RngJump},
+    random::Prng,
     statistic::{timed, ProcessingTime, TimedResult, TrackProcessingTime},
 };
 use chrono::Local;
@@ -161,12 +161,6 @@ where
     type Output = State<G, F>;
     type Error = GeneticAlgorithmError;
 
-    fn reset(&mut self) -> Result<bool, Self::Error> {
-        self.processing_time = ProcessingTime::zero();
-        self.population = Rc::new(self.initial_population.individuals().to_vec());
-        Ok(true)
-    }
-
     fn next(&mut self, iteration: u64, rng: &mut Prng) -> Result<Self::Output, Self::Error> {
         if self.population.is_empty() {
             return Err(GeneticAlgorithmError::EmptyPopulation(format!(
@@ -212,6 +206,12 @@ where
             best_solution: best_solution.result,
             processing_time: self.processing_time,
         })
+    }
+
+    fn reset(&mut self) -> Result<bool, Self::Error> {
+        self.processing_time = ProcessingTime::zero();
+        self.population = Rc::new(self.initial_population.individuals().to_vec());
+        Ok(true)
     }
 }
 
@@ -346,10 +346,10 @@ where
         })
         .run()
     } else {
-        let mut rng1 = *rng;
-        rng1.jump(1);
-        let mut rng2 = *rng;
-        rng2.jump(2);
+        let mut rng1 = rng.clone();
+        rng1.jump();
+        let mut rng2 = rng1.clone();
+        rng2.jump();
         let mid_point = parents.len() / 2;
         let mut offspring = Vec::with_capacity(parents.len() * 2);
         let mut parents = parents;

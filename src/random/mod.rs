@@ -4,30 +4,32 @@
 #[cfg(test)]
 mod tests;
 
+pub use rand::{
+    distributions::{uniform::SampleUniform, Open01},
+    seq::SliceRandom,
+    Rng, SeedableRng,
+};
+
 use crate::genetic::AsScalar;
-
-pub use rand::{distributions::range::SampleRange, Closed01, Rng, SeedableRng};
-pub use xorshift::RngJump;
-
 use rand::thread_rng;
-use xorshift::Xoroshiro128;
+use rand_xoshiro::Xoshiro256Plus;
 
 /// The `Prng` is the pseudo random number generator used through out this
 /// library.
-pub type Prng = Xoroshiro128;
+pub type Prng = Xoshiro256Plus;
 
 /// The `Seed` as used through out this library to seed the `Prng`.
-pub type Seed = [u64; 2];
+pub type Seed = [u8; 32];
 
 /// Generates a random seed to initialize the `Prng`.
 pub fn random_seed() -> Seed {
     let mut rng = thread_rng();
-    [rng.gen(), rng.gen()]
+    rng.gen()
 }
 
 /// Returns a new `Prng` initialized with the given seed.
 pub fn get_rng(seed: Seed) -> Prng {
-    Xoroshiro128::from_seed(&seed)
+    Prng::from_seed(seed)
 }
 
 /// Generates a random index into a slice of given length using the given
@@ -128,11 +130,14 @@ where
 }
 
 /// Generates a random probability between 0 and 1 using the given `Prng`.
+///
+/// The generated probabilities are in the open range (0,1), excluding 0 and
+/// excluding 1.
 pub fn random_probability<R>(rng: &mut R) -> f64
 where
     R: Rng + Sized,
 {
-    rng.gen::<Closed01<f64>>().0
+    rng.sample(Open01)
 }
 
 /// The `WeightedDistribution` is used to select values proportional to their

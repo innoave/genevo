@@ -7,7 +7,7 @@ pub use crate::genetic::{Fitness, FitnessFunction, Genotype, Phenotype};
 pub use crate::{
     algorithm::Algorithm,
     ga::{genetic_algorithm, GeneticAlgorithm},
-    random::{Prng, Rng, RngJump, SampleRange, Seed},
+    random::{Prng, Rng, Seed},
 };
 
 // Population

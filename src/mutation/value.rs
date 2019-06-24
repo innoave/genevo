@@ -4,6 +4,7 @@ use crate::{
     random::{random_index, Rng},
 };
 use fixedbitset::FixedBitSet;
+use rand::seq::SliceRandom;
 use std::fmt::Debug;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -89,7 +90,7 @@ impl RandomGenomeMutation for FixedBitSet {
     {
         let genome_length = genome.len();
         let num_mutations =
-            ((genome_length as f64 * mutation_rate) + rng.next_f64()).floor() as usize;
+            ((genome_length as f64 * mutation_rate) + rng.gen::<f64>()).floor() as usize;
         let mut mutated = genome;
         for _ in 0..num_mutations {
             let bit = random_index(rng, genome_length);
@@ -118,7 +119,7 @@ where
     {
         let genome_length = genome.len();
         let num_mutations =
-            ((genome_length as f64 * mutation_rate) + rng.next_f64()).floor() as usize;
+            ((genome_length as f64 * mutation_rate) + rng.gen::<f64>()).floor() as usize;
         let mut mutated = genome;
         for _ in 0..num_mutations {
             let index = random_index(rng, genome_length);
@@ -158,11 +159,11 @@ impl_random_value_mutation!(u8, u16, u32, u64, usize, i8, i16, i32, i64, isize, 
 
 impl RandomValueMutation for bool {
     #[inline]
-    fn random_mutated<R>(_value: bool, _min_value: &bool, _max_value: &bool, rng: &mut R) -> bool 
-        where R: Rng + Sized
+    fn random_mutated<R>(_value: bool, _min_value: &bool, _max_value: &bool, rng: &mut R) -> bool
+    where
+        R: Rng + Sized,
     {
-        let choices = [true, false];
-        *rng.choose(&choices).expect("random bool")
+        rng.gen_bool(0.5)
     }
 }
 
@@ -271,12 +272,12 @@ where
     {
         let genome_length = genome.len();
         let num_mutations =
-            ((genome_length as f64 * mutation_rate) + rng.next_f64()).floor() as usize;
+            ((genome_length as f64 * mutation_rate) + rng.gen::<f64>()).floor() as usize;
         let mut mutated = genome;
         for _ in 0..num_mutations {
             let index = random_index(rng, genome_length);
-            let sign = *rng.choose(&[-1, 1]).unwrap();
-            let adjustment = if *rng.choose(&[true, false]).unwrap() {
+            let sign = *[-1, 1].choose(rng).unwrap();
+            let adjustment = if *[true, false].choose(rng).unwrap() {
                 1. / (1i64 << precision) as f64
             } else {
                 1.

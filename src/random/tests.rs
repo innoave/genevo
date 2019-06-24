@@ -2,7 +2,6 @@ use super::*;
 use crate::random::{thread_rng, SeedableRng};
 use galvanic_assert::matchers::*;
 use quickcheck::{quickcheck, TestResult};
-use rand::StdRng;
 
 quickcheck! {
 
@@ -110,7 +109,7 @@ fn random_n_cut_points_3_4() {
 
 #[test]
 fn weighted_distribution_select() {
-    let mut rng = StdRng::from_seed(&[42usize]);
+    let mut rng = Prng::from_seed([42; 32]);
 
     let weights = vec![200, 150, 600, 50];
     let n_sum = 1_000;
@@ -119,15 +118,15 @@ fn weighted_distribution_select() {
 
     let mut counter = vec![0, 0, 0, 0];
     for _ in 0..n_sum {
-        let random = rng.next_f64() * weighted_distribution.sum();
+        let random = rng.gen::<f64>() * weighted_distribution.sum();
         let index = weighted_distribution.select(random);
         counter[index] += 1;
     }
 
     expect_that!(&counter[0], is(greater_than(180)));
     expect_that!(&counter[0], is(less_than(220)));
-    expect_that!(&counter[1], is(greater_than(135)));
-    expect_that!(&counter[1], is(less_than(165)));
+    expect_that!(&counter[1], is(greater_than(130)));
+    expect_that!(&counter[1], is(less_than(175)));
     expect_that!(&counter[2], is(greater_than(540)));
     expect_that!(&counter[2], is(less_than(660)));
     expect_that!(&counter[3], is(greater_than(40)));

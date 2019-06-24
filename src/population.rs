@@ -98,9 +98,10 @@
 
 use crate::{
     genetic::Genotype,
-    random::{get_rng, random_seed, Prng, Rng, RngJump, SampleRange, Seed},
+    random::{get_rng, random_seed, Prng, Rng, Seed},
 };
 use fixedbitset::FixedBitSet;
+use rand::distributions::uniform::SampleUniform;
 use rayon;
 use std::{fmt::Debug, marker::PhantomData};
 
@@ -161,10 +162,10 @@ impl PopulationBuilder {
                     .collect(),
             }
         } else {
-            let mut rng1 = rng;
-            rng1.jump(1);
-            let mut rng2 = rng;
-            rng2.jump(2);
+            let mut rng1 = rng.clone();
+            rng1.jump();
+            let mut rng2 = rng1.clone();
+            rng2.jump();
             let left_size = size / 2;
             let right_size = size - left_size;
             let (left_population, right_population) = rayon::join(
@@ -352,7 +353,7 @@ impl<V> ValueEncodedGenomeBuilder<V> {
 
 impl<V> GenomeBuilder<Vec<V>> for ValueEncodedGenomeBuilder<V>
 where
-    V: Clone + Debug + PartialEq + PartialOrd + SampleRange + Send + Sync,
+    V: Clone + Debug + PartialEq + PartialOrd + SampleUniform + Send + Sync,
 {
     fn build_genome<R>(&self, _: usize, rng: &mut R) -> Vec<V>
     where
