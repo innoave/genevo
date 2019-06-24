@@ -112,20 +112,25 @@ fn order_one_crossover(
     let genome_length = parent1.len();
     let mut genome: Vec<usize> = Vec::with_capacity(genome_length);
     // collect genes of parent1 located at cutpoint1 to cutpoint2
-    let mut p1_slice: Vec<&usize> = if cutpoint1 == 0 {
-        parent1.iter().take(cutpoint2 + 1).collect()
+    let mut p1_slice: Vec<usize> = if cutpoint1 == 0 {
+        parent1
+            .iter()
+            .take(cutpoint2 + 1)
+            .map(ToOwned::to_owned)
+            .collect()
     } else {
         parent1
             .iter()
             .skip(cutpoint1)
             .take(cutpoint2 - cutpoint1 + 1)
+            .map(ToOwned::to_owned)
             .collect()
     };
     // collect genes from parent2 which are not in cut slice
-    let mut p2_slice: Vec<&usize> = Vec::with_capacity(genome_length);
+    let mut p2_slice: Vec<usize> = Vec::with_capacity(genome_length);
     let mut p2_index = (cutpoint2 + 1) % genome_length;
     for _ in 0..genome_length {
-        let p2_genome = &parent2[p2_index];
+        let p2_genome = parent2[p2_index];
         if p1_slice.iter().all(|g| p2_genome != *g) {
             p2_slice.push(p2_genome);
         }
@@ -139,11 +144,11 @@ fn order_one_crossover(
     let right_offset = genome_length - cutpoint2 - 1;
     for locus in 0..genome_length {
         if locus < cutpoint1 {
-            genome.push(*p2_slice.remove(right_offset));
+            genome.push(p2_slice.remove(right_offset));
         } else if locus > cutpoint2 {
-            genome.push(*p2_slice.remove(0));
+            genome.push(p2_slice.remove(0));
         } else {
-            genome.push(*p1_slice.remove(0));
+            genome.push(p1_slice.remove(0));
         }
     }
     genome

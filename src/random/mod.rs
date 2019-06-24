@@ -180,8 +180,8 @@ where
     ///
     /// The sum is calculated from the scalar values of the slice that was used
     /// to create this `WeightedDistribution` instance.
-    pub fn sum(&self) -> &f64 {
-        &self.sum
+    pub fn sum(&self) -> f64 {
+        self.sum
     }
 
     /// Returns a reference to the value at the given index.

@@ -94,8 +94,8 @@ impl GenerationLimit {
         GenerationLimit { max_generations }
     }
 
-    pub fn max_generations(&self) -> &u64 {
-        &self.max_generations
+    pub fn max_generations(&self) -> u64 {
+        self.max_generations
     }
 }
 
