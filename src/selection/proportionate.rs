@@ -78,7 +78,7 @@ impl SingleObjective for RouletteWheelSelector {}
 
 impl GeneticOperator for RouletteWheelSelector {
     fn name() -> String {
-        "Roulette-Wheel-Selection".to_string()
+        format!("Roulette-Wheel-Selection")
     }
 }
 
@@ -167,7 +167,7 @@ impl SingleObjective for UniversalSamplingSelector {}
 
 impl GeneticOperator for UniversalSamplingSelector {
     fn name() -> String {
-        "Stochastic-Universal-Sampling-Selection".to_string()
+        format!("Stochastic-Universal-Sampling-Selection")
     }
 }
 
