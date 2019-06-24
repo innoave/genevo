@@ -1,9 +1,8 @@
-
-use hamcrest::prelude::*;
-use quickcheck::TestResult;
 use super::*;
+use galvanic_assert::matchers::*;
+use quickcheck::TestResult;
 use rand::StdRng;
-use random::{SeedableRng, thread_rng};
+use random::{thread_rng, SeedableRng};
 
 quickcheck! {
 
@@ -125,12 +124,12 @@ fn weighted_distribution_select() {
         counter[index] += 1;
     }
 
-    assert_that!(counter[0], is(greater_than(180)));
-    assert_that!(counter[0], is(less_than(220)));
-    assert_that!(counter[1], is(greater_than(135)));
-    assert_that!(counter[1], is(less_than(165)));
-    assert_that!(counter[2], is(greater_than(540)));
-    assert_that!(counter[2], is(less_than(660)));
-    assert_that!(counter[3], is(greater_than(40)));
-    assert_that!(counter[3], is(less_than(60)));
+    expect_that!(&counter[0], is(greater_than(180)));
+    expect_that!(&counter[0], is(less_than(220)));
+    expect_that!(&counter[1], is(greater_than(135)));
+    expect_that!(&counter[1], is(less_than(165)));
+    expect_that!(&counter[2], is(greater_than(540)));
+    expect_that!(&counter[2], is(less_than(660)));
+    expect_that!(&counter[3], is(greater_than(40)));
+    expect_that!(&counter[3], is(less_than(60)));
 }

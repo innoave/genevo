@@ -1,0 +1,8 @@
+format_strings = false
+imports_indent = "Block"
+match_block_trailing_comma = true
+merge_imports = true
+normalize_comments = true
+reorder_imports = true
+reorder_modules = true
+wrap_comments = false

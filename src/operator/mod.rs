@@ -13,7 +13,6 @@ use algorithm::EvaluatedPopulation;
 use genetic::{Children, Fitness, Genotype, Offspring, Parents};
 use random::Rng;
 
-
 /// Marker trait for genetic operators and functions that are used for
 /// single-objective optimization.
 pub trait SingleObjective {}
@@ -44,13 +43,19 @@ pub trait GeneticOperator: Clone {
 /// A `SelectionOp` defines the function of how to select solutions for being
 /// the parents of the next generation.
 pub trait SelectionOp<G, F>: GeneticOperator
-    where G: Genotype, F: Fitness
+where
+    G: Genotype,
+    F: Fitness,
 {
     /// Selects individuals from the given population according to the
     /// implemented selection strategy.
-    fn select_from<R>(&self, population: &EvaluatedPopulation<G, F>, rng: &mut R)
-        -> Vec<Parents<G>>
-        where R: Rng + Sized;
+    fn select_from<R>(
+        &self,
+        population: &EvaluatedPopulation<G, F>,
+        rng: &mut R,
+    ) -> Vec<Parents<G>>
+    where
+        R: Rng + Sized;
 }
 
 /// A `CrossoverOp` defines a function of how to crossover two
@@ -59,12 +64,14 @@ pub trait SelectionOp<G, F>: GeneticOperator
 /// crossover. Cross over is a process of taking two parent solutions and
 /// producing an offspring solution from them.
 pub trait CrossoverOp<G>: GeneticOperator
-    where G: Genotype
+where
+    G: Genotype,
 {
     /// Performs the crossover of the `genetic::Parents` and returns the result
     /// as a new vector of `genetic::Genotype` - the `genetic::Children`.
     fn crossover<R>(&self, parents: Parents<G>, rng: &mut R) -> Children<G>
-        where R: Rng + Sized;
+    where
+        R: Rng + Sized;
 }
 
 /// A `MutationOp` defines a function of how a `genetic::Genotype` mutates. It
@@ -77,11 +84,13 @@ pub trait CrossoverOp<G>: GeneticOperator
 /// mutation probability. This probability should be set low. If it is set too
 /// high, the search will turn into a primitive random search.
 pub trait MutationOp<G>: GeneticOperator
-    where G: Genotype
+where
+    G: Genotype,
 {
     /// Mutates the given 'Genotype' and returns it as a new 'Genotype'.
     fn mutate<R>(&self, genome: G, rng: &mut R) -> G
-        where R: Rng + Sized;
+    where
+        R: Rng + Sized;
 }
 
 /// A `ReinsertionOp` defines a function that combines the offspring with the
@@ -101,7 +110,9 @@ pub trait MutationOp<G>: GeneticOperator
 /// bigger than the size of the original population, then not all individuals
 /// from the offspring are inserted into the new population.
 pub trait ReinsertionOp<G, F>: GeneticOperator
-    where G: Genotype, F: Fitness
+where
+    G: Genotype,
+    F: Fitness,
 {
     /// Combines the given offspring with the current population to create
     /// the population of the next generation.
@@ -114,6 +125,12 @@ pub trait ReinsertionOp<G, F>: GeneticOperator
     /// population. If by the end of this function all `genetic::Genotype`s in
     /// offspring have been moved to the resulting population the offspring
     /// vector should be left empty.
-    fn combine<R>(&self, offspring: &mut Offspring<G>, population: &EvaluatedPopulation<G, F>,
-                  rng: &mut R) -> Vec<G> where R: Rng + Sized;
+    fn combine<R>(
+        &self,
+        offspring: &mut Offspring<G>,
+        population: &EvaluatedPopulation<G, F>,
+        rng: &mut R,
+    ) -> Vec<G>
+    where
+        R: Rng + Sized;
 }

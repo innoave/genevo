@@ -6,7 +6,6 @@
 
 use chrono::Duration;
 
-
 pub trait Display {
     fn fmt(&self) -> String;
 }
@@ -17,7 +16,6 @@ pub trait DisplayDuration: Display {
 }
 
 impl Display for Duration {
-
     fn fmt(&self) -> String {
         let (sign, abs) = duration_sign_abs(self);
         let duration_secs = abs.num_seconds();
@@ -32,13 +30,13 @@ impl Display for Duration {
             sign + &fmt_duration_seconds(&duration_secs, false)
         } else {
             sign + &fmt_duration_seconds(&duration_secs, true)
-                + " " + &fmt_duration_sub_seconds(&duration_nanos, true)
+                + " "
+                + &fmt_duration_sub_seconds(&duration_nanos, true)
         }
     }
 }
 
 impl DisplayDuration for Duration {
-
     fn fmt_seconds(&self, always_print_till_seconds: bool) -> String {
         let (sign, abs) = duration_sign_abs(self);
         sign + &fmt_duration_seconds(&abs.num_seconds(), always_print_till_seconds)

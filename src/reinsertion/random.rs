@@ -5,8 +5,7 @@
 use algorithm::EvaluatedPopulation;
 use genetic::{Fitness, Genotype, Offspring};
 use operator::{GeneticOperator, MultiObjective, ReinsertionOp, SingleObjective};
-use random::{Rng, random_index};
-
+use random::{random_index, Rng};
 
 /// The `UniformReinserter` takes n individuals from the offspring and
 /// o individuals from the old population and combines them to the new
@@ -36,9 +35,7 @@ impl UniformReinserter {
     /// Constructs a new instance of the `UniformReinserter` with the given
     /// parameters.
     pub fn new(replace_ratio: f64) -> Self {
-        UniformReinserter {
-            replace_ratio,
-        }
+        UniformReinserter { replace_ratio }
     }
 
     /// Returns the `replace_ratio` of this `UniformReinserter`.
@@ -65,10 +62,19 @@ impl SingleObjective for UniformReinserter {}
 impl MultiObjective for UniformReinserter {}
 
 impl<G, F> ReinsertionOp<G, F> for UniformReinserter
-    where G: Genotype, F: Fitness
+where
+    G: Genotype,
+    F: Fitness,
 {
-    fn combine<R>(&self, offspring: &mut Offspring<G>, evaluated: &EvaluatedPopulation<G, F>,
-                  rng: &mut R) -> Vec<G> where R: Rng + Sized {
+    fn combine<R>(
+        &self,
+        offspring: &mut Offspring<G>,
+        evaluated: &EvaluatedPopulation<G, F>,
+        rng: &mut R,
+    ) -> Vec<G>
+    where
+        R: Rng + Sized,
+    {
         let old_individuals = evaluated.individuals();
         let population_size = old_individuals.len();
         let mut new_population = Vec::with_capacity(population_size);

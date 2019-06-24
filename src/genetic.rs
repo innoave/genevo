@@ -14,7 +14,8 @@ use std::fmt::Debug;
 /// genes which are its representation in the search space of the genetic
 /// algorithm. The genes are represented as a vector of `Genotype`s.
 pub trait Phenotype<G>: Clone + Debug
-    where G: Genotype
+where
+    G: Genotype,
 {
     /// Returns its genes as a `Genotype`.
     ///
@@ -101,7 +102,9 @@ pub trait AsScalar {
 /// Defines the evaluation function to calculate the `Fitness` value of a
 /// `Genotype` based on its properties.
 pub trait FitnessFunction<G, F>: Clone
-    where G: Genotype, F: Fitness
+where
+    G: Genotype,
+    F: Fitness,
 {
     /// Calculates the `Fitness` value of the given `Genotype`.
     fn fitness_of(&self, a: &G) -> F;

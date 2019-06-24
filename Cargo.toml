@@ -15,10 +15,6 @@ documentation = "https://docs.rs/genevo"
 #homepage = "https://innoave.github.io/genevo"
 readme = "README.md"
 
-[lib]
-name = "genevo"
-path = "src/lib.rs"
-
 [dependencies]
 chrono = "0.4"
 fixedbitset = "0.1"
@@ -28,9 +24,14 @@ rayon = "1.0"
 xorshift = "0.1"
 
 [dev-dependencies]
-quickcheck = "0.5"
-hamcrest = "0.1"
+criterion = { version = "0.2", default-features = false }
+galvanic-assert = "0.8"
+quickcheck = "0.8"
 #log4rs = "0.8"
+
+[[bench]]
+name = "index_of_value_in_vector"
+harness = false
 
 [[example]]
 name = "monkeys"

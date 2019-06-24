@@ -1,15 +1,16 @@
-
 pub mod simulator;
 
 use algorithm::Algorithm;
+use chrono::{DateTime, Duration, Local};
 use random::Seed;
 use statistic::ProcessingTime;
 use termination::StopReason;
-use chrono::{DateTime, Duration, Local};
-
 
 /// A `Simulation` is the execution of an algorithm.
-pub trait Simulation<A> where A: Algorithm {
+pub trait Simulation<A>
+where
+    A: Algorithm,
+{
     type Error;
 
     /// Runs this simulation completely. The simulation ends when the
@@ -36,7 +37,9 @@ pub trait Simulation<A> where A: Algorithm {
 /// The `SimulationBuilder` creates a new `Simulation` with given parameters
 /// and options. It forms the initialization stage of the algorithm.
 pub trait SimulationBuilder<S, A>
-    where S: Simulation<A>, A: Algorithm
+where
+    S: Simulation<A>,
+    A: Algorithm,
 {
     /// Finally build the Simulation.
     fn build(self) -> S;
@@ -44,7 +47,10 @@ pub trait SimulationBuilder<S, A>
 
 /// The `State` struct holds the state of the `Simulation`.
 #[derive(Debug, PartialEq)]
-pub struct State<A> where A: Algorithm {
+pub struct State<A>
+where
+    A: Algorithm,
+{
     /// The local time when this simulation started.
     pub started_at: DateTime<Local>,
     /// The number of the iteration that this state represents. Iterations
@@ -67,7 +73,10 @@ pub struct State<A> where A: Algorithm {
 
 /// The result of running a step in the `Simulation`.
 #[derive(Debug, PartialEq)]
-pub enum SimResult<A> where A: Algorithm {
+pub enum SimResult<A>
+where
+    A: Algorithm,
+{
     /// The step was successful, but the simulation has not finished.
     ///
     /// The `State` contains the result of the last processed generation.

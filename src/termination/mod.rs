@@ -55,7 +55,8 @@ pub type StopReason = String;
 /// single termination condition. In the simulation multiple termination
 /// conditions can be combined through `combinator`s.
 pub trait Termination<A>
-    where A: Algorithm
+where
+    A: Algorithm,
 {
     /// Evaluates the termination condition and returns a `StopFlag` depending
     /// on the result. The `StopFlag` indicates whether the simulation shall
