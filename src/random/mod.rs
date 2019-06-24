@@ -19,7 +19,7 @@ use rand_xoshiro::Xoshiro256Plus;
 pub type Prng = Xoshiro256Plus;
 
 /// The `Seed` as used through out this library to seed the `Prng`.
-pub type Seed = [u8; 32];
+pub type Seed = <Prng as SeedableRng>::Seed;
 
 /// Generates a random seed to initialize the `Prng`.
 pub fn random_seed() -> Seed {
