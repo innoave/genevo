@@ -55,6 +55,7 @@ pub type Locus = usize;
 /// Note: For an efficient and easy to use implementation the logical tuple
 /// of parents is software technically typed as vector.
 pub type Parents<G> = Vec<G>;
+pub type ParentsSlice<'a, G> = &'a [G];
 
 /// The `Children` type defines a set of `Genotype`s which is the outcome of
 /// the `operator::CrossoverOp` function.

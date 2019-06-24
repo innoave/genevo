@@ -22,7 +22,7 @@ use std::fmt::Debug;
 /// This crossover operator always creates as many child individuals as there
 /// are individuals in the given `genetic::Parents` parameter.
 #[allow(missing_copy_implementations)]
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Default, Clone, Debug, PartialEq)]
 pub struct UniformCrossBreeder {}
 
 impl UniformCrossBreeder {
@@ -68,7 +68,7 @@ impl CrossoverOp<FixedBitSet> for UniformCrossBreeder {
 /// This crossover operator always creates as many child individuals as there
 /// are individuals in the given `genetic::Parents` parameter.
 #[allow(missing_copy_implementations)]
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Default, Clone, Debug, PartialEq)]
 pub struct DiscreteCrossBreeder {}
 
 impl DiscreteCrossBreeder {

@@ -210,7 +210,7 @@ where
         Ok(State {
             evaluated_population: evaluation.result,
             best_solution: best_solution.result,
-            processing_time: self.processing_time.clone(),
+            processing_time: self.processing_time,
         })
     }
 }
@@ -304,10 +304,12 @@ where
     timed(|| {
         let evaluated = score_board
             .evaluated_individual_with_fitness(&score_board.highest_fitness())
-            .expect(&format!(
-                "No fitness value of {:?} found in this EvaluatedPopulation",
-                &score_board.highest_fitness()
-            ));
+            .unwrap_or_else(|| {
+                panic!(
+                    "No fitness value of {:?} found in this EvaluatedPopulation",
+                    &score_board.highest_fitness()
+                )
+            });
         BestSolution {
             found_at: Local::now(),
             generation,
@@ -344,9 +346,9 @@ where
         })
         .run()
     } else {
-        let mut rng1 = rng.clone();
+        let mut rng1 = *rng;
         rng1.jump(1);
-        let mut rng2 = rng.clone();
+        let mut rng2 = *rng;
         rng2.jump(2);
         let mid_point = parents.len() / 2;
         let mut offspring = Vec::with_capacity(parents.len() * 2);

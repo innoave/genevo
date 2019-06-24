@@ -61,7 +61,7 @@ where
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Default, Clone, Debug, PartialEq)]
 pub struct EmptyGeneticAlgorithmBuilder<G, F>
 where
     G: Genotype,

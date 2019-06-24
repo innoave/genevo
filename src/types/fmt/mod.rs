@@ -24,14 +24,14 @@ impl Display for Duration {
             if duration_nanos == 0 {
                 format!("{}s", duration_secs)
             } else {
-                sign + &fmt_duration_sub_seconds(&duration_nanos, false)
+                sign + &fmt_duration_sub_seconds(duration_nanos, false)
             }
         } else if duration_nanos == 0 {
-            sign + &fmt_duration_seconds(&duration_secs, false)
+            sign + &fmt_duration_seconds(duration_secs, false)
         } else {
-            sign + &fmt_duration_seconds(&duration_secs, true)
+            sign + &fmt_duration_seconds(duration_secs, true)
                 + " "
-                + &fmt_duration_sub_seconds(&duration_nanos, true)
+                + &fmt_duration_sub_seconds(duration_nanos, true)
         }
     }
 }
@@ -39,12 +39,12 @@ impl Display for Duration {
 impl DisplayDuration for Duration {
     fn fmt_seconds(&self, always_print_till_seconds: bool) -> String {
         let (sign, abs) = duration_sign_abs(self);
-        sign + &fmt_duration_seconds(&abs.num_seconds(), always_print_till_seconds)
+        sign + &fmt_duration_seconds(abs.num_seconds(), always_print_till_seconds)
     }
 
     fn fmt_sub_seconds(&self, always_print_millis: bool) -> String {
         let (sign, abs) = duration_sign_abs(self);
-        sign + &fmt_duration_sub_seconds(&duration_sub_seconds(&abs), always_print_millis)
+        sign + &fmt_duration_sub_seconds(duration_sub_seconds(&abs), always_print_millis)
     }
 }
 
@@ -63,7 +63,7 @@ fn duration_sub_seconds(duration: &Duration) -> i64 {
     }
 }
 
-fn fmt_duration_seconds(duration_secs: &i64, always_print_till_seconds: bool) -> String {
+fn fmt_duration_seconds(duration_secs: i64, always_print_till_seconds: bool) -> String {
     let weeks = duration_secs / (7 * 24 * 60 * 60);
     let sub_weeks = duration_secs % (7 * 24 * 60 * 60);
     let days = sub_weeks / (24 * 60 * 60);
@@ -123,7 +123,7 @@ fn fmt_duration_seconds(duration_secs: &i64, always_print_till_seconds: bool) ->
     }
 }
 
-fn fmt_duration_sub_seconds(duration_nanos: &i64, always_print_millis: bool) -> String {
+fn fmt_duration_sub_seconds(duration_nanos: i64, always_print_millis: bool) -> String {
     let millis = duration_nanos / 1_000_000;
     let nanos = duration_nanos % 1_000;
     let micros = duration_nanos / 1_000 % 1_000;

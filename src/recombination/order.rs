@@ -10,7 +10,7 @@
 use std::collections::HashMap;
 
 use crate::{
-    genetic::{Children, Parents},
+    genetic::{Children, Parents, ParentsSlice},
     operator::{CrossoverOp, GeneticOperator},
     random::{random_cut_points, Rng},
 };
@@ -21,7 +21,7 @@ use crate::{
 /// This crossover operator always creates as many child individuals as there
 /// are individuals in the given `genetic::Parents` parameter.
 #[allow(missing_copy_implementations)]
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Default, Clone, Debug, PartialEq)]
 pub struct OrderOneCrossover {}
 
 impl OrderOneCrossover {
@@ -51,7 +51,7 @@ impl CrossoverOp<Vec<usize>> for OrderOneCrossover {
 /// This crossover operator always creates as many child individuals as there
 /// are individuals in the given `genetic::Parents` parameter.
 #[allow(missing_copy_implementations)]
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Default, Clone, Debug, PartialEq)]
 pub struct PartiallyMappedCrossover {}
 
 impl PartiallyMappedCrossover {
@@ -76,7 +76,7 @@ impl CrossoverOp<Vec<usize>> for PartiallyMappedCrossover {
 }
 
 fn multi_parents_cyclic_crossover<'a, FN, R>(
-    parents: &'a Parents<Vec<usize>>,
+    parents: ParentsSlice<'a, Vec<usize>>,
     crossover: FN,
     rng: &mut R,
 ) -> Children<Vec<usize>>
