@@ -156,6 +156,16 @@ macro_rules! impl_random_value_mutation {
 
 impl_random_value_mutation!(u8, u16, u32, u64, usize, i8, i16, i32, i64, isize, f32, f64);
 
+impl RandomValueMutation for bool {
+    #[inline]
+    fn random_mutated<R>(_value: bool, _min_value: &bool, _max_value: &bool, rng: &mut R) -> bool 
+        where R: Rng + Sized
+    {
+        let choices = [true, false];
+        *rng.choose(&choices).expect("random bool")
+    }
+}
+
 #[derive(Clone, Debug, PartialEq)]
 pub struct BreederValueMutator<G>
 where
