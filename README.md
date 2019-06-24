@@ -120,7 +120,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-genevo = "0.1"
+genevo = "0.2"
 ```
 
 And add this to your crate root:
