@@ -64,6 +64,7 @@
 //! }
 //!
 //! struct PositionsBuilder;
+//!
 //! impl GenomeBuilder<Vec<Pos>> for PositionsBuilder {
 //!
 //!     fn build_genome<R>(&self, _: usize, rng: &mut R) -> Vec<Pos>
@@ -295,8 +296,17 @@ impl BinaryEncodedGenomeBuilder {
     }
 }
 
+impl GenomeBuilder<Vec<bool>> for BinaryEncodedGenomeBuilder {
+    fn build_genome<R>(&self, _index: usize, rng: &mut R) -> Vec<bool>
+    where
+        R: Rng + Sized,
+    {
+        (0..self.genome_length).map(|_| rng.gen()).collect()
+    }
+}
+
 impl GenomeBuilder<FixedBitSet> for BinaryEncodedGenomeBuilder {
-    fn build_genome<R>(&self, _: usize, rng: &mut R) -> FixedBitSet
+    fn build_genome<R>(&self, _index: usize, rng: &mut R) -> FixedBitSet
     where
         R: Rng + Sized,
     {
@@ -308,12 +318,38 @@ impl GenomeBuilder<FixedBitSet> for BinaryEncodedGenomeBuilder {
     }
 }
 
-impl GenomeBuilder<Vec<bool>> for BinaryEncodedGenomeBuilder {
-    fn build_genome<R>(&self, _: usize, rng: &mut R) -> Vec<bool>
+#[cfg(feature = "smallvec")]
+mod smallvec_support {
+    use super::{BinaryEncodedGenomeBuilder, GenomeBuilder, ValueEncodedGenomeBuilder};
+    use rand::{distributions::uniform::SampleUniform, Rng};
+    use smallvec::{Array, SmallVec};
+    use std::fmt::Debug;
+
+    impl<A> GenomeBuilder<SmallVec<A>> for BinaryEncodedGenomeBuilder
     where
-        R: Rng + Sized,
+        A: Array<Item = bool> + Sync,
     {
-        (0..self.genome_length).map(|_| rng.gen()).collect()
+        fn build_genome<R>(&self, _index: usize, rng: &mut R) -> SmallVec<A>
+        where
+            R: Rng + Sized,
+        {
+            (0..self.genome_length).map(|_| rng.gen()).collect()
+        }
+    }
+
+    impl<A, V> GenomeBuilder<SmallVec<A>> for ValueEncodedGenomeBuilder<V>
+    where
+        A: Array<Item = V> + Sync,
+        V: Clone + Debug + PartialEq + PartialOrd + SampleUniform + Send + Sync,
+    {
+        fn build_genome<R>(&self, _: usize, rng: &mut R) -> SmallVec<A>
+        where
+            R: Rng + Sized,
+        {
+            (0..self.genome_length)
+                .map(|_| rng.gen_range(self.min_value.clone(), self.max_value.clone()))
+                .collect()
+        }
     }
 }
 
@@ -357,3 +393,6 @@ where
             .collect()
     }
 }
+
+#[cfg(test)]
+mod tests;

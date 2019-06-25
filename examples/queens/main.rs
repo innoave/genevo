@@ -136,7 +136,7 @@ fn main() {
                 SELECTION_RATIO,
                 NUM_INDIVIDUALS_PER_PARENTS,
             ))
-            .with_crossover(DiscreteCrossBreeder::new())
+            .with_crossover(UniformCrossBreeder::new())
             .with_mutation(BreederValueMutator::new(
                 MUTATION_RATE,
                 Pos { x: 0, y: 1 },

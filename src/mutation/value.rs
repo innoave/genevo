@@ -75,32 +75,6 @@ pub trait RandomGenomeMutation: Genotype {
         R: Rng + Sized;
 }
 
-impl RandomGenomeMutation for FixedBitSet {
-    type Dna = bool;
-
-    fn mutate_genome<R>(
-        genome: Self,
-        mutation_rate: f64,
-        _: &<Self as Genotype>::Dna,
-        _: &<Self as Genotype>::Dna,
-        rng: &mut R,
-    ) -> Self
-    where
-        R: Rng + Sized,
-    {
-        let genome_length = genome.len();
-        let num_mutations =
-            ((genome_length as f64 * mutation_rate) + rng.gen::<f64>()).floor() as usize;
-        let mut mutated = genome;
-        for _ in 0..num_mutations {
-            let bit = random_index(rng, genome_length);
-            let value = rng.gen();
-            mutated.set(bit, value);
-        }
-        mutated
-    }
-}
-
 impl<V> RandomGenomeMutation for Vec<V>
 where
     V: Clone + Debug + PartialEq + Send + Sync + RandomValueMutation,
@@ -129,6 +103,74 @@ where
                 max_value,
                 rng,
             );
+        }
+        mutated
+    }
+}
+
+#[cfg(feature = "smallvec")]
+mod smallvec_support {
+    use super::{random_index, RandomGenomeMutation, RandomValueMutation};
+    use rand::Rng;
+    use smallvec::{Array, SmallVec};
+    use std::fmt::Debug;
+
+    impl<V, A> RandomGenomeMutation for SmallVec<A>
+    where
+        A: Array<Item = V> + Sync,
+        V: Clone + Debug + PartialEq + Send + Sync + RandomValueMutation,
+    {
+        type Dna = V;
+
+        fn mutate_genome<R>(
+            genome: Self,
+            mutation_rate: f64,
+            min_value: &V,
+            max_value: &V,
+            rng: &mut R,
+        ) -> Self
+        where
+            R: Rng + Sized,
+        {
+            let genome_length = genome.len();
+            let num_mutations =
+                ((genome_length as f64 * mutation_rate) + rng.gen::<f64>()).floor() as usize;
+            let mut mutated = genome;
+            for _ in 0..num_mutations {
+                let index = random_index(rng, genome_length);
+                mutated[index] = RandomValueMutation::random_mutated(
+                    mutated[index].clone(),
+                    min_value,
+                    max_value,
+                    rng,
+                );
+            }
+            mutated
+        }
+    }
+}
+
+impl RandomGenomeMutation for FixedBitSet {
+    type Dna = bool;
+
+    fn mutate_genome<R>(
+        genome: Self,
+        mutation_rate: f64,
+        _: &<Self as Genotype>::Dna,
+        _: &<Self as Genotype>::Dna,
+        rng: &mut R,
+    ) -> Self
+    where
+        R: Rng + Sized,
+    {
+        let genome_length = genome.len();
+        let num_mutations =
+            ((genome_length as f64 * mutation_rate) + rng.gen::<f64>()).floor() as usize;
+        let mut mutated = genome;
+        for _ in 0..num_mutations {
+            let bit = random_index(rng, genome_length);
+            let value = rng.gen();
+            mutated.set(bit, value);
         }
         mutated
     }

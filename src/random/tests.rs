@@ -111,7 +111,6 @@ mod random_n_cut_points {
             (n, length) in (1usize..9_999 / 2).prop_flat_map(|n| (Just(n), (2 * n..9_999))),
         ) {
             let cutpoints = random_n_cut_points(&mut thread_rng(), n, length);
-            eprint!("n={}, length={}", n, length);
 
             for i in 0..cutpoints.len() - 1 {
                 if cutpoints[i] == cutpoints[i + 1] {

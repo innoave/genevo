@@ -24,12 +24,12 @@ log = "0.4"
 rand = "0.6"
 rand_xoshiro = "0.2"
 rayon = "1.0"
+smallvec = { version = "0.6", optional = true }
 
 [dev-dependencies]
 criterion = { version = "0.2", default-features = false }
 galvanic-assert = "0.8"
 proptest = "0.9"
-#log4rs = "0.8"
 
 [lib]
 bench = false
@@ -37,6 +37,15 @@ bench = false
 [[bench]]
 name = "index_of_value_in_vector"
 harness = false
+
+[[bench]]
+name = "genome_builder"
+harness = false
+
+[[example]]
+name = "knapsack"
+path = "examples/knapsack/main.rs"
+required-features = [ "smallvec" ]
 
 [[example]]
 name = "monkeys"
