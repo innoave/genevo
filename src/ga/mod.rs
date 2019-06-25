@@ -56,7 +56,8 @@ where
     pub evaluated_population: EvaluatedPopulation<G, F>,
     /// Best solution of this generation.
     pub best_solution: BestSolution<G, F>,
-    /// Accumulated time spent by each thread in case of parallel processing.
+    /// Processing time for this generation. In case of parallel processing it
+    /// is the accumulated time spent by each thread.
     pub processing_time: ProcessingTime,
 }
 
@@ -209,12 +210,11 @@ where
         .run();
 
         // Stage 4: On to the next generation:
-        let loop_time = evaluation.time
+        self.processing_time = evaluation.time
             + best_solution.time
             + selection.time
             + breeding.time
             + reinsertion.time;
-        self.processing_time += loop_time;
         let next_generation = reinsertion.result;
         mem::replace(&mut self.population, Rc::new(next_generation));
         Ok(State {
