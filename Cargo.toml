@@ -30,6 +30,7 @@ smallvec = { version = "0.6", optional = true }
 criterion = { version = "0.2", default-features = false }
 galvanic-assert = "0.8"
 proptest = "0.9"
+version-sync = "0.8"
 
 [lib]
 bench = false

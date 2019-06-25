@@ -18,10 +18,6 @@ mod timed_fn {
             &result.time.duration(),
             greater_than_or_equal(chrono::Duration::milliseconds(141))
         );
-        expect_that!(
-            &result.time.duration(),
-            less_than(chrono::Duration::milliseconds(160))
-        );
     }
 
     #[test]
@@ -34,10 +30,6 @@ mod timed_fn {
         expect_that!(
             &result.time.duration(),
             greater_than_or_equal(chrono::Duration::nanoseconds(141))
-        );
-        expect_that!(
-            &result.time.duration(),
-            less_than(chrono::Duration::milliseconds(5))
         );
     }
 }
