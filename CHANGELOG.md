@@ -10,6 +10,8 @@ for Rust libraries in [RFC #1105](https://github.com/rust-lang/rfcs/blob/master/
 * make support for `FixedBitSet` an optional crate feature
 * replace `DiscreteCrossBreeder` by integrating it into `UniformCrossBreeder`
 * make support for `Vec<bool>` consistent through all building blocks
+* implement std `Error` trait for `SimError` and `GeneticAlgorithmError`.
+  This implicitly provides support for the `failure` crate.
 * minor internal changes to ease development 
 
 ## 0.2.0 : 2019-06-24
