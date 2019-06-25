@@ -160,6 +160,7 @@ where
 
         self.iteration += 1;
         let result = self.algorithm.next(self.iteration, &mut self.rng);
+        self.processing_time += self.algorithm.processing_time();
 
         let loop_duration = Local::now().signed_duration_since(loop_started_at);
         match result {
