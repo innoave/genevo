@@ -1,0 +1,12 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Clippy" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
+    <option name="channel" value="NIGHTLY" />
+    <option name="command" value="clippy" />
+    <option name="allFeatures" value="false" />
+    <option name="nocapture" value="false" />
+    <option name="backtrace" value="SHORT" />
+    <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+    <envs />
+    <method v="2" />
+  </configuration>
+</component>

@@ -9,8 +9,9 @@ Cargo.lock
 /*.launch
 
 # Intellij IDEA
-.idea
 *.iml
+.idea/*
+!.idea/runConfigurations/
 
 # Sublime Text
 *.sublime-workspace

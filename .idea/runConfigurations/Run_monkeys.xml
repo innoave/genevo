@@ -1,0 +1,12 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Run monkeys" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
+    <option name="channel" value="DEFAULT" />
+    <option name="command" value="run --example monkeys" />
+    <option name="allFeatures" value="false" />
+    <option name="nocapture" value="true" />
+    <option name="backtrace" value="FULL" />
+    <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+    <envs />
+    <method v="2" />
+  </configuration>
+</component>
