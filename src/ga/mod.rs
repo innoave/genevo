@@ -159,8 +159,8 @@ where
     M: MutationOp<G>,
     R: ReinsertionOp<G, F>,
 {
-    fn processing_time(&self) -> &ProcessingTime {
-        &self.processing_time
+    fn processing_time(&self) -> ProcessingTime {
+        self.processing_time
     }
 }
 

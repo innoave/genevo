@@ -64,7 +64,7 @@ impl AddAssign for ProcessingTime {
 }
 
 pub trait TrackProcessingTime {
-    fn processing_time(&self) -> &ProcessingTime;
+    fn processing_time(&self) -> ProcessingTime;
 }
 
 #[derive(Clone, Debug, PartialEq)]

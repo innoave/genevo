@@ -1,6 +1,6 @@
 use crate::{
     algorithm::Algorithm,
-    random::{get_rng, random_seed, Seed},
+    random::{get_rng, random_seed, Prng, Seed},
     simulation::{SimResult, Simulation, SimulationBuilder, State},
     statistic::{ProcessingTime, TrackProcessingTime},
     termination::{StopFlag, Termination},
@@ -38,14 +38,18 @@ where
     T: Termination<A>,
 {
     fn build(self) -> Simulator<A, T> {
+        self.build_with_seed(random_seed())
+    }
+
+    fn build_with_seed(self, seed: Seed) -> Simulator<A, T> {
         Simulator {
             algorithm: self.algorithm,
             termination: self.termination,
             run_mode: RunMode::NotRunning,
+            rng: get_rng(seed),
             started_at: Local::now(),
             iteration: 0,
             processing_time: ProcessingTime::zero(),
-            finished: false,
         }
     }
 }
@@ -95,7 +99,6 @@ where
 {
     AlgorithmError(<A as Algorithm>::Error),
     SimulationAlreadyRunning(String),
-    Unexpected(String),
 }
 
 impl<A> Display for SimError<A>
@@ -107,9 +110,8 @@ where
         match *self {
             SimError::AlgorithmError(ref error) => write!(f, "algorithm error: {}", error),
             SimError::SimulationAlreadyRunning(ref message) => {
-                write!(f, "simulation already running: {}", message)
-            },
-            SimError::Unexpected(ref message) => write!(f, "unexpected error: {}", message),
+                write!(f, "simulation already running {}", message)
+            }
         }
     }
 }
@@ -123,12 +125,11 @@ where
         match *self {
             SimError::AlgorithmError(ref error) => Some(error),
             SimError::SimulationAlreadyRunning(_) => None,
-            SimError::Unexpected(_) => None,
         }
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug)]
 pub struct Simulator<A, T>
 where
     A: Algorithm,
@@ -137,10 +138,10 @@ where
     algorithm: A,
     termination: T,
     run_mode: RunMode,
+    rng: Prng,
     started_at: DateTime<Local>,
     iteration: u64,
     processing_time: ProcessingTime,
-    finished: bool,
 }
 
 impl<A, T> Simulator<A, T>
@@ -154,23 +155,19 @@ where
     }
 
     /// Processes one iteration of the algorithm used in this simulation.
-    fn process_one_iteration(
-        &mut self,
-        seed: Seed,
-    ) -> Result<State<A>, <Self as Simulation<A>>::Error> {
+    fn process_one_iteration(&mut self) -> Result<State<A>, <Self as Simulation<A>>::Error> {
         let loop_started_at = Local::now();
 
         self.iteration += 1;
-        let result = self.algorithm.next(self.iteration, &mut get_rng(seed));
+        let result = self.algorithm.next(self.iteration, &mut self.rng);
 
         let loop_duration = Local::now().signed_duration_since(loop_started_at);
         match result {
             Ok(result) => Ok(State {
                 started_at: self.started_at,
                 iteration: self.iteration,
-                seed,
                 duration: loop_duration,
-                processing_time: *self.algorithm.processing_time(),
+                processing_time: self.algorithm.processing_time(),
                 result,
             }),
             Err(error) => Err(SimError::AlgorithmError(error)),
@@ -193,67 +190,55 @@ where
                     "in loop mode since {}",
                     &self.started_at
                 )))
-            },
+            }
             RunMode::Step => {
                 return Err(SimError::SimulationAlreadyRunning(format!(
                     "in step mode since {}",
                     &self.started_at
                 )))
-            },
+            }
             RunMode::NotRunning => {
                 self.run_mode = RunMode::Loop;
                 self.started_at = Local::now();
-            },
+            }
         }
-        let mut result = Err(SimError::Unexpected(
-            "no loop of the simulation has ever been processed!".to_string(),
-        ));
-        self.finished = false;
-        while !self.finished {
-            result = self
-                .process_one_iteration(random_seed())
-                .and_then(|state| {
+        let result = loop {
+            match self.process_one_iteration() {
+                Ok(state) => {
                     // Stage 5: Be aware of the termination:
-                    Ok(match self.termination.evaluate(&state) {
-                        StopFlag::Continue => SimResult::Intermediate(state),
+                    match self.termination.evaluate(&state) {
+                        StopFlag::Continue => {}
                         StopFlag::StopNow(reason) => {
-                            self.finished = true;
                             let processing_time = self.processing_time;
                             let duration = Local::now().signed_duration_since(self.started_at);
-                            SimResult::Final(state, processing_time, duration, reason)
-                        },
-                    })
-                })
-                .or_else(|error| {
-                    self.finished = true;
-                    Err(error)
-                });
-        }
+                            break Ok(SimResult::Final(state, processing_time, duration, reason));
+                        }
+                    }
+                }
+                Err(error) => {
+                    break Err(error);
+                }
+            }
+        };
         self.run_mode = RunMode::NotRunning;
         result
     }
 
     fn step(&mut self) -> Result<SimResult<A>, Self::Error> {
-        self.step_with_seed(random_seed())
-    }
-
-    fn step_with_seed(&mut self, seed: Seed) -> Result<SimResult<A>, Self::Error> {
         match self.run_mode {
             RunMode::Loop => {
                 return Err(SimError::SimulationAlreadyRunning(format!(
                     "in loop mode since {}",
                     &self.started_at
                 )))
-            },
+            }
             RunMode::Step => (),
             RunMode::NotRunning => {
                 self.run_mode = RunMode::Step;
                 self.started_at = Local::now();
-            },
+            }
         }
-
-        self.process_one_iteration(seed).and_then(|state|
-
+        self.process_one_iteration().and_then(|state|
             // Stage 5: Be aware of the termination:
             Ok(match self.termination.evaluate(&state) {
                 StopFlag::Continue => {
@@ -271,9 +256,9 @@ where
     fn stop(&mut self) -> Result<bool, Self::Error> {
         match self.run_mode {
             RunMode::Loop | RunMode::Step => {
-                self.finished = true;
+                self.run_mode = RunMode::NotRunning;
                 Ok(true)
-            },
+            }
             RunMode::NotRunning => Ok(false),
         }
     }
@@ -286,14 +271,14 @@ where
                      simulation to finish or stop it before resetting it.",
                     &self.started_at
                 )))
-            },
+            }
             RunMode::Step => {
                 return Err(SimError::SimulationAlreadyRunning(format!(
                     "Simulation still running in step mode since {}. Wait for the \
                      simulation to finish or stop it before resetting it.",
                     &self.started_at
                 )))
-            },
+            }
             RunMode::NotRunning => (),
         }
         self.run_mode = RunMode::NotRunning;

@@ -20,10 +20,6 @@ where
     /// one time the complete loop of the genetic algorithm.
     fn step(&mut self) -> Result<SimResult<A>, Self::Error>;
 
-    /// Makes one step in this simulation using the given seed. This function
-    /// can be used to replay previous simulation steps.
-    fn step_with_seed(&mut self, seed: Seed) -> Result<SimResult<A>, Self::Error>;
-
     /// Stops the simulation after the current loop is finished.
     fn stop(&mut self) -> Result<bool, Self::Error>;
 
@@ -40,8 +36,15 @@ where
     S: Simulation<A>,
     A: Algorithm,
 {
-    /// Finally build the Simulation.
+    /// Finally build the simulation.
     fn build(self) -> S;
+
+    /// Finally build the simulation and initialize the RNG with the given seed.
+    ///
+    /// A simulation run can be repeated with the exact same sequence of
+    /// iterations/generations, by providing the same seed as for a previous
+    /// run.
+    fn build_with_seed(self, seed: Seed) -> S;
 }
 
 /// The `State` struct holds the state of the `Simulation`.
@@ -56,8 +59,6 @@ where
     /// are counted from 1 and increased by 1 on each iteration of the
     /// simulation loop.
     pub iteration: u64,
-    /// The seed used to generate random values.
-    pub seed: Seed,
     /// Duration of processing the current iteration. This is the time it
     /// took to process one iteration of the algorithm.
     pub duration: Duration,

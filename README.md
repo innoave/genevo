@@ -173,4 +173,4 @@ sources of information about GA that I found most useful for me.
 [GA]: https://en.wikipedia.org/wiki/Genetic_algorithm
 [Rust]: https://www.rust-lang.org/
 
-Copyright &copy; 2017, Innoave.com and contributors
+Copyright &copy; 2017-2019, Innoave.com and contributors
