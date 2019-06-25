@@ -149,23 +149,22 @@ where
 pub struct PopulationBuilder;
 
 impl PopulationBuilder {
-    fn build_population<B, G>(genome_builder: &B, size: usize, rng: Prng) -> Population<G>
+    fn build_population<B, G>(genome_builder: &B, size: usize, mut rng: Prng) -> Population<G>
     where
         B: GenomeBuilder<G>,
         G: Genotype,
     {
         if size < 60 {
-            let mut rng = rng;
             Population {
                 individuals: (0..size)
                     .map(|index| genome_builder.build_genome(index, &mut rng))
                     .collect(),
             }
         } else {
-            let mut rng1 = rng.clone();
-            rng1.jump();
-            let mut rng2 = rng1.clone();
-            rng2.jump();
+            rng.jump();
+            let rng1 = rng.clone();
+            rng.jump();
+            let rng2 = rng.clone();
             let left_size = size / 2;
             let right_size = size - left_size;
             let (left_population, right_population) = rayon::join(

@@ -362,10 +362,10 @@ where
         })
         .run()
     } else {
+        rng.jump();
         let mut rng1 = rng.clone();
-        rng1.jump();
-        let mut rng2 = rng1.clone();
-        rng2.jump();
+        rng.jump();
+        let mut rng2 = rng.clone();
         let mid_point = parents.len() / 2;
         let mut offspring = Vec::with_capacity(parents.len() * 2);
         let mut parents = parents;
