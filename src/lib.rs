@@ -70,12 +70,17 @@
 //! Enough words about the building blocks. Show me some concrete examples. Have
 //! a look at the examples in the examples folder to find out how to use this crate:
 //!
-//! * [monkeys](./examples/monkeys/main.rs): explores the idea of Shakespeare's monkeys, also known
-//!   as the [infinite monkey theorem](https://en.wikipedia.org/wiki/Infinite_monkey_theorem)
-//! * [queens](./examples/queens/main.rs): searches for solutions of the
+//! * [knapsack](https://github.com/innoave/genevo/blob/v0.3.0/examples/knapsack/main.rs):
+//!   tries to solve the
+//!   [0-1 knapsack problem](https://en.wikipedia.org/wiki/Knapsack_problem)
+//! * [monkeys](https://github.com/innoave/genevo/blob/v0.3.0/examples/monkeys/main.rs):
+//!   explores the idea of Shakespeare's monkeys, also known as the
+//!   [infinite monkey theorem](https://en.wikipedia.org/wiki/Infinite_monkey_theorem)
+//! * [queens](https://github.com/innoave/genevo/blob/v0.3.0/examples/queens/main.rs):
+//!   searches for solutions of the
 //!   [N Queens Problem](https://en.wikipedia.org/wiki/Eight_queens_puzzle)
 
-#![doc(html_root_url = "https://docs.rs/genevo/0.2.0")]
+#![doc(html_root_url = "https://docs.rs/genevo/0.3.0")]
 #![warn(
     bare_trait_objects,
     missing_copy_implementations,

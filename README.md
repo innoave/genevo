@@ -108,6 +108,8 @@ of the genetic algorithm.
 Enough words about the building blocks. Show me some concrete examples. Have
 a look at the examples in the examples folder to find out how to use this crate:
 
+* [knapsack](./examples/knapsack/main.rs): tries to solve the
+  [0-1 knapsack problem](https://en.wikipedia.org/wiki/Knapsack_problem)
 * [monkeys](./examples/monkeys/main.rs): explores the idea of Shakespeare's monkeys, also known
   as the [infinite monkey theorem](https://en.wikipedia.org/wiki/Infinite_monkey_theorem)
 * [queens](./examples/queens/main.rs): searches for solutions of the
@@ -120,7 +122,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-genevo = "0.2"
+genevo = "0.3"
 ```
 
 If you are not using Rust 2018 edition add this to your crate root:
