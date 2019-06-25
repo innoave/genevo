@@ -94,7 +94,6 @@ use crate::{
     genetic::Genotype,
     random::{get_rng, random_seed, Prng, Rng, Seed},
 };
-use fixedbitset::FixedBitSet;
 use rand::distributions::uniform::SampleUniform;
 use rayon;
 use std::{fmt::Debug, marker::PhantomData};
@@ -305,21 +304,28 @@ impl GenomeBuilder<Vec<bool>> for BinaryEncodedGenomeBuilder {
     }
 }
 
-impl GenomeBuilder<FixedBitSet> for BinaryEncodedGenomeBuilder {
-    fn build_genome<R>(&self, _index: usize, rng: &mut R) -> FixedBitSet
-    where
-        R: Rng + Sized,
-    {
-        let mut genome = FixedBitSet::with_capacity(self.genome_length);
-        for bit in 0..self.genome_length {
-            genome.set(bit, rng.gen());
+#[cfg(feature = "fixedbitset")]
+mod fixedbitset_genome_builder {
+    use super::{BinaryEncodedGenomeBuilder, GenomeBuilder};
+    use fixedbitset::FixedBitSet;
+    use rand::Rng;
+
+    impl GenomeBuilder<FixedBitSet> for BinaryEncodedGenomeBuilder {
+        fn build_genome<R>(&self, _index: usize, rng: &mut R) -> FixedBitSet
+        where
+            R: Rng + Sized,
+        {
+            let mut genome = FixedBitSet::with_capacity(self.genome_length);
+            for bit in 0..self.genome_length {
+                genome.set(bit, rng.gen());
+            }
+            genome
         }
-        genome
     }
 }
 
 #[cfg(feature = "smallvec")]
-mod smallvec_support {
+mod smallvec_genome_builder {
     use super::{BinaryEncodedGenomeBuilder, GenomeBuilder, ValueEncodedGenomeBuilder};
     use rand::{distributions::uniform::SampleUniform, Rng};
     use smallvec::{Array, SmallVec};

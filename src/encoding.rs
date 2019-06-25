@@ -22,7 +22,6 @@
 //! and mutation operators then using these marker traits is optional.
 
 use crate::genetic::Genotype;
-use fixedbitset::FixedBitSet;
 use std::fmt::Debug;
 
 /// Marker trait for declaring a `genetic::Genotype` as binary encoded.
@@ -36,15 +35,6 @@ pub trait PermutationEncoded {}
 
 /// Marker trait for declaring a tree encoded `genetic::Genotype`.
 pub trait TreeEncoded: Genotype {}
-
-/// Implementation of genotype using `fixedbistset::FixedBitSet`.
-impl Genotype for FixedBitSet {
-    type Dna = bool;
-}
-
-/// Implementation of binary encoded `genetic::Genotype`
-/// using `fixedbistset::FixedBitSet`.
-impl BinaryEncoded for FixedBitSet {}
 
 /// Implementation of a genotype using `Vec`.
 impl<V> Genotype for Vec<V>
@@ -66,8 +56,24 @@ impl<V> ValueEncoded for Vec<V> {}
 /// using `Vec`.
 impl<V> PermutationEncoded for Vec<V> {}
 
+#[cfg(feature = "fixedbitset")]
+mod fixedbitset_genotype {
+    use super::{BinaryEncoded, Genotype};
+
+    use fixedbitset::FixedBitSet;
+
+    /// Implementation of genotype using `fixedbistset::FixedBitSet`.
+    impl Genotype for FixedBitSet {
+        type Dna = bool;
+    }
+
+    /// Implementation of binary encoded `genetic::Genotype`
+    /// using `fixedbistset::FixedBitSet`.
+    impl BinaryEncoded for FixedBitSet {}
+}
+
 #[cfg(feature = "smallvec")]
-mod smallvec_support {
+mod smallvec_genotype {
     use super::{BinaryEncoded, Genotype, PermutationEncoded, ValueEncoded};
     use smallvec::{Array, SmallVec};
     use std::fmt::Debug;

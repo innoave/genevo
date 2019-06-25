@@ -3,7 +3,6 @@ use crate::{
     operator::{GeneticOperator, MutationOp},
     random::{random_index, Rng},
 };
-use fixedbitset::FixedBitSet;
 use rand::seq::SliceRandom;
 use std::fmt::Debug;
 
@@ -108,8 +107,42 @@ where
     }
 }
 
+#[cfg(feature = "fixedbitset")]
+mod fixedbitset_random_genome_mutation {
+    use super::{random_index, RandomGenomeMutation};
+    use crate::genetic::Genotype;
+    use fixedbitset::FixedBitSet;
+    use rand::Rng;
+
+    impl RandomGenomeMutation for FixedBitSet {
+        type Dna = bool;
+
+        fn mutate_genome<R>(
+            genome: Self,
+            mutation_rate: f64,
+            _: &<Self as Genotype>::Dna,
+            _: &<Self as Genotype>::Dna,
+            rng: &mut R,
+        ) -> Self
+        where
+            R: Rng + Sized,
+        {
+            let genome_length = genome.len();
+            let num_mutations =
+                ((genome_length as f64 * mutation_rate) + rng.gen::<f64>()).floor() as usize;
+            let mut mutated = genome;
+            for _ in 0..num_mutations {
+                let bit = random_index(rng, genome_length);
+                let value = rng.gen();
+                mutated.set(bit, value);
+            }
+            mutated
+        }
+    }
+}
+
 #[cfg(feature = "smallvec")]
-mod smallvec_support {
+mod smallvec_random_genome_mutation {
     use super::{random_index, RandomGenomeMutation, RandomValueMutation};
     use rand::Rng;
     use smallvec::{Array, SmallVec};
@@ -147,32 +180,6 @@ mod smallvec_support {
             }
             mutated
         }
-    }
-}
-
-impl RandomGenomeMutation for FixedBitSet {
-    type Dna = bool;
-
-    fn mutate_genome<R>(
-        genome: Self,
-        mutation_rate: f64,
-        _: &<Self as Genotype>::Dna,
-        _: &<Self as Genotype>::Dna,
-        rng: &mut R,
-    ) -> Self
-    where
-        R: Rng + Sized,
-    {
-        let genome_length = genome.len();
-        let num_mutations =
-            ((genome_length as f64 * mutation_rate) + rng.gen::<f64>()).floor() as usize;
-        let mut mutated = genome;
-        for _ in 0..num_mutations {
-            let bit = random_index(rng, genome_length);
-            let value = rng.gen();
-            mutated.set(bit, value);
-        }
-        mutated
     }
 }
 

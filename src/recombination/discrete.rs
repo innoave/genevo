@@ -16,7 +16,6 @@ use crate::{
     operator::{CrossoverOp, GeneticOperator},
     random::{random_n_cut_points, Rng},
 };
-use fixedbitset::FixedBitSet;
 use std::fmt::Debug;
 
 /// The `UniformCrossBreeder` operator combines binary encoded or value encoded
@@ -39,30 +38,6 @@ impl UniformCrossBreeder {
 impl GeneticOperator for UniformCrossBreeder {
     fn name() -> String {
         format!("Uniform-Cross-Breeder")
-    }
-}
-
-impl CrossoverOp<FixedBitSet> for UniformCrossBreeder {
-    fn crossover<R>(&self, parents: Parents<FixedBitSet>, rng: &mut R) -> Children<FixedBitSet>
-    where
-        R: Rng + Sized,
-    {
-        let genome_length = parents[0].len();
-        let num_parents = parents.len();
-        // breed one child for each partner in parents
-        let mut offspring: Vec<FixedBitSet> = Vec::with_capacity(num_parents);
-        while num_parents > offspring.len() {
-            let mut genome = FixedBitSet::with_capacity(genome_length);
-            // for each value in the genotype
-            for locus in 0..genome_length {
-                // pick the value of a randomly chosen parent
-                let random = rng.gen_range(0, num_parents);
-                let value = parents[random][locus];
-                genome.set(locus, value);
-            }
-            offspring.push(genome);
-        }
-        offspring
     }
 }
 
@@ -90,6 +65,41 @@ where
             offspring.push(genome);
         }
         offspring
+    }
+}
+
+#[cfg(feature = "fixedbitset")]
+mod fixedbitset_uniform_cross_breeder {
+    use super::UniformCrossBreeder;
+    use crate::{
+        genetic::{Children, Parents},
+        operator::CrossoverOp,
+    };
+    use fixedbitset::FixedBitSet;
+    use rand::Rng;
+
+    impl CrossoverOp<FixedBitSet> for UniformCrossBreeder {
+        fn crossover<R>(&self, parents: Parents<FixedBitSet>, rng: &mut R) -> Children<FixedBitSet>
+        where
+            R: Rng + Sized,
+        {
+            let genome_length = parents[0].len();
+            let num_parents = parents.len();
+            // breed one child for each partner in parents
+            let mut offspring: Vec<FixedBitSet> = Vec::with_capacity(num_parents);
+            while num_parents > offspring.len() {
+                let mut genome = FixedBitSet::with_capacity(genome_length);
+                // for each value in the genotype
+                for locus in 0..genome_length {
+                    // pick the value of a randomly chosen parent
+                    let random = rng.gen_range(0, num_parents);
+                    let value = parents[random][locus];
+                    genome.set(locus, value);
+                }
+                offspring.push(genome);
+            }
+            offspring
+        }
     }
 }
 
@@ -267,7 +277,7 @@ where
 }
 
 #[cfg(feature = "smallvec")]
-mod smallvec_multipoint_cross_breeder {
+mod smallvec_multipoint_crossover {
     use super::{random_n_cut_points, MultiPointCrossover};
     use crate::genetic::{Children, Parents};
     use rand::Rng;
@@ -325,48 +335,56 @@ mod smallvec_multipoint_cross_breeder {
     }
 }
 
-impl MultiPointCrossover for FixedBitSet {
-    type Dna = bool;
+#[cfg(feature = "fixedbitset")]
+mod fixedbitset_multipoint_crossover {
+    use super::{random_n_cut_points, MultiPointCrossover};
+    use crate::genetic::{Children, Parents};
+    use fixedbitset::FixedBitSet;
+    use rand::Rng;
 
-    fn crossover<R>(
-        parents: Parents<FixedBitSet>,
-        num_cut_points: usize,
-        rng: &mut R,
-    ) -> Children<FixedBitSet>
-    where
-        R: Rng + Sized,
-    {
-        let genome_length = parents[0].len();
-        let num_parents = parents.len();
-        // breed one child for each partner in parents
-        let mut offspring: Vec<FixedBitSet> = Vec::with_capacity(num_parents);
-        while num_parents > offspring.len() {
-            let mut genome = FixedBitSet::with_capacity(genome_length);
-            let mut cutpoints = random_n_cut_points(rng, num_cut_points, genome_length);
-            cutpoints.push(genome_length);
-            let mut start = 0;
-            let mut end = cutpoints.remove(0);
-            let mut p_index = num_parents;
-            loop {
+    impl MultiPointCrossover for FixedBitSet {
+        type Dna = bool;
+
+        fn crossover<R>(
+            parents: Parents<FixedBitSet>,
+            num_cut_points: usize,
+            rng: &mut R,
+        ) -> Children<FixedBitSet>
+        where
+            R: Rng + Sized,
+        {
+            let genome_length = parents[0].len();
+            let num_parents = parents.len();
+            // breed one child for each partner in parents
+            let mut offspring: Vec<FixedBitSet> = Vec::with_capacity(num_parents);
+            while num_parents > offspring.len() {
+                let mut genome = FixedBitSet::with_capacity(genome_length);
+                let mut cutpoints = random_n_cut_points(rng, num_cut_points, genome_length);
+                cutpoints.push(genome_length);
+                let mut start = 0;
+                let mut end = cutpoints.remove(0);
+                let mut p_index = num_parents;
                 loop {
-                    let index = rng.gen_range(0, num_parents);
-                    if index != p_index {
-                        p_index = index;
+                    loop {
+                        let index = rng.gen_range(0, num_parents);
+                        if index != p_index {
+                            p_index = index;
+                            break;
+                        }
+                    }
+                    let partner = &parents[p_index];
+                    for bit in start..end {
+                        genome.set(bit, partner[bit])
+                    }
+                    if cutpoints.is_empty() {
                         break;
                     }
+                    start = end;
+                    end = cutpoints.remove(0);
                 }
-                let partner = &parents[p_index];
-                for bit in start..end {
-                    genome.set(bit, partner[bit])
-                }
-                if cutpoints.is_empty() {
-                    break;
-                }
-                start = end;
-                end = cutpoints.remove(0);
+                offspring.push(genome);
             }
-            offspring.push(genome);
+            offspring
         }
-        offspring
     }
 }
