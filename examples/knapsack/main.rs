@@ -242,7 +242,7 @@ fn main() {
                     knapsack.value,
                     knapsack.weight
                 );
-            }
+            },
             Ok(SimResult::Final(step, processing_time, duration, stop_reason)) => {
                 let best_solution = step.result.best_solution;
                 println!("{}", stop_reason);
@@ -266,11 +266,11 @@ fn main() {
                     knapsack.weight
                 );
                 break 'sim;
-            }
+            },
             Err(error) => {
                 println!("{}", error);
                 break 'sim;
-            }
+            },
         }
     }
 }
