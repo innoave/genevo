@@ -15,6 +15,10 @@ for Rust libraries in [RFC #1105](https://github.com/rust-lang/rfcs/blob/master/
 * method `processing_time` on `TrackProcessingTime` trait now returns owned 
   `ProcessingTime` instead of a reference to `ProcessingTime`. 
 
+### Fixed issues:
+
+* accumulate processing time for final simulation result
+
 ## 0.3.0 : 2019-06-25
 
 ### Breaking changes:
