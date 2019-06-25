@@ -36,6 +36,7 @@ for Rust libraries in [RFC #1105](https://github.com/rust-lang/rfcs/blob/master/
 ### Fixed issues: 
 
 * make support for `Vec<bool>` consistent through all building blocks
+* tracking of accumulated processing time not correct 
 
 ## 0.2.0 : 2019-06-24
 
