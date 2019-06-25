@@ -50,9 +50,9 @@ impl DisplayDuration for Duration {
 
 fn duration_sign_abs(duration: &Duration) -> (String, Duration) {
     if duration.num_seconds() < 0 {
-        (format!("-"), -*duration)
+        ("-".to_string(), -*duration)
     } else {
-        (format!(""), *duration)
+        ("".to_string(), *duration)
     }
 }
 

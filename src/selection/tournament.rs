@@ -144,7 +144,7 @@ impl MultiObjective for TournamentSelector {}
 
 impl GeneticOperator for TournamentSelector {
     fn name() -> String {
-        format!("Tournament-Selection")
+        "Tournament-Selection".to_string()
     }
 }
 

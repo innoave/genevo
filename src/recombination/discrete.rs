@@ -37,7 +37,7 @@ impl UniformCrossBreeder {
 
 impl GeneticOperator for UniformCrossBreeder {
     fn name() -> String {
-        format!("Uniform-Cross-Breeder")
+        "Uniform-Cross-Breeder".to_string()
     }
 }
 
@@ -159,7 +159,7 @@ impl SinglePointCrossBreeder {
 
 impl GeneticOperator for SinglePointCrossBreeder {
     fn name() -> String {
-        format!("Single-Point-Cross-Breeder")
+        "Single-Point-Cross-Breeder".to_string()
     }
 }
 
@@ -207,7 +207,7 @@ impl MultiPointCrossBreeder {
 
 impl GeneticOperator for MultiPointCrossBreeder {
     fn name() -> String {
-        format!("Multi-Point-Cross-Breeder")
+        "Multi-Point-Cross-Breeder".to_string()
     }
 }
 

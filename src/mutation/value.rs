@@ -38,7 +38,7 @@ where
     G: Genotype + RandomGenomeMutation,
 {
     fn name() -> String {
-        format!("Random-Value-Mutator")
+        "Random-Value-Mutator".to_string()
     }
 }
 
@@ -254,7 +254,7 @@ where
     G: Genotype + BreederGenomeMutation,
 {
     fn name() -> String {
-        format!("Breeder-Value-Mutator")
+        "Breeder-Value-Mutator".to_string()
     }
 }
 

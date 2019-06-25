@@ -66,7 +66,7 @@ where
 {
     fn evaluate(&mut self, state: &State<GeneticAlgorithm<G, F, E, S, C, M, R>>) -> StopFlag {
         let highest_fitness = &state.result.best_solution.solution.fitness;
-        if highest_fitness >= &self.fitness_target {
+        if *highest_fitness >= self.fitness_target {
             StopFlag::StopNow(format!(
                 "Simulation stopped after a solution with a fitness of {:?} \
                  has been found.",

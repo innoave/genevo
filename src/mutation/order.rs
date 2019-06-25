@@ -29,7 +29,7 @@ impl InsertOrderMutator {
 
 impl GeneticOperator for InsertOrderMutator {
     fn name() -> String {
-        format!("Order-Insert-Mutation")
+        "Order-Insert-Mutation".to_string()
     }
 }
 
@@ -76,7 +76,7 @@ impl SwapOrderMutator {
 
 impl GeneticOperator for SwapOrderMutator {
     fn name() -> String {
-        format!("Order-Swap-Mutation")
+        "Order-Swap-Mutation".to_string()
     }
 }
 

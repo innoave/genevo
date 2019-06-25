@@ -205,9 +205,9 @@ where
                 self.started_at = Local::now();
             }
         }
-        let mut result = Err(SimError::Unexpected(format!(
-            "no loop of the simulation has ever been processed!"
-        )));
+        let mut result = Err(SimError::Unexpected(
+            "no loop of the simulation has ever been processed!".to_string(),
+        ));
         self.finished = false;
         while !self.finished {
             result = self
