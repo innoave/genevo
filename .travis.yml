@@ -35,7 +35,7 @@ script:
   - cargo build --verbose
   - cargo build --all-features --verbose
   - cargo build --examples --verbose
-  - cargo build --example knapsack --features "smartvec" --verbose
+  - cargo build --example knapsack --features "smallvec" --verbose
   - cargo test --all-features --verbose
 
 after_success: |

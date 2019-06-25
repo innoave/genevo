@@ -54,7 +54,7 @@ build: false
 # environment variable.
 test_script:
   - cargo build --verbose %cargoflags%
-  - cargo build --all-features --all-targets --verbose %cargoflags%
+  - cargo build --all-features --verbose %cargoflags%
   - cargo build --examples --verbose %cargoflags%
   - cargo build --example knapsack --features "smallvec" --verbose %cargoflags%
   - cargo test --all-features --verbose %cargoflags%
