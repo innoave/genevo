@@ -32,7 +32,10 @@ addons:
       - libiberty-dev
 
 script:
+  - cargo build --verbose
   - cargo build --all-features --verbose
+  - cargo build --examples --verbose
+  - cargo build --example knapsack --features "smartvec" --verbose
   - cargo test --all-features --verbose
 
 after_success: |
