@@ -4,6 +4,14 @@ All user visible changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/), as described
 for Rust libraries in [RFC #1105](https://github.com/rust-lang/rfcs/blob/master/text/1105-api-evolution.md)
 
+## 0.3.0 : 2019-06-25
+
+* add support for `SmallVec` as optional crate feature
+* make support for `FixedBitSet` an optional crate feature
+* replace `DiscreteCrossBreeder` by integrating it into `UniformCrossBreeder`
+* make support for `Vec<bool>` consistent through all building blocks
+* minor internal changes to ease development 
+
 ## 0.2.0 : 2019-06-24
 
 * implement `RandomValueMutation` for `bool`
