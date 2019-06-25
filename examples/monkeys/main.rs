@@ -2,15 +2,14 @@
 //! known as the
 //! [infinite monkey theorem](https://en.wikipedia.org/wiki/Infinite_monkey_theorem).
 
-use genevo::operator::prelude::*;
-use genevo::population::ValueEncodedGenomeBuilder;
-use genevo::prelude::*;
-use genevo::types::fmt::Display;
+use genevo::{
+    operator::prelude::*, population::ValueEncodedGenomeBuilder, prelude::*, types::fmt::Display,
+};
 
-//const TARGET_TEXT: &str = "See how a genius creates a legend";
+// const TARGET_TEXT: &str = "See how a genius creates a legend";
 const TARGET_TEXT: &str = "Be not afraid of greatness! Some are great, some achieve greatness, \
                            and some have greatness thrust upon 'em.";
-//const TARGET_TEXT: &str = "All the world's a stage, and all the men and women merely players: \
+// const TARGET_TEXT: &str = "All the world's a stage, and all the men and women merely players: \
 //                           they have their exits and their entrances; and one man in his time \
 //                           plays many parts, his acts being seven ages.";
 
@@ -57,7 +56,7 @@ impl AsPhenotype for TextGenome {
 }
 
 /// The fitness function for `TextGenome`s.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 struct FitnessCalc;
 
 impl FitnessFunction<TextGenome, usize> for FitnessCalc {
@@ -137,7 +136,7 @@ fn main() {
                 println!("      {}", best_solution.solution.genome.as_text());
                 //                println!("| population: [{}]", result.population.iter().map(|g| g.as_text())
                 //                    .collect::<Vec<String>>().join("], ["));
-            }
+            },
             Ok(SimResult::Final(step, processing_time, duration, stop_reason)) => {
                 let best_solution = step.result.best_solution;
                 println!("{}", stop_reason);
@@ -152,11 +151,11 @@ fn main() {
                 );
                 println!("      {}", best_solution.solution.genome.as_text());
                 break;
-            }
+            },
             Err(error) => {
-                println!("{}", error.display());
+                println!("{}", error);
                 break;
-            }
+            },
         }
     }
 }

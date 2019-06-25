@@ -61,7 +61,7 @@ fn count_collisions(positions: &Positions) -> i16 {
 }
 
 /// The fitness function for `Positions`.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 struct FitnessCalc;
 
 impl FitnessFunction<Positions, usize> for FitnessCalc {
@@ -198,7 +198,7 @@ fn main() {
                 break;
             },
             Err(error) => {
-                println!("{}", error.display());
+                println!("{}", error);
                 break;
             },
         }

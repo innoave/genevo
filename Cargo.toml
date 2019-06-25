@@ -23,7 +23,7 @@ log = "0.4"
 rand = "0.6"
 rand_xoshiro = "0.2"
 rayon = "1.0"
-fixedbitset = {version = "0.1", optional = true }
+fixedbitset = { version = "0.1", optional = true }
 smallvec = { version = "0.6", optional = true }
 
 [dev-dependencies]

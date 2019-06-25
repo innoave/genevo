@@ -7,14 +7,14 @@ use crate::{
     random::Prng,
 };
 use chrono::{DateTime, Local};
-use std::{fmt::Debug, rc::Rc};
+use std::{error::Error, fmt::Debug, rc::Rc};
 
 /// An `Algorithm` defines the steps to be processed in a
 /// `simulation::Simulation`. The `Simulation` uses an implementation of an
 /// `Algorithm` to perform one iteration of the evaluation stage.
 pub trait Algorithm {
     type Output: Clone + Debug + PartialEq;
-    type Error: Clone + Debug + PartialEq;
+    type Error: Error + Clone + Debug + PartialEq;
 
     fn next(&mut self, iteration: u64, rng: &mut Prng) -> Result<Self::Output, Self::Error>;
 

@@ -18,10 +18,17 @@
 //! ```rust
 //! use genevo::prelude::*;
 //! use genevo::population::BinaryEncodedGenomeBuilder;
+//! #[cfg(feature = "fixedbitset")]
 //! use fixedbitset::FixedBitSet;
 //!
 //! fn main() {
+//!     #[cfg(feature = "fixedbitset")]
 //!     let population: Population<FixedBitSet> = build_population()
+//!         .with_genome_builder(BinaryEncodedGenomeBuilder::new(12))
+//!         .of_size(200)
+//!         .uniform_at_random();
+//!     #[cfg(not(feature = "fixedbitset"))]
+//!     let population: Population<Vec<bool>> = build_population()
 //!         .with_genome_builder(BinaryEncodedGenomeBuilder::new(12))
 //!         .of_size(200)
 //!         .uniform_at_random();

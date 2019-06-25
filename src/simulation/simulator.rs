@@ -6,6 +6,11 @@ use crate::{
     termination::{StopFlag, Termination},
 };
 use chrono::{DateTime, Local};
+use std::{
+    error::Error,
+    fmt::{self, Debug, Display},
+    hash::Hash,
+};
 
 /// The `simulate` function creates a new `Simulator` for the given
 /// `algorithm::Algorithm`.
@@ -28,7 +33,8 @@ where
 
 impl<A, T> SimulationBuilder<Simulator<A, T>, A> for SimulatorBuilder<A, T>
 where
-    A: Algorithm + TrackProcessingTime,
+    A: Algorithm + TrackProcessingTime + Debug,
+    <A as Algorithm>::Error: Eq + Hash + Display + Send + Sync,
     T: Termination<A>,
 {
     fn build(self) -> Simulator<A, T> {
@@ -81,28 +87,43 @@ enum RunMode {
     NotRunning,
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub enum SimError<A>
 where
-    A: Algorithm,
+    A: Algorithm + Debug,
+    <A as Algorithm>::Error: Eq + Hash + Debug,
 {
     AlgorithmError(<A as Algorithm>::Error),
     SimulationAlreadyRunning(String),
     Unexpected(String),
 }
 
-impl<A> SimError<A>
+impl<A> Display for SimError<A>
 where
-    A: Algorithm,
+    A: Algorithm + Debug,
+    <A as Algorithm>::Error: Eq + Hash + Debug + Display,
 {
-    pub fn display(&self) -> String {
-        use self::SimError::*;
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            AlgorithmError(ref error) => format!("Algorithm error: {:?}", error),
-            SimulationAlreadyRunning(ref message) => {
-                format!("Simulation already running: {}", message)
-            },
-            Unexpected(ref message) => format!("Unexpected error: {}", message),
+            SimError::AlgorithmError(ref error) => write!(f, "algorithm error: {}", error),
+            SimError::SimulationAlreadyRunning(ref message) => {
+                write!(f, "simulation already running: {}", message)
+            }
+            SimError::Unexpected(ref message) => write!(f, "unexpected error: {}", message),
+        }
+    }
+}
+
+impl<A> Error for SimError<A>
+where
+    A: Algorithm + Debug,
+    <A as Algorithm>::Error: 'static + Eq + Hash + Debug + Display,
+{
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        match *self {
+            SimError::AlgorithmError(ref error) => Some(error),
+            SimError::SimulationAlreadyRunning(_) => None,
+            SimError::Unexpected(_) => None,
         }
     }
 }
@@ -124,7 +145,8 @@ where
 
 impl<A, T> Simulator<A, T>
 where
-    A: Algorithm + TrackProcessingTime,
+    A: Algorithm + TrackProcessingTime + Debug,
+    <A as Algorithm>::Error: Eq + Hash + Display + Send + Sync,
     T: Termination<A>,
 {
     pub fn termination(&self) -> &T {
@@ -158,7 +180,8 @@ where
 
 impl<A, T> Simulation<A> for Simulator<A, T>
 where
-    A: Algorithm + TrackProcessingTime,
+    A: Algorithm + TrackProcessingTime + Debug,
+    <A as Algorithm>::Error: Eq + Hash + Display + Send + Sync,
     T: Termination<A>,
 {
     type Error = SimError<A>;
@@ -167,23 +190,23 @@ where
         match self.run_mode {
             RunMode::Loop => {
                 return Err(SimError::SimulationAlreadyRunning(format!(
-                    "Simulation already running in loop mode since {}",
+                    "in loop mode since {}",
                     &self.started_at
                 )))
-            },
+            }
             RunMode::Step => {
                 return Err(SimError::SimulationAlreadyRunning(format!(
-                    "Simulation already running in step mode since {}",
+                    "in step mode since {}",
                     &self.started_at
                 )))
-            },
+            }
             RunMode::NotRunning => {
                 self.run_mode = RunMode::Loop;
                 self.started_at = Local::now();
-            },
+            }
         }
         let mut result = Err(SimError::Unexpected(format!(
-            "Unexpected error! No loop of the simulation has ever been processed!"
+            "no loop of the simulation has ever been processed!"
         )));
         self.finished = false;
         while !self.finished {
@@ -198,7 +221,7 @@ where
                             let processing_time = self.processing_time;
                             let duration = Local::now().signed_duration_since(self.started_at);
                             SimResult::Final(state, processing_time, duration, reason)
-                        },
+                        }
                     })
                 })
                 .or_else(|error| {
@@ -218,15 +241,15 @@ where
         match self.run_mode {
             RunMode::Loop => {
                 return Err(SimError::SimulationAlreadyRunning(format!(
-                    "Simulation already running in loop mode since {}",
+                    "in loop mode since {}",
                     &self.started_at
                 )))
-            },
+            }
             RunMode::Step => (),
             RunMode::NotRunning => {
                 self.run_mode = RunMode::Step;
                 self.started_at = Local::now();
-            },
+            }
         }
 
         self.process_one_iteration(seed).and_then(|state|
@@ -250,7 +273,7 @@ where
             RunMode::Loop | RunMode::Step => {
                 self.finished = true;
                 Ok(true)
-            },
+            }
             RunMode::NotRunning => Ok(false),
         }
     }
@@ -263,14 +286,14 @@ where
                      simulation to finish or stop it before resetting it.",
                     &self.started_at
                 )))
-            },
+            }
             RunMode::Step => {
                 return Err(SimError::SimulationAlreadyRunning(format!(
                     "Simulation still running in step mode since {}. Wait for the \
                      simulation to finish or stop it before resetting it.",
                     &self.started_at
                 )))
-            },
+            }
             RunMode::NotRunning => (),
         }
         self.run_mode = RunMode::NotRunning;

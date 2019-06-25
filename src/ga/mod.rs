@@ -36,7 +36,12 @@ use crate::{
 };
 use chrono::Local;
 use rayon;
-use std::{marker::PhantomData, mem, rc::Rc};
+use std::{
+    fmt::{self, Display},
+    marker::PhantomData,
+    mem,
+    rc::Rc,
+};
 
 /// The `State` struct holds the results of one pass of the genetic algorithm
 /// loop, i.e. the processing of the evolution from one generation to the next
@@ -56,7 +61,7 @@ where
 }
 
 /// An error that can occur during execution of a `GeneticAlgorithm`.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub enum GeneticAlgorithmError {
     /// The algorithm is run with an empty population.
     EmptyPopulation(String),
@@ -64,6 +69,17 @@ pub enum GeneticAlgorithmError {
     /// required minimum.
     PopulationTooSmall(String),
 }
+
+impl Display for GeneticAlgorithmError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            GeneticAlgorithmError::EmptyPopulation(details) => write!(f, "{}", details),
+            GeneticAlgorithmError::PopulationTooSmall(details) => write!(f, "{}", details),
+        }
+    }
+}
+
+impl std::error::Error for GeneticAlgorithmError {}
 
 pub fn genetic_algorithm<G, F>() -> EmptyGeneticAlgorithmBuilder<G, F>
 where
