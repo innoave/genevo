@@ -43,6 +43,10 @@ harness = false
 name = "genome_builder"
 harness = false
 
+[[bench]]
+name = "population_builder"
+harness = false
+
 [[example]]
 name = "knapsack"
 path = "examples/knapsack/main.rs"

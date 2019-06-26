@@ -310,6 +310,47 @@ impl GenomeBuilder<Vec<bool>> for BinaryEncodedGenomeBuilder {
     }
 }
 
+/// A `GenomeBuilder` that builds value encoded `genetic::Genotype`s.
+///
+/// The default implementation can build `Vec<T>` genomes. The values of
+/// `T` are generated randomly in the range between a min value and a max
+/// value.
+#[derive(Clone, Debug, PartialEq)]
+pub struct ValueEncodedGenomeBuilder<V> {
+    genome_length: usize,
+    min_value: V,
+    max_value: V,
+}
+
+impl<V> ValueEncodedGenomeBuilder<V> {
+    /// Returns a new instance of the `ValueEncodedGenomeBuilder` that builds
+    /// value encoded genomes of length specified by the given `genome_length`.
+    ///
+    /// The values of the generated genomes are in the range between the given
+    /// `min_value` (inclusive) and `max_value` (exclusive).
+    pub fn new(genome_length: usize, min_value: V, max_value: V) -> Self {
+        ValueEncodedGenomeBuilder {
+            genome_length,
+            min_value,
+            max_value,
+        }
+    }
+}
+
+impl<V> GenomeBuilder<Vec<V>> for ValueEncodedGenomeBuilder<V>
+where
+    V: Clone + Debug + PartialEq + PartialOrd + SampleUniform + Send + Sync,
+{
+    fn build_genome<R>(&self, _: usize, rng: &mut R) -> Vec<V>
+    where
+        R: Rng + Sized,
+    {
+        (0..self.genome_length)
+            .map(|_| rng.gen_range(self.min_value.clone(), self.max_value.clone()))
+            .collect()
+    }
+}
+
 #[cfg(feature = "fixedbitset")]
 mod fixedbitset_genome_builder {
     use super::{BinaryEncodedGenomeBuilder, GenomeBuilder};
@@ -362,47 +403,6 @@ mod smallvec_genome_builder {
                 .map(|_| rng.gen_range(self.min_value.clone(), self.max_value.clone()))
                 .collect()
         }
-    }
-}
-
-/// A `GenomeBuilder` that builds value encoded `genetic::Genotype`s.
-///
-/// The default implementation can build `Vec<T>` genomes. The values of
-/// `T` are generated randomly in the range between a min value and a max
-/// value.
-#[derive(Clone, Debug, PartialEq)]
-pub struct ValueEncodedGenomeBuilder<V> {
-    genome_length: usize,
-    min_value: V,
-    max_value: V,
-}
-
-impl<V> ValueEncodedGenomeBuilder<V> {
-    /// Returns a new instance of the `ValueEncodedGenomeBuilder` that builds
-    /// value encoded genomes of length specified by the given `genome_length`.
-    ///
-    /// The values of the generated genomes are in the range between the given
-    /// `min_value` (inclusive) and `max_value` (exclusive).
-    pub fn new(genome_length: usize, min_value: V, max_value: V) -> Self {
-        ValueEncodedGenomeBuilder {
-            genome_length,
-            min_value,
-            max_value,
-        }
-    }
-}
-
-impl<V> GenomeBuilder<Vec<V>> for ValueEncodedGenomeBuilder<V>
-where
-    V: Clone + Debug + PartialEq + PartialOrd + SampleUniform + Send + Sync,
-{
-    fn build_genome<R>(&self, _: usize, rng: &mut R) -> Vec<V>
-    where
-        R: Rng + Sized,
-    {
-        (0..self.genome_length)
-            .map(|_| rng.gen_range(self.min_value.clone(), self.max_value.clone()))
-            .collect()
     }
 }
 
