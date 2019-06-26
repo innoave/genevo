@@ -263,7 +263,7 @@ where
     F: Fitness + Send + Sync,
     E: FitnessFunction<G, F> + Sync,
 {
-    if population.len() < 60 {
+    if population.len() < 50 {
         timed(|| {
             let mut fitness = Vec::with_capacity(population.len());
             let mut highest = evaluator.lowest_possible_fitness();
@@ -348,7 +348,7 @@ where
     C: CrossoverOp<G> + Sync,
     M: MutationOp<G> + Sync,
 {
-    if parents.len() < 60 {
+    if parents.len() < 50 {
         timed(|| {
             let mut offspring: Offspring<G> = Vec::with_capacity(parents.len() * parents[0].len());
             for parents in parents {

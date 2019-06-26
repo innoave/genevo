@@ -154,7 +154,7 @@ impl PopulationBuilder {
         B: GenomeBuilder<G>,
         G: Genotype,
     {
-        if size < 60 {
+        if size < 50 {
             Population {
                 individuals: (0..size)
                     .map(|index| genome_builder.build_genome(index, &mut rng))
