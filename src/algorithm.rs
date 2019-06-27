@@ -69,7 +69,7 @@ where
 /// the genetic algorithm. It is used to pass these values to the
 /// `operator::SelectionOp` to enable this operator to do its job.
 ///
-/// Currently is contains the fitness value of each individual in a population,
+/// Currently it contains the fitness value of each individual in a population,
 /// their normalized fitness values and highest and average fitness of the
 /// population.
 ///
