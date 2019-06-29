@@ -41,7 +41,7 @@ fn generate_vec_of_random_bool_using_for_loop(c: &mut Criterion) {
 }
 
 fn generate_vec_of_random_bool_the_functional_way_with_initialized_distribution(c: &mut Criterion) {
-    let bernoulli = Bernoulli::new(0.5);
+    let bernoulli = Bernoulli::new(0.5).expect("0.5 is a valid probability");
     let mut rng = get_rng(random_seed());
 
     c.bench_function_over_inputs(
@@ -56,7 +56,7 @@ fn generate_vec_of_random_bool_the_functional_way_with_initialized_distribution(
 }
 
 fn generate_vec_of_random_bool_using_for_loop_with_initialized_distribution(c: &mut Criterion) {
-    let bernoulli = Bernoulli::new(0.5);
+    let bernoulli = Bernoulli::new(0.5).expect("0.5 is a valid probability");
     let mut rng = get_rng(random_seed());
 
     c.bench_function_over_inputs(
