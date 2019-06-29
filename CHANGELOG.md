@@ -4,6 +4,11 @@ All user visible changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/), as described
 for Rust libraries in [RFC #1105](https://github.com/rust-lang/rfcs/blob/master/text/1105-api-evolution.md)
 
+## 0.5.0 : <unreleased>
+
+* bump `rand` crate dependency to version 0.7
+* bump `rand_xoshiro` crate dependency to version 0.3
+
 ## 0.4.0 : 2019-06-25
 
 ### Breaking changes: 
