@@ -29,6 +29,6 @@ script:
 
 after_success: |
   if [[ "$TRAVIS_RUST_VERSION" == beta ]]; then
-    cargo tarpaulin --out Xml --all --all-features
+    cargo tarpaulin --out Xml --all --all-features --ignore-tests --verbose
     bash <(curl -s https://codecov.io/bash)
   fi
