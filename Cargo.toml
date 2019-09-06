@@ -19,15 +19,14 @@ edition = "2018"
 
 [dependencies]
 chrono = "0.4"
-log = "0.4"
 rand = "0.7"
-rand_xoshiro = "0.3"
+rand_xoshiro = "0.4"
 rayon = "1.1"
 fixedbitset = { version = "0.1", optional = true }
 smallvec = { version = "0.6", optional = true }
 
 [dev-dependencies]
-criterion = { version = "0.2", default-features = false }
+criterion = { version = "0.3", default-features = false }
 galvanic-assert = "0.8"
 proptest = "0.9"
 version-sync = "0.8"
