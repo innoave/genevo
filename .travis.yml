@@ -22,7 +22,9 @@ before_cache: |
   fi
 
 script:
+  - cargo build --verbose
   - cargo test --verbose
+  - cargo build --all-features --verbose
   - cargo test --all-features --verbose
   - cargo build --examples --verbose
   - cargo build --example knapsack --features "smallvec" --verbose
