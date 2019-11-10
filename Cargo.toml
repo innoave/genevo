@@ -21,9 +21,9 @@ edition = "2018"
 chrono = "0.4"
 rand = "0.7"
 rand_xoshiro = "0.4"
-rayon = "1.1"
+rayon = "1"
 fixedbitset = { version = "0.2", optional = true }
-smallvec = { version = "0.6", optional = true }
+smallvec = { version = "1", optional = true }
 
 [dev-dependencies]
 criterion = { version = "0.3", default-features = false }
