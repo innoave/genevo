@@ -22,7 +22,7 @@ chrono = "0.4"
 rand = "0.7"
 rand_xoshiro = "0.4"
 rayon = "1.1"
-fixedbitset = { version = "0.1", optional = true }
+fixedbitset = { version = "0.2", optional = true }
 smallvec = { version = "0.6", optional = true }
 
 [dev-dependencies]
