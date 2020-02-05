@@ -136,3 +136,10 @@ where
     where
         R: Rng + Sized;
 }
+
+pub trait FixerOp<G>: GeneticOperator
+where
+    G: Genotype,
+{
+    fn fix(&self, genome: &mut G);
+}

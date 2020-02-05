@@ -13,7 +13,7 @@ use crate::{
     algorithm::Algorithm,
     ga::GeneticAlgorithm,
     genetic::{Fitness, FitnessFunction, Genotype},
-    operator::{CrossoverOp, MutationOp, ReinsertionOp, SelectionOp},
+    operator::{CrossoverOp, FixerOp, MutationOp, ReinsertionOp, SelectionOp},
     simulation::State,
     termination::{StopFlag, Termination},
 };
@@ -53,7 +53,7 @@ where
     }
 }
 
-impl<G, F, E, S, C, M, R> Termination<GeneticAlgorithm<G, F, E, S, C, M, R>> for FitnessLimit<G, F>
+impl<G, F, E, S, C, M, R, X> Termination<GeneticAlgorithm<G, F, E, S, C, M, R, X>> for FitnessLimit<G, F>
 where
     G: Genotype,
     F: Fitness + Send + Sync,
@@ -63,8 +63,9 @@ where
     C: CrossoverOp<G> + Sync,
     M: MutationOp<G> + Sync,
     R: ReinsertionOp<G, F>,
+    X: FixerOp<G>,
 {
-    fn evaluate(&mut self, state: &State<GeneticAlgorithm<G, F, E, S, C, M, R>>) -> StopFlag {
+    fn evaluate(&mut self, state: &State<GeneticAlgorithm<G, F, E, S, C, M, R, X>>) -> StopFlag {
         let highest_fitness = &state.result.best_solution.solution.fitness;
         if *highest_fitness >= self.fitness_target {
             StopFlag::StopNow(format!(
