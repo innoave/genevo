@@ -130,3 +130,5 @@ pub mod random;
 pub mod statistic;
 
 pub mod types;
+
+pub mod fixer;

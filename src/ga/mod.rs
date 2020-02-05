@@ -29,7 +29,7 @@ use self::builder::EmptyGeneticAlgorithmBuilder;
 use crate::{
     algorithm::{Algorithm, BestSolution, EvaluatedPopulation},
     genetic::{Fitness, FitnessFunction, Genotype, Offspring, Parents},
-    operator::{CrossoverOp, MutationOp, ReinsertionOp, SelectionOp},
+    operator::{CrossoverOp, FixerOp, MutationOp, ReinsertionOp, SelectionOp},
     population::Population,
     random::Prng,
     statistic::{timed, ProcessingTime, TimedResult, TrackProcessingTime},
@@ -93,7 +93,7 @@ where
 /// A `GeneticAlgorithm` declares the building blocks that make up the actual
 /// algorithm for a specific optimization problem.
 #[derive(Clone, Debug, PartialEq)]
-pub struct GeneticAlgorithm<G, F, E, S, C, M, R>
+pub struct GeneticAlgorithm<G, F, E, S, C, M, R, X>
 where
     G: Genotype,
     F: Fitness,
@@ -102,6 +102,7 @@ where
     C: CrossoverOp<G>,
     M: MutationOp<G>,
     R: ReinsertionOp<G, F>,
+    X: FixerOp<G>,
 {
     _f: PhantomData<F>,
     evaluator: E,
@@ -109,13 +110,14 @@ where
     breeder: C,
     mutator: M,
     reinserter: R,
+    fixer: X,
     min_population_size: usize,
     initial_population: Population<G>,
     population: Rc<Vec<G>>,
     processing_time: ProcessingTime,
 }
 
-impl<G, F, E, S, C, M, R> GeneticAlgorithm<G, F, E, S, C, M, R>
+impl<G, F, E, S, C, M, R, X> GeneticAlgorithm<G, F, E, S, C, M, R, X>
 where
     G: Genotype,
     F: Fitness,
@@ -124,6 +126,7 @@ where
     C: CrossoverOp<G>,
     M: MutationOp<G>,
     R: ReinsertionOp<G, F>,
+    X: FixerOp<G>,
 {
     pub fn evaluator(&self) -> &E {
         &self.evaluator
@@ -145,12 +148,16 @@ where
         &self.reinserter
     }
 
+    pub fn fixer(&self) -> &X {
+        &self.fixer
+    }
+
     pub fn min_population_size(&self) -> usize {
         self.min_population_size
     }
 }
 
-impl<G, F, E, S, C, M, R> TrackProcessingTime for GeneticAlgorithm<G, F, E, S, C, M, R>
+impl<G, F, E, S, C, M, R, X> TrackProcessingTime for GeneticAlgorithm<G, F, E, S, C, M, R, X>
 where
     G: Genotype,
     F: Fitness,
@@ -159,13 +166,14 @@ where
     C: CrossoverOp<G>,
     M: MutationOp<G>,
     R: ReinsertionOp<G, F>,
+    X: FixerOp<G>,
 {
     fn processing_time(&self) -> ProcessingTime {
         self.processing_time
     }
 }
 
-impl<G, F, E, S, C, M, R> Algorithm for GeneticAlgorithm<G, F, E, S, C, M, R>
+impl<G, F, E, S, C, M, R, X> Algorithm for GeneticAlgorithm<G, F, E, S, C, M, R, X>
 where
     G: Genotype,
     F: Fitness + Send + Sync,
@@ -174,6 +182,7 @@ where
     C: CrossoverOp<G> + Sync,
     M: MutationOp<G> + Sync,
     R: ReinsertionOp<G, F>,
+    X: FixerOp<G>,
 {
     type Output = State<G, F>;
     type Error = GeneticAlgorithmError;
@@ -208,6 +217,10 @@ where
                 .combine(&mut breeding.result, &evaluation.result, rng)
         })
         .run();
+        let mut next_generation = reinsertion.result;
+        for gen in &mut next_generation {
+            self.fixer.fix(gen);
+        }
 
         // Stage 4: On to the next generation:
         self.processing_time = evaluation.time
@@ -215,7 +228,6 @@ where
             + selection.time
             + breeding.time
             + reinsertion.time;
-        let next_generation = reinsertion.result;
         mem::replace(&mut self.population, Rc::new(next_generation));
         Ok(State {
             evaluated_population: evaluation.result,
