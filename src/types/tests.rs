@@ -142,25 +142,25 @@ fn abs_diff_of_signed_max_and_neg1i64() {
 }
 
 #[test]
-#[should_panic(expected = "attempt to subtract with overflow")]
+#[should_panic(expected = "attempt to negate with overflow")]
 fn abs_diff_of_signed_neg1i8_and_max() {
     expect_that!(&(-1i8).abs_diff(&i8::MAX), is(equal_to(i8::MAX)));
 }
 
 #[test]
-#[should_panic(expected = "attempt to subtract with overflow")]
+#[should_panic(expected = "attempt to negate with overflow")]
 fn abs_diff_of_signed_neg1i16_and_max() {
     expect_that!(&(-1i16).abs_diff(&i16::MAX), is(equal_to(i16::MAX)));
 }
 
 #[test]
-#[should_panic(expected = "attempt to subtract with overflow")]
+#[should_panic(expected = "attempt to negate with overflow")]
 fn abs_diff_of_signed_neg1i32_and_max() {
     expect_that!(&(-1i32).abs_diff(&i32::MAX), is(equal_to(i32::MAX)));
 }
 
 #[test]
-#[should_panic(expected = "attempt to subtract with overflow")]
+#[should_panic(expected = "attempt to negate with overflow")]
 fn abs_diff_of_signed_neg1i64_and_max() {
     expect_that!(&(-1i64).abs_diff(&i64::MAX), is(equal_to(i64::MAX)));
 }
