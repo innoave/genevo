@@ -39,7 +39,6 @@ use rayon;
 use std::{
     fmt::{self, Display},
     marker::PhantomData,
-    mem,
     rc::Rc,
 };
 
@@ -216,7 +215,7 @@ where
             + breeding.time
             + reinsertion.time;
         let next_generation = reinsertion.result;
-        mem::replace(&mut self.population, Rc::new(next_generation));
+        self.population = Rc::new(next_generation);
         Ok(State {
             evaluated_population: evaluation.result,
             best_solution: best_solution.result,
