@@ -96,7 +96,7 @@ where
         offspring.push(genome);
         p1_index += 1;
         p2_index += 1;
-        if p2_index >= genome_length {
+        if p2_index >= parents_size {
             p2_index = 0;
         }
     }
