@@ -262,15 +262,20 @@ where
     F: Fitness + Send + Sync,
     E: FitnessFunction<G, F> + Sync,
 {
-    timed(|| {
-        let fitness: Vec<F> = population.par_iter()
-        .map(|genome| { evaluator.fitness_of(genome) })
-        .collect();
-        let highest = fitness.iter().max().unwrap().clone();
-        let lowest = fitness.iter().min().unwrap().clone();
-        (fitness, highest, lowest)
-    })
-    .run()
+
+        let (fitness, times) : (Vec<F>, Vec<ProcessingTime>) = population.par_iter()
+        .map(|genome| { timed(|| {evaluator.fitness_of(genome) }).run() })
+        .map(|timed_result| (timed_result.result, timed_result.time))
+        .unzip();
+
+        let time = times.iter().fold(ProcessingTime::zero(), |acc, time| acc + *time);
+        let highest = fitness.iter().max().unwrap_or(&evaluator.highest_possible_fitness()).clone();
+        let lowest = fitness.iter().min().unwrap_or(&evaluator.lowest_possible_fitness()).clone();
+
+        TimedResult {
+            result: (fitness, highest, lowest),
+            time,
+        }
 }
 
 /// Determines the best solution of the current population
@@ -313,13 +318,13 @@ where
     C: CrossoverOp<G> + Sync,
     M: MutationOp<G> + Sync,
 {
-    timed(|| {
-        let offspring: Vec<Offspring<G>> = parents.par_iter()
-        .map_init(|| {
-            let mut rng = rng.clone();
-            rng.jump();
-            rng
-        }, |rng, parents| {
+    let (offspring, times): (Vec<Offspring<G>>, Vec<ProcessingTime>) = parents.par_iter()
+    .map_init(|| {
+        let mut rng = rng.clone();
+        rng.jump();
+        rng
+    }, |rng, parents| {
+        timed(|| {
             let children: Offspring<G> = breeder.crossover(parents.to_owned(), rng);
             let mut offspring = Vec::with_capacity(parents.len());
             for child in children {
@@ -327,9 +332,15 @@ where
                 offspring.push(mutated);
             }
             offspring
-        }).collect();
-        offspring.into_iter().flatten().collect()
+        }).run()
     })
-    .run()
+    .map(|timed_result| (timed_result.result, timed_result.time))
+    .unzip();
 
+    let time = times.iter().fold(ProcessingTime::zero(), |acc, time| acc + *time);
+
+    TimedResult {
+        result: offspring.into_iter().flatten().collect(),
+        time,
+    }
 }
