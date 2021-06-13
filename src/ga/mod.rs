@@ -35,7 +35,7 @@ use crate::{
     statistic::{timed, ProcessingTime, TimedResult, TrackProcessingTime},
 };
 use chrono::Local;
-use rayon;
+use rayon::prelude::*;
 use std::{
     fmt::{self, Display},
     marker::PhantomData,
@@ -262,49 +262,15 @@ where
     F: Fitness + Send + Sync,
     E: FitnessFunction<G, F> + Sync,
 {
-    if population.len() < 50 {
-        timed(|| {
-            let mut fitness = Vec::with_capacity(population.len());
-            let mut highest = evaluator.lowest_possible_fitness();
-            let mut lowest = evaluator.highest_possible_fitness();
-            for genome in population.iter() {
-                let score = evaluator.fitness_of(genome);
-                if score > highest {
-                    highest = score.clone();
-                }
-                if score < lowest {
-                    lowest = score.clone();
-                }
-                fitness.push(score);
-            }
-            (fitness, highest, lowest)
-        })
-        .run()
-    } else {
-        let mid_point = population.len() / 2;
-        let (l_slice, r_slice) = population.split_at(mid_point);
-        let (mut left, mut right) = rayon::join(
-            || par_evaluate_fitness(l_slice, evaluator),
-            || par_evaluate_fitness(r_slice, evaluator),
-        );
-        let mut fitness = Vec::with_capacity(population.len());
-        fitness.append(&mut left.result.0);
-        fitness.append(&mut right.result.0);
-        let highest = if left.result.1 >= right.result.1 {
-            left.result.1
-        } else {
-            right.result.1
-        };
-        let lowest = if left.result.2 <= right.result.2 {
-            left.result.2
-        } else {
-            right.result.2
-        };
-        TimedResult {
-            result: (fitness, highest, lowest),
-            time: left.time + right.time,
-        }
-    }
+    timed(|| {
+        let fitness: Vec<F> = population.par_iter()
+        .map(|genome| { evaluator.fitness_of(genome) })
+        .collect();
+        let highest = fitness.iter().max().unwrap().clone();
+        let lowest = fitness.iter().min().unwrap().clone();
+        (fitness, highest, lowest)
+    })
+    .run()
 }
 
 /// Determines the best solution of the current population
@@ -347,38 +313,23 @@ where
     C: CrossoverOp<G> + Sync,
     M: MutationOp<G> + Sync,
 {
-    if parents.len() < 50 {
-        timed(|| {
-            let mut offspring: Offspring<G> = Vec::with_capacity(parents.len() * parents[0].len());
-            for parents in parents {
-                let children = breeder.crossover(parents, rng);
-                for child in children {
-                    let mutated = mutator.mutate(child, rng);
-                    offspring.push(mutated);
-                }
+    timed(|| {
+        let offspring: Vec<Offspring<G>> = parents.par_iter()
+        .map_init(|| {
+            let mut rng = rng.clone();
+            rng.jump();
+            rng
+        }, |rng, parents| {
+            let children: Offspring<G> = breeder.crossover(parents.to_owned(), rng);
+            let mut offspring = Vec::with_capacity(parents.len());
+            for child in children {
+                let mutated = mutator.mutate(child, rng);
+                offspring.push(mutated);
             }
             offspring
-        })
-        .run()
-    } else {
-        rng.jump();
-        let mut rng1 = rng.clone();
-        rng.jump();
-        let mut rng2 = rng.clone();
-        let mid_point = parents.len() / 2;
-        let mut offspring = Vec::with_capacity(parents.len() * 2);
-        let mut parents = parents;
-        let r_slice = parents.drain(mid_point..).collect();
-        let l_slice = parents;
-        let (mut left, mut right) = rayon::join(
-            || par_breed_offspring(l_slice, breeder, mutator, &mut rng1),
-            || par_breed_offspring(r_slice, breeder, mutator, &mut rng2),
-        );
-        offspring.append(&mut left.result);
-        offspring.append(&mut right.result);
-        TimedResult {
-            result: offspring,
-            time: left.time + right.time,
-        }
-    }
+        }).collect();
+        offspring.into_iter().flatten().collect()
+    })
+    .run()
+
 }
