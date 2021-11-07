@@ -8,7 +8,6 @@ pub use rand::{
 };
 
 use crate::genetic::AsScalar;
-use rand::thread_rng;
 use rand_xoshiro::Xoshiro256Plus;
 
 /// The `Prng` is the pseudo random number generator used through out this
@@ -20,7 +19,7 @@ pub type Seed = <Prng as SeedableRng>::Seed;
 
 /// Generates a random seed to initialize the `Prng`.
 pub fn random_seed() -> Seed {
-    let mut rng = thread_rng();
+    let mut rng = Prng::from_entropy();
     rng.gen()
 }
 

@@ -17,13 +17,23 @@ readme = "README.md"
 
 edition = "2018"
 
+[package.metadata.docs.rs]
+all-features = true
+
+[features]
+wasm-bindgen = ["wasm-bindgen_", "chrono/wasmbind"]
+
 [dependencies]
 chrono = "0.4"
-rand = "0.8"
+rand = { version = "0.8", default-features = false, features = ["getrandom"] }
 rand_xoshiro = "0.6"
 rayon = "1"
 fixedbitset = { version = "0.4", optional = true }
 smallvec = { version = "1", optional = true }
+
+[target.'cfg(all(target_arch = "wasm32", not(any(target_os = "emscripten", target_os = "wasi"))))'.dependencies]
+wasm-bindgen_ = { version = "0.2", package = "wasm-bindgen", optional = true }
+getrandom = { version = "0.2", features = ["js"] }
 
 [dev-dependencies]
 criterion = "0.3"

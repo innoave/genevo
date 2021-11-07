@@ -5,18 +5,17 @@ use proptest::prelude::*;
 mod random_cut_points_from_range {
 
     use super::*;
-    use crate::random::thread_rng;
 
     #[test]
     #[should_panic(expected = "assertion failed: max >= min + 4")]
     fn random_cut_points_from_range_0_to_3() {
-        random_cut_points_from_range(&mut thread_rng(), 0, 3);
+        random_cut_points_from_range(&mut get_rng(random_seed()), 0, 3);
     }
 
     #[test]
     #[should_panic(expected = "assertion failed: max >= min + 4")]
     fn random_cut_points_from_range_4_to_4() {
-        random_cut_points_from_range(&mut thread_rng(), 4, 4);
+        random_cut_points_from_range(&mut get_rng(random_seed()), 4, 4);
     }
 
     proptest! {
@@ -27,7 +26,7 @@ mod random_cut_points_from_range {
                 (Just(min), (min + 4..999_999 + 4))
             ),
         ) {
-            let (cutpoint1, cutpoint2) = random_cut_points_from_range(&mut thread_rng(), min, max);
+            let (cutpoint1, cutpoint2) = random_cut_points_from_range(&mut get_rng(random_seed()), min, max);
 
             prop_assert!(
                 cutpoint1 < cutpoint2,
@@ -43,7 +42,7 @@ mod random_cut_points_from_range {
                 (Just(min), (min + 4..999_999 + 4))
             ),
         ) {
-            let (cutpoint1, cutpoint2) = random_cut_points_from_range(&mut thread_rng(), min, max);
+            let (cutpoint1, cutpoint2) = random_cut_points_from_range(&mut get_rng(random_seed()), min, max);
 
             prop_assert!(
                 cutpoint2 - cutpoint1 < max - min - 2,
@@ -59,7 +58,7 @@ mod random_cut_points_from_range {
                 (Just(min), (min + 4..999_999 + 4))
             ),
         ) {
-            let (cutpoint1, _cutpoint2) = random_cut_points_from_range(&mut thread_rng(), min, max);
+            let (cutpoint1, _cutpoint2) = random_cut_points_from_range(&mut get_rng(random_seed()), min, max);
 
             prop_assert!(
                 cutpoint1 >= min,
@@ -75,7 +74,7 @@ mod random_cut_points_from_range {
                 (Just(min), (min + 4..999_999 + 4))
             ),
         ) {
-            let (_cutpoint1, cutpoint2) = random_cut_points_from_range(&mut thread_rng(), min, max);
+            let (_cutpoint1, cutpoint2) = random_cut_points_from_range(&mut get_rng(random_seed()), min, max);
 
             prop_assert!(
                 cutpoint2 <= max,
@@ -88,20 +87,18 @@ mod random_cut_points_from_range {
 }
 
 mod random_n_cut_points {
-
     use super::*;
-    use crate::random::thread_rng;
 
     #[test]
     #[should_panic(expected = "assertion failed: n > 0")]
     fn random_n_cut_points_0_4() {
-        random_n_cut_points(&mut thread_rng(), 0, 4);
+        random_n_cut_points(&mut get_rng(random_seed()), 0, 4);
     }
 
     #[test]
     #[should_panic(expected = "assertion failed: length >= 2 * n")]
     fn random_n_cut_points_3_4() {
-        random_n_cut_points(&mut thread_rng(), 3, 4);
+        random_n_cut_points(&mut get_rng(random_seed()), 3, 4);
     }
 
     proptest! {
@@ -110,7 +107,7 @@ mod random_n_cut_points {
         fn in_random_n_cut_points_cutpoints_are_ordered_ascending(
             (n, length) in (1usize..9_999 / 2).prop_flat_map(|n| (Just(n), (2 * n..9_999))),
         ) {
-            let cutpoints = random_n_cut_points(&mut thread_rng(), n, length);
+            let cutpoints = random_n_cut_points(&mut get_rng(random_seed()), n, length);
 
             for i in 0..cutpoints.len() - 1 {
                 if cutpoints[i] == cutpoints[i + 1] {
