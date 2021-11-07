@@ -122,13 +122,22 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-genevo = "0.6"
+genevo = "0.7"
 ```
 
-If you are not using Rust 2018 edition add this to your crate root:
+## Crate Features
 
-```rust
-extern crate genevo;
+`genevo` provides additional data types to be used as genotypes throw optional crate features:
+
+* `fixedbitset`: provides `Fixedbitset` to be used as genotype
+* `Smallvec`: provides `Smallvec` to be used as genotype
+
+since version 0.7.0 `genevo` supports wasm targets. To use `genevo` for target
+`wasm32-unknown-unknown` enable the crate feature `wasm-bindgen`.
+
+```toml
+[dependencies]
+genevo = { version = "0.7", features = ["wasm-bindgen"] }
 ```
 
 ## References
