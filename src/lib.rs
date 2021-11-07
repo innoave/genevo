@@ -80,7 +80,7 @@
 //!   searches for solutions of the
 //!   [N Queens Problem](https://en.wikipedia.org/wiki/Eight_queens_puzzle)
 
-#![doc(html_root_url = "https://docs.rs/genevo/0.5.0")]
+#![doc(html_root_url = "https://docs.rs/genevo/0.6.0")]
 #![warn(
     bare_trait_objects,
     missing_copy_implementations,

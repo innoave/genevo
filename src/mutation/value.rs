@@ -197,7 +197,7 @@ macro_rules! impl_random_value_mutation {
                 fn random_mutated<R>(_: $t, min_value: &$t, max_value: &$t, rng: &mut R) -> $t
                     where R: Rng + Sized
                 {
-                    rng.gen_range(*min_value, *max_value)
+                    rng.gen_range(*min_value..*max_value)
                 }
             }
         )*

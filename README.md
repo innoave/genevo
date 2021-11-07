@@ -122,7 +122,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-genevo = "0.5"
+genevo = "0.6"
 ```
 
 If you are not using Rust 2018 edition add this to your crate root:

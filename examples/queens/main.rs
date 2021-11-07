@@ -101,7 +101,7 @@ impl RandomValueMutation for Pos {
     {
         Pos {
             x: value.x,
-            y: rng.gen_range(min_value.y, max_value.y),
+            y: rng.gen_range(min_value.y..max_value.y),
         }
     }
 }
@@ -117,7 +117,7 @@ impl GenomeBuilder<Positions> for QueensPositions {
         (0..NUM_ROWS)
             .map(|row| Pos {
                 x: row,
-                y: rng.gen_range(0, NUM_COLS),
+                y: rng.gen_range(0..NUM_COLS),
             })
             .collect()
     }
@@ -179,7 +179,7 @@ fn main() {
                 for row in best_solution.solution.genome.as_board() {
                     println!("      {:?}", row);
                 }
-            },
+            }
             Ok(SimResult::Final(step, processing_time, duration, stop_reason)) => {
                 let best_solution = step.result.best_solution;
                 println!("{}", stop_reason);
@@ -196,11 +196,11 @@ fn main() {
                     println!("      {:?}", row);
                 }
                 break;
-            },
+            }
             Err(error) => {
                 println!("{}", error);
                 break;
-            },
+            }
         }
     }
 }

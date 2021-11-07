@@ -4,7 +4,23 @@ All user visible changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/), as described
 for Rust libraries in [RFC #1105](https://github.com/rust-lang/rfcs/blob/master/text/1105-api-evolution.md)
 
-## 0.5.0 : <unreleased>
+## 0.6.0 : 2021-11-07
+
+* bump `fixedbitset` optional dependency to version 0.4
+* bump `rand` crate dependency to version 0.8
+* bump `rand_xoshiro` crate dependency to version 0.6
+* bump `proptest` crate dependency to version 1
+
+### Fixed issues:
+
+* fix index out of bounds exception in `OrderOneCrossover` and `PartiallyMappedCrossover` operations.
+* fix typos in docs.
+
+### Internal:
+
+* replace deprecated method with new one in Criterion benchmark tests
+
+## 0.5.0 : 2019-11-10
 
 * bump `rand` crate dependency to version 0.7
 * bump `rand_xoshiro` crate dependency to version 0.3

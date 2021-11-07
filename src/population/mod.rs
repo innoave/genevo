@@ -80,7 +80,7 @@
 //!         (0..8).map(|row|
 //!             Pos {
 //!                 x: row,
-//!                 y: rng.gen_range(0, 8)
+//!                 y: rng.gen_range(0..8)
 //!             }
 //!         ).collect()
 //!     }
@@ -346,7 +346,7 @@ where
         R: Rng + Sized,
     {
         (0..self.genome_length)
-            .map(|_| rng.gen_range(self.min_value.clone(), self.max_value.clone()))
+            .map(|_| rng.gen_range(self.min_value.clone()..self.max_value.clone()))
             .collect()
     }
 }
@@ -400,7 +400,7 @@ mod smallvec_genome_builder {
             R: Rng + Sized,
         {
             (0..self.genome_length)
-                .map(|_| rng.gen_range(self.min_value.clone(), self.max_value.clone()))
+                .map(|_| rng.gen_range(self.min_value.clone()..self.max_value.clone()))
                 .collect()
         }
     }
