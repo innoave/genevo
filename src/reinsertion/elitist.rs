@@ -10,11 +10,11 @@ use crate::{
 };
 use std::marker::PhantomData;
 
-/// The `ElitistReinserter` combines the best individuals from the offspring.
-/// and the old population. When there are more individuals in the offspring
-/// than necessary either because the offspring is larger than the population
-/// size or a replace ratio smaller then 1.0 is specified only those
-/// individuals with the best fitness are taken over into the new population.
+/// The `ElitistReinserter` combines the best individuals from the offspring and
+/// the old population. When there are more individuals in the offspring than
+/// necessary, either because the offspring is larger than the population size
+/// or a replace ratio smaller then 1.0 is specified, only those individuals
+/// with the best fitness are taken over into the new population.
 ///
 /// The reinserter can be configured by the `replace_ratio` field. The
 /// replace ratio is the fraction of the population size that is replaced by
@@ -22,7 +22,7 @@ use std::marker::PhantomData;
 /// individuals from the old population.
 ///
 /// A replace ratio of 1.0 means that the new population is fist filled with
-/// individuals from the offspring. if the offspring does not contain enough
+/// individuals from the offspring. If the offspring does not contain enough
 /// individuals then the new population is filled up with individuals from the
 /// old population. If the offspring contains more individuals than the size of
 /// the population then the individuals are chosen uniformly at random.
