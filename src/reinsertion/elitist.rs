@@ -166,7 +166,6 @@ where
                 new_population.append(offspring);
             }
             // finally fill up new population with individuals from old population
-            //
             let num_old_population = population_size - new_population.len();
             for index_old in old_population_indices.iter().take(num_old_population) {
                 // pick only the best individuals from old population
