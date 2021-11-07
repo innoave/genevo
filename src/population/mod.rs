@@ -102,6 +102,7 @@ use crate::{
     random::{get_rng, random_seed, Prng, Rng, Seed},
 };
 use rand::distributions::uniform::SampleUniform;
+#[cfg(not(target_arch = "wasm32"))]
 use rayon;
 use std::{fmt::Debug, marker::PhantomData};
 
@@ -148,6 +149,7 @@ where
 #[derive(Clone, Debug, PartialEq)]
 pub struct PopulationBuilder;
 
+#[cfg(not(target_arch = "wasm32"))]
 impl PopulationBuilder {
     fn build_population<B, G>(genome_builder: &B, size: usize, mut rng: Prng) -> Population<G>
     where
@@ -175,6 +177,21 @@ impl PopulationBuilder {
             let mut individuals = left_population.individuals;
             individuals.append(&mut right_individuals);
             Population { individuals }
+        }
+    }
+}
+
+#[cfg(target_arch = "wasm32")]
+impl PopulationBuilder {
+    fn build_population<B, G>(genome_builder: &B, size: usize, mut rng: Prng) -> Population<G>
+    where
+        B: GenomeBuilder<G>,
+        G: Genotype,
+    {
+        Population {
+            individuals: (0..size)
+                .map(|index| genome_builder.build_genome(index, &mut rng))
+                .collect(),
         }
     }
 }

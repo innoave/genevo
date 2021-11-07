@@ -27,9 +27,11 @@ wasm-bindgen = ["wasm-bindgen_", "chrono/wasmbind"]
 chrono = "0.4"
 rand = { version = "0.8", default-features = false, features = ["getrandom"] }
 rand_xoshiro = "0.6"
-rayon = "1"
 fixedbitset = { version = "0.4", optional = true }
 smallvec = { version = "1", optional = true }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+rayon = "1"
 
 [target.'cfg(all(target_arch = "wasm32", not(any(target_os = "emscripten", target_os = "wasi"))))'.dependencies]
 wasm-bindgen_ = { version = "0.2", package = "wasm-bindgen", optional = true }

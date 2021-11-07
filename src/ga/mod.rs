@@ -35,6 +35,7 @@ use crate::{
     statistic::{timed, ProcessingTime, TimedResult, TrackProcessingTime},
 };
 use chrono::Local;
+#[cfg(not(target_arch = "wasm32"))]
 use rayon;
 use std::{
     fmt::{self, Display},
@@ -256,6 +257,7 @@ where
 
 /// Calculates the `genetic::Fitness` value of each `genetic::Genotype` and
 /// records the highest and lowest values.
+#[cfg(not(target_arch = "wasm32"))]
 fn par_evaluate_fitness<G, F, E>(population: &[G], evaluator: &E) -> TimedResult<(Vec<F>, F, F)>
 where
     G: Genotype + Sync,
@@ -307,6 +309,32 @@ where
     }
 }
 
+#[cfg(target_arch = "wasm32")]
+fn par_evaluate_fitness<G, F, E>(population: &[G], evaluator: &E) -> TimedResult<(Vec<F>, F, F)>
+where
+    G: Genotype + Sync,
+    F: Fitness + Send + Sync,
+    E: FitnessFunction<G, F> + Sync,
+{
+    timed(|| {
+        let mut fitness = Vec::with_capacity(population.len());
+        let mut highest = evaluator.lowest_possible_fitness();
+        let mut lowest = evaluator.highest_possible_fitness();
+        for genome in population.iter() {
+            let score = evaluator.fitness_of(genome);
+            if score > highest {
+                highest = score.clone();
+            }
+            if score < lowest {
+                lowest = score.clone();
+            }
+            fitness.push(score);
+        }
+        (fitness, highest, lowest)
+    })
+    .run()
+}
+
 /// Determines the best solution of the current population
 fn determine_best_solution<G, F>(
     generation: u64,
@@ -336,6 +364,7 @@ where
 
 /// Lets the parents breed their offspring and mutate its children. And
 /// finally combines the offspring of all parents into one big offspring.
+#[cfg(not(target_arch = "wasm32"))]
 fn par_breed_offspring<G, C, M>(
     parents: Vec<Parents<G>>,
     breeder: &C,
@@ -381,4 +410,30 @@ where
             time: left.time + right.time,
         }
     }
+}
+
+#[cfg(target_arch = "wasm32")]
+fn par_breed_offspring<G, C, M>(
+    parents: Vec<Parents<G>>,
+    breeder: &C,
+    mutator: &M,
+    rng: &mut Prng,
+) -> TimedResult<Offspring<G>>
+where
+    G: Genotype + Send,
+    C: CrossoverOp<G> + Sync,
+    M: MutationOp<G> + Sync,
+{
+    timed(|| {
+        let mut offspring: Offspring<G> = Vec::with_capacity(parents.len() * parents[0].len());
+        for parents in parents {
+            let children = breeder.crossover(parents, rng);
+            for child in children {
+                let mutated = mutator.mutate(child, rng);
+                offspring.push(mutated);
+            }
+        }
+        offspring
+    })
+    .run()
 }

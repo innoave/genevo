@@ -133,7 +133,8 @@ genevo = "0.7"
 * `Smallvec`: provides `Smallvec` to be used as genotype
 
 since version 0.7.0 `genevo` supports wasm targets. To use `genevo` for target
-`wasm32-unknown-unknown` enable the crate feature `wasm-bindgen`.
+`wasm32-unknown-unknown` enable the crate feature `wasm-bindgen`. Note: on wasm32 targets
+multithreading (implemented using `rayon`) is disabled!
 
 ```toml
 [dependencies]
