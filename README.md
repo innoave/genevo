@@ -127,7 +127,7 @@ genevo = "0.7"
 
 ## Crate Features
 
-`genevo` provides additional data types to be used as genotypes throw optional crate features:
+`genevo` provides additional data types to be used as genotypes through optional crate features:
 
 * `fixedbitset`: provides `Fixedbitset` to be used as genotype
 * `Smallvec`: provides `Smallvec` to be used as genotype
