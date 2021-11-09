@@ -15,7 +15,7 @@ documentation = "https://docs.rs/genevo"
 #homepage = "https://innoave.github.io/genevo"
 readme = "README.md"
 
-edition = "2018"
+edition = "2021"
 
 [package.metadata.docs.rs]
 all-features = true
@@ -35,7 +35,7 @@ rayon = "1"
 
 [target.'cfg(all(target_arch = "wasm32", not(any(target_os = "emscripten", target_os = "wasi"))))'.dependencies]
 wasm-bindgen_ = { version = "0.2", package = "wasm-bindgen", optional = true }
-getrandom = { version = "0.2", features = ["js"] }
+getrandom = { version = "0.2", features = ["js", "wasm-bindgen"] }
 
 [dev-dependencies]
 criterion = "0.3"
