@@ -4,6 +4,12 @@ All user visible changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/), as described
 for Rust libraries in [RFC #1105](https://github.com/rust-lang/rfcs/blob/master/text/1105-api-evolution.md)
 
+## 0.7.1 : 2022-03-13
+
+### Fixed Issues:
+
+* fix issue #23 Future compile error on Rust beta 1.60 in types/tests.rs
+
 ## 0.7.0 : 2021-11-07
 
 * add support for wasm32 targets
