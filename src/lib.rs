@@ -37,7 +37,7 @@
 //! The simulation runs until the termination criteria are met. The termination
 //! criteria can be a single one such as max number of iterations or a logical
 //! combination of multiple termination criteria, e.g. max number of iterations
-//! OR a minimum fitness value has been reached. Of coarse `Termination` is a
+//! OR a minimum fitness value has been reached. Of course `Termination` is a
 //! trait as well and one can implement any termination criteria he/she can think
 //! of.
 //!
