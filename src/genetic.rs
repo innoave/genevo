@@ -102,7 +102,7 @@ pub trait AsScalar {
 
 /// Defines the evaluation function to calculate the `Fitness` value of a
 /// `Genotype` based on its properties.
-pub trait FitnessFunction<G, F>: Clone
+pub trait FitnessFunction<G, F>
 where
     G: Genotype,
     F: Fitness,

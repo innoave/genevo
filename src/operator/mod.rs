@@ -31,7 +31,7 @@ pub trait MultiObjective {}
 /// There are unary operators that operate on one genotype at a time, e.g.
 /// mutation operators, and binary operators that work on two genotypes
 /// at a time, e.g. crossover operators.
-pub trait GeneticOperator: Clone {
+pub trait GeneticOperator {
     /// The name of the operator used for display purposes. The name should
     /// make clear to the user of the simulation which implementation of which
     /// kind of operator is being performed.

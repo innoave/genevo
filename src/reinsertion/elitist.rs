@@ -21,12 +21,12 @@ use std::marker::PhantomData;
 /// individuals from the offspring. The remaining spots are filled with
 /// individuals from the old population.
 ///
-/// A replace ratio of 1.0 means that the new population is fist filled with
+/// A replace ratio of 1.0 means that the new population is first filled with
 /// individuals from the offspring. If the offspring does not contain enough
 /// individuals then the new population is filled up with individuals from the
 /// old population. If the offspring contains more individuals than the size of
 /// the population then the individuals are chosen uniformly at random.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub struct ElitistReinserter<G, F, E>
 where
     G: Genotype,
